@@ -19,6 +19,7 @@ template<typename T, template<typename> class Pointer>
 class BasicStream {
 
 public:
+
     template<typename Generator>
     static BasicStream<T, Pointer> generate(Generator&& generator);
 
@@ -43,7 +44,10 @@ public:
     template<typename Iterator>
     BasicStream<T, Pointer> extend(Iterator begin, Iterator end);
 
-    BasicStream<T, Pointer> extend(BasicStream<T, Pointer>&& stream);
+    BasicStream<T, Pointer> extend(BasicStream<T, Pointer>&& other);
+
+    template<typename O, typename R = typename ZipResult<T, O>::Type>
+    BasicStream<R, Pointer> zip(BasicStream<O, Pointer>&& other);
 
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
@@ -51,6 +55,8 @@ public:
     bool occupied() const {
         return source_;
     }
+
+    template<typename X, template<typename> class P> friend class BasicStream;
 
 private:
     BasicStream(StreamProviderPtr<T, Pointer> source)
@@ -129,12 +135,23 @@ BasicStream<T, P> BasicStream<T, P>::extend(Iterator begin, Iterator end) {
 }
 
 template<typename T, template<typename> class P>
-BasicStream<T, P> BasicStream<T, P>::extend(BasicStream<T, P>&& stream) {
+BasicStream<T, P> BasicStream<T, P>::extend(BasicStream<T, P>&& other) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new ConcatenatedStreamProvider<T, P>(
-            std::move(source_), std::move(stream.source_)));
+            std::move(source_), std::move(other.source_)));
     return BasicStream<T, P>(std::move(new_source));
+
+}
+
+template<typename T, template<typename> class P>
+template<typename O, typename R>
+BasicStream<R, P> BasicStream<T, P>::zip(BasicStream<O, P>&& other) {
+
+    auto new_source = StreamProviderPtr<R, P>(
+        new ZippedStreamProvider<T, O, P>(
+            std::move(source_), std::move(other.source_)));
+    return BasicStream<R, P>(std::move(new_source));
 
 }
 

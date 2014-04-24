@@ -11,5 +11,6 @@
 #include "MappedStreamProvider.h"
 #include "PeekStreamProvider.h"
 #include "SkippedStreamProvider.h"
+#include "ZippedStreamProvider.h"
 
 #endif
