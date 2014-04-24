@@ -26,8 +26,12 @@ public:
     template<typename Predicate>
     BasicStream<T, Pointer> filter(Predicate&& predicate);
 
+    template<typename Action>
+    BasicStream<T, Pointer> peek(Action&& action);
+
     template<typename Transform, typename R = ReturnType<Transform, T>>
     BasicStream<R, Pointer> map(Transform&& transform);
+
 
     BasicStream<T, Pointer> limit(std::size_t length);
 
@@ -49,7 +53,17 @@ BasicStream<T, P> BasicStream<T, P>::filter(Predicate&& predicate) {
     auto new_source = StreamProviderPtr<T, P>(
         new FilteredStreamProvider<T, P, Predicate>(
             std::move(source_), std::forward<Predicate>(predicate)));
+    return BasicStream<T, P>(std::move(new_source));
 
+}
+
+template<typename T, template<typename> class P>
+template<typename Action>
+BasicStream<T, P> BasicStream<T, P>::peek(Action&& action) {
+
+    auto new_source = StreamProviderPtr<T, P>(
+        new PeekStreamProvider<T, P, Action>(
+            std::move(source_), std::forward<Action>(action)));
     return BasicStream<T, P>(std::move(new_source));
 
 }
@@ -61,7 +75,6 @@ BasicStream<R, P> BasicStream<T, P>::map(Transform&& transform) {
     auto new_source = StreamProviderPtr<T, P>(
         new MappedStreamProvider<R, P, Transform>(
             std::move(source_), std::forward<Transform>(transform)));
-
     return BasicStream<T, P>(std::move(new_source));
 
 }
@@ -71,7 +84,6 @@ BasicStream<T, P> BasicStream<T, P>::limit(std::size_t length) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new LimitedStreamProvider<T, P>(std::move(source_), length));
-
     return BasicStream<T, P>(std::move(new_source));
 
 }

@@ -7,5 +7,6 @@
 #include "IteratorStreamProvider.h"
 #include "LimitedStreamProvider.h"
 #include "MappedStreamProvider.h"
+#include "PeekStreamProvider.h"
 
 #endif
