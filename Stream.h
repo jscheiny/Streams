@@ -20,7 +20,7 @@ class BasicStream {
 
 public:
     template<typename Generator>
-    static BasicStream<T, Pointer> Generate(Generator&& generator);
+    static BasicStream<T, Pointer> generate(Generator&& generator);
 
     template<typename Iterator>
     BasicStream(Iterator begin, Iterator end)
@@ -28,19 +28,20 @@ public:
             begin, end)) {}
 
     template<typename Predicate>
-    BasicStream<T, Pointer> Filter(Predicate&& predicate);
+    BasicStream<T, Pointer> filter(Predicate&& predicate);
 
     template<typename Action>
-    BasicStream<T, Pointer> Peek(Action&& action);
+    BasicStream<T, Pointer> peek(Action&& action);
 
     template<typename Transform, typename R = ReturnType<Transform, T>>
-    BasicStream<R, Pointer> Map(Transform&& transform);
+    BasicStream<R, Pointer> map(Transform&& transform);
 
+    BasicStream<T, Pointer> limit(std::size_t length);
 
-    BasicStream<T, Pointer> Limit(std::size_t length);
+    BasicStream<T, Pointer> skip(std::size_t amount);
 
     template<typename OutputIterator>
-    void CopyTo(OutputIterator out);
+    void copy_to(OutputIterator out);
 
 private:
     BasicStream(StreamProviderPtr<T, Pointer> source)
@@ -52,7 +53,7 @@ private:
 
 template<typename T, template<typename> class P>
 template<typename Generator>
-BasicStream<T, P> BasicStream<T, P>::Generate(Generator&& generator) {
+BasicStream<T, P> BasicStream<T, P>::generate(Generator&& generator) {
 
     auto source = StreamProviderPtr<T, P>(
         new GeneratedStreamProvider<T, P, Generator>(
@@ -63,7 +64,7 @@ BasicStream<T, P> BasicStream<T, P>::Generate(Generator&& generator) {
 
 template<typename T, template<typename> class P>
 template<typename Predicate>
-BasicStream<T, P> BasicStream<T, P>::Filter(Predicate&& predicate) {
+BasicStream<T, P> BasicStream<T, P>::filter(Predicate&& predicate) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new FilteredStreamProvider<T, P, Predicate>(
@@ -74,7 +75,7 @@ BasicStream<T, P> BasicStream<T, P>::Filter(Predicate&& predicate) {
 
 template<typename T, template<typename> class P>
 template<typename Action>
-BasicStream<T, P> BasicStream<T, P>::Peek(Action&& action) {
+BasicStream<T, P> BasicStream<T, P>::peek(Action&& action) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new PeekStreamProvider<T, P, Action>(
@@ -85,7 +86,7 @@ BasicStream<T, P> BasicStream<T, P>::Peek(Action&& action) {
 
 template<typename T, template<typename> class P>
 template<typename Transform, typename R>
-BasicStream<R, P> BasicStream<T, P>::Map(Transform&& transform) {
+BasicStream<R, P> BasicStream<T, P>::map(Transform&& transform) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new MappedStreamProvider<R, P, Transform>(
@@ -95,7 +96,7 @@ BasicStream<R, P> BasicStream<T, P>::Map(Transform&& transform) {
 }
 
 template<typename T, template<typename> class P>
-BasicStream<T, P> BasicStream<T, P>::Limit(std::size_t length) {
+BasicStream<T, P> BasicStream<T, P>::limit(std::size_t length) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new LimitedStreamProvider<T, P>(std::move(source_), length));
@@ -104,8 +105,17 @@ BasicStream<T, P> BasicStream<T, P>::Limit(std::size_t length) {
 }
 
 template<typename T, template<typename> class P>
+BasicStream<T, P> BasicStream<T, P>::skip(std::size_t amount) {
+
+    auto new_source = StreamProviderPtr<T, P>(
+        new SkippedStreamProvider<T, P>(std::move(source_), amount));
+    return BasicStream<T, P>(std::move(new_source));
+
+}
+
+template<typename T, template<typename> class P>
 template<typename OutputIterator>
-void BasicStream<T, P>::CopyTo(OutputIterator out) {
+void BasicStream<T, P>::copy_to(OutputIterator out) {
     while(source_->HasNext()) {
         *out = *source_->Next();
         out++;

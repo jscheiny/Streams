@@ -9,5 +9,6 @@
 #include "LimitedStreamProvider.h"
 #include "MappedStreamProvider.h"
 #include "PeekStreamProvider.h"
+#include "SkippedStreamProvider.h"
 
 #endif
