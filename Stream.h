@@ -2,8 +2,17 @@
 #define STREAM_H
 
 #include "Providers.h"
+#include "Utility.h"
 
 #include <functional>
+
+template<typename T, template<typename> class P> class BasicStream;
+
+template<typename T> using UniquePtr = std::unique_ptr<T>;
+template<typename T> using SharedPtr = std::shared_ptr<T>;
+template<typename T> using UniqueStream = BasicStream<T, UniquePtr>;
+template<typename T> using SharedStream = BasicStream<T, SharedPtr>;
+template<typename T> using Stream = UniqueStream<T>;
 
 template<typename T, template<typename> class Pointer>
 class BasicStream {
@@ -15,34 +24,15 @@ public:
             begin, end)) {}
 
     template<typename Predicate>
-    BasicStream<T, Pointer> filter(Predicate&& predicate) {
-        auto new_source = std::unique_ptr<StreamProvider<T, Pointer>>(
-            new FilteredStreamProvider<T, Pointer, Predicate>(
-                std::move(source_), std::forward<Predicate>(predicate)));
-        return BasicStream<T, Pointer>(std::move(new_source));
-    }
+    BasicStream<T, Pointer> filter(Predicate&& predicate);
 
-    template<typename Transform, typename R = decltype(std::declval<Transform>()(std::declval<T>()))>
-    BasicStream<R, Pointer> map(Transform&& transform) {
-        auto new_source = std::unique_ptr<StreamProvider<R, Pointer>>(
-            new MappedStreamProvider<R, Pointer, Transform>(
-                std::move(source_), std::forward<Transform>(transform)));
-        return BasicStream<T, Pointer>(std::move(new_source));
-    }
+    template<typename Transform, typename R = ReturnType<Transform, T>>
+    BasicStream<R, Pointer> map(Transform&& transform);
 
-    BasicStream<T, Pointer> limit(std::size_t length) {
-        auto new_source = std::unique_ptr<StreamProvider<T, Pointer>>(
-            new LimitedStreamProvider<T, Pointer>(std::move(source_), length));
-        return BasicStream<T, Pointer>(std::move(new_source));
-    }
+    BasicStream<T, Pointer> limit(std::size_t length);
 
     template<typename OutputIterator>
-    void copy_to(OutputIterator out) {
-        while(source_->HasNext()) {
-            *out = *source_->Next();
-            out++;
-        }
-    }
+    void copy_to(OutputIterator out);
 
 private:
     BasicStream(StreamProviderPtr<T, Pointer> source)
@@ -52,13 +42,47 @@ private:
 
 };
 
-template<typename T> using UniquePtr = std::unique_ptr<T>;
-template<typename T> using SharedPtr = std::shared_ptr<T>;
+template<typename T, template<typename> class P>
+template<typename Predicate>
+BasicStream<T, P> BasicStream<T, P>::filter(Predicate&& predicate) {
 
-template<typename T> using UniqueStream = BasicStream<T, UniquePtr>;
-template<typename T> using SharedStream = BasicStream<T, SharedPtr>;
+    auto new_source = StreamProviderPtr<T, P>(
+        new FilteredStreamProvider<T, P, Predicate>(
+            std::move(source_), std::forward<Predicate>(predicate)));
 
-template<typename T> using Stream = UniqueStream<T>;
+    return BasicStream<T, P>(std::move(new_source));
 
+}
+
+template<typename T, template<typename> class P>
+template<typename Transform, typename R>
+BasicStream<R, P> BasicStream<T, P>::map(Transform&& transform) {
+
+    auto new_source = StreamProviderPtr<T, P>(
+        new MappedStreamProvider<R, P, Transform>(
+            std::move(source_), std::forward<Transform>(transform)));
+
+    return BasicStream<T, P>(std::move(new_source));
+
+}
+
+template<typename T, template<typename> class P>
+BasicStream<T, P> BasicStream<T, P>::limit(std::size_t length) {
+
+    auto new_source = StreamProviderPtr<T, P>(
+        new LimitedStreamProvider<T, P>(std::move(source_), length));
+
+    return BasicStream<T, P>(std::move(new_source));
+
+}
+
+template<typename T, template<typename> class P>
+template<typename OutputIterator>
+void BasicStream<T, P>::copy_to(OutputIterator out) {
+    while(source_->HasNext()) {
+        *out = *source_->Next();
+        out++;
+    }
+}
 
 #endif

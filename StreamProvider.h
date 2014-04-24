@@ -3,11 +3,6 @@
 
 #include <memory>
 
-template<typename T>
-std::unique_ptr<T> move_unique(T&& t) {
-    return std::make_unique<T>(t);
-}
-
 template<typename T, template<typename> class Pointer = std::unique_ptr>
 struct StreamProvider {
     virtual Pointer<T> Next() = 0;
@@ -16,5 +11,7 @@ struct StreamProvider {
 
 template<typename T, template<typename> class P>
 using StreamProviderPtr = std::unique_ptr<StreamProvider<T, P>>;
+
+
 
 #endif

@@ -3,6 +3,8 @@
 
 #include "StreamProvider.h"
 
+#include "Utility.h"
+
 template<typename T, template<typename> class Pointer, typename Transform>
 class MappedStreamProvider : public StreamProvider<T, Pointer> {
 
