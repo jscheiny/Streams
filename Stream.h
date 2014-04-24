@@ -40,8 +40,17 @@ public:
 
     BasicStream<T, Pointer> skip(std::size_t amount);
 
+    template<typename Iterator>
+    BasicStream<T, Pointer> extend(Iterator begin, Iterator end);
+
+    BasicStream<T, Pointer> extend(BasicStream<T, Pointer>&& stream);
+
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
+
+    bool occupied() const {
+        return source_;
+    }
 
 private:
     BasicStream(StreamProviderPtr<T, Pointer> source)
@@ -109,6 +118,22 @@ BasicStream<T, P> BasicStream<T, P>::skip(std::size_t amount) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new SkippedStreamProvider<T, P>(std::move(source_), amount));
+    return BasicStream<T, P>(std::move(new_source));
+
+}
+
+template<typename T, template<typename> class P>
+template<typename Iterator>
+BasicStream<T, P> BasicStream<T, P>::extend(Iterator begin, Iterator end) {
+    return extend(BasicStream<T, P>(begin, end));
+}
+
+template<typename T, template<typename> class P>
+BasicStream<T, P> BasicStream<T, P>::extend(BasicStream<T, P>&& stream) {
+
+    auto new_source = StreamProviderPtr<T, P>(
+        new ConcatenatedStreamProvider<T, P>(
+            std::move(source_), std::move(stream.source_)));
     return BasicStream<T, P>(std::move(new_source));
 
 }

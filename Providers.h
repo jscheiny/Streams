@@ -3,6 +3,7 @@
 
 #include "StreamProvider.h"
 
+#include "ConcatenatedStreamProvider.h"
 #include "GeneratedStreamProvider.h"
 #include "FilteredStreamProvider.h"
 #include "IteratorStreamProvider.h"
