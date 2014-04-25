@@ -10,17 +10,21 @@ public:
     IteratorStreamProvider(Iterator begin, Iterator end)
         : current_(begin), end_(end) {}
 
-    Pointer<T> Next() override {
-        auto value = std::make_unique<T>(std::move(*current_));
-        current_++;
-        return value;
+    Pointer<T> get() override {
+        return std::make_unique<T>(std::move(*current_));
     }
 
-    bool HasNext() override {
+    bool advance() override {
+        if(first_) {
+            first_ = false;
+            return current_ != end_;
+        }
+        ++current_;
         return current_ != end_;
     }
 
 private:
+    bool first_ = true;
     Iterator current_;
     Iterator end_;
 

@@ -8,14 +8,14 @@ public:
     PeekStreamProvider(StreamProviderPtr<T, Pointer> source, Action&& action)
         : source_(std::move(source)), action_(action) {}
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
-        if(source_->HasNext()) {
-            next_ = source_->Next();
-            action_(*next_);
+    bool advance() override {
+        if(source_->advance()) {
+            current_ = source_->get();
+            action_(*current_);
             return true;
         }
         return false;
@@ -24,7 +24,7 @@ public:
 private:
     StreamProviderPtr<T, Pointer> source_;
     Action action_;
-    Pointer<T> next_;
+    Pointer<T> current_;
 
 };
 

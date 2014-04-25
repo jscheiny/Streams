@@ -10,16 +10,16 @@ public:
     LimitedStreamProvider(StreamProviderPtr<T, Pointer> source, size_t limit)
         : source_(std::move(source)), remaining_(limit) {}
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
+    bool advance() override {
         if(remaining_ == 0) {
             return false;
         }
-        if(source_->HasNext()) {
-            next_ = source_->Next();
+        if(source_->advance()) {
+            current_ = source_->get();
             remaining_--;
             return true;
         }
@@ -28,7 +28,7 @@ public:
 
 private:
     StreamProviderPtr<T, Pointer> source_;
-    Pointer<T> next_;
+    Pointer<T> current_;
     std::size_t remaining_;
 
 };

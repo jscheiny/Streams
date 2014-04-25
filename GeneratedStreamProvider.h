@@ -12,18 +12,18 @@ public:
     GeneratedStreamProvider(Generator&& generator)
         : generator_(generator) {}
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
-        next_ = move_unique(generator_());
+    bool advance() override {
+        current_ = move_unique(generator_());
         return true;
     }
 
 private:
     Generator generator_;
-    Pointer<T> next_;
+    Pointer<T> current_;
 
 };
 

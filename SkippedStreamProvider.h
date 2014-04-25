@@ -10,15 +10,15 @@ public:
     SkippedStreamProvider(StreamProviderPtr<T, Pointer> source, size_t skip)
         : source_(std::move(source)), skip_(skip) {}
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
+    bool advance() override {
         if(skip_ != 0) {
             for(; skip_ != 0; skip_--) {
-                if(source_->HasNext()) {
-                    next_ = source_->Next();
+                if(source_->advance()) {
+                    current_ = source_->get();
                 } else {
                     return false;
                 }
@@ -26,8 +26,8 @@ public:
             return true;
         }
 
-        if(source_->HasNext()) {
-            next_ = source_->Next();
+        if(source_->advance()) {
+            current_ = source_->get();
             return true;
         }
         return false;
@@ -35,7 +35,7 @@ public:
 
 private:
     StreamProviderPtr<T, Pointer> source_;
-    Pointer<T> next_;
+    Pointer<T> current_;
     std::size_t skip_;
 
 };

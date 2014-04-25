@@ -14,23 +14,23 @@ class IteratedStreamProvider : public StreamProvider<T, Pointer> {
 public:
     IteratedStreamProvider(T initial, Function&& function)
         : function_(function),
-          next_(std::make_unique<T>(initial)),
-          next_copy_(*next_) {}
+          current_(std::make_unique<T>(initial)),
+          current_copy_(*current_) {}
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
-        next_ = move_unique(function_(next_copy_));
-        next_copy_ = *next_;
+    bool advance() override {
+        current_ = move_unique(function_(current_copy_));
+        current_copy_ = *current_;
         return true;
     }
 
 private:
     Function function_;
-    Pointer<T> next_;
-    typename std::decay<T>::type next_copy_;
+    Pointer<T> current_;
+    typename std::decay<T>::type current_copy_;
 };
 
 

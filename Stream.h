@@ -233,8 +233,8 @@ BasicStream<R, P> BasicStream<T, P>::zip(BasicStream<O, P>&& other) {
 template<typename T, template<typename> class P>
 template<typename OutputIterator>
 void BasicStream<T, P>::copy_to(OutputIterator out) {
-    while(source_->HasNext()) {
-        *out = *source_->Next();
+    while(source_->advance()) {
+        *out = *source_->get();
         out++;
     }
 }
@@ -243,16 +243,16 @@ void BasicStream<T, P>::copy_to(OutputIterator out) {
 template<typename T, template<typename> class P>
 template<typename Function>
 void BasicStream<T, P>::for_each(Function&& function) {
-    while(source_->HasNext()) {
-        function(*source_->Next());
+    while(source_->advance()) {
+        function(*source_->get());
     }
 }
 
 template<typename T, template<typename> class P>
 size_t BasicStream<T, P>::count() {
     size_t count = 0;
-    while(source_->HasNext()) {
-        source_->Next();
+    while(source_->advance()) {
+        source_->get();
         count++;
     }
     return count;

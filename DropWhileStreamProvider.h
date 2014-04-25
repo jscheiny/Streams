@@ -13,15 +13,15 @@ public:
           predicate_(predicate),
           end_condition_(end) {}
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
+    bool advance() override {
         if(!dropped_) {
-            while(source_->HasNext()) {
-                next_ = source_->Next();
-                if(predicate_(*next_) == end_condition_) {
+            while(source_->advance()) {
+                current_ = source_->get();
+                if(predicate_(*current_) == end_condition_) {
                     dropped_ = true;
                     return true;
                 }
@@ -29,8 +29,8 @@ public:
             dropped_ = true;
             return false;
         }
-        if(source_->HasNext()) {
-            next_ = source_->Next();
+        if(source_->advance()) {
+            current_ = source_->get();
             return true;
         }
         return false;
@@ -40,7 +40,7 @@ private:
     StreamProviderPtr<T, Pointer> source_;
     Predicate predicate_;
     bool end_condition_;
-    Pointer<T> next_;
+    Pointer<T> current_;
     bool dropped_ = false;
 };
 

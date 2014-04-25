@@ -12,14 +12,14 @@ public:
     MappedStreamProvider(StreamProviderPtr<T, Pointer> source, Transform&& transform)
         : source_(std::move(source)), transform_(transform) {}
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
-        if(source_->HasNext()) {
-            auto preimage = source_->Next();
-            next_ = move_unique(transform_(*preimage));
+    bool advance() override {
+        if(source_->advance()) {
+            auto preimage = source_->get();
+            current_ = move_unique(transform_(*preimage));
             return true;
         }
         return false;
@@ -28,7 +28,7 @@ public:
 private:
     StreamProviderPtr<T, Pointer> source_;
     Transform transform_;
-    Pointer<T> next_;
+    Pointer<T> current_;
 
 };
 

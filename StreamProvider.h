@@ -5,8 +5,10 @@
 
 template<typename T, template<typename> class Pointer = std::unique_ptr>
 struct StreamProvider {
-    virtual Pointer<T> Next() = 0;
-    virtual bool HasNext() = 0;
+public:
+    virtual Pointer<T> get() = 0;
+    virtual bool advance() = 0;
+
 };
 
 template<typename T, template<typename> class P>

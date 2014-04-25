@@ -19,15 +19,15 @@ public:
         source_.push_back(std::move(second));
     }
 
-    Pointer<T> Next() override {
-        return std::move(next_);
+    Pointer<T> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
+    bool advance() override {
         while(!source_.empty()) {
             auto& provider = source_.front();
-            if(provider->HasNext()) {
-                next_ = provider->Next();
+            if(provider->advance()) {
+                current_ = provider->get();
                 return true;
             }
             source_.pop_front();
@@ -37,7 +37,7 @@ public:
 
 private:
     std::list<StreamProviderPtr<T, Pointer>> source_;
-    Pointer<T> next_;
+    Pointer<T> current_;
 
 };
 

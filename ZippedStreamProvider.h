@@ -54,14 +54,15 @@ public:
         : left_source_(std::move(left_source)),
           right_source_(std::move(right_source)) {}
 
-    Pointer<Value> Next() override {
-        return std::move(next_);
+    Pointer<Value> get() override {
+        return std::move(current_);
     }
 
-    bool HasNext() override {
-        if(left_source_->HasNext() && right_source_->HasNext()) {
-            next_ = move_unique(Zipper::zip(std::move(*left_source_->Next()),
-                                            std::move(*right_source_->Next())));
+    bool advance() override {
+        if(left_source_->advance() && right_source_->advance()) {
+            current_ = move_unique(Zipper::zip(
+                std::move(*left_source_->get()),
+                std::move(*right_source_->get())));
             return true;
         }
         return false;
@@ -70,7 +71,7 @@ public:
 private:
     StreamProviderPtr<L, Pointer> left_source_;
     StreamProviderPtr<R, Pointer> right_source_;
-    Pointer<Value> next_;
+    Pointer<Value> current_;
 };
 
 #endif
