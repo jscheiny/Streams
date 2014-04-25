@@ -36,9 +36,12 @@ int main(int argc, char const *argv[])
 
     range(1,10)
         .take_until([](int x) { return x > 5; })
-        .copy_to(ostream_iterator<int>(cout, "\n"));
-
-
+        .copy_to(ostream_iterator<int>(cout, " "));
+    cout << endl;
+    range(1,10)
+        .drop_while([](int x) { return x < 3; })
+        .copy_to(ostream_iterator<int>(cout, " "));
+    cout << endl;
 
     return 0;
 }
