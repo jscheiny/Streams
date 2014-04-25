@@ -6,6 +6,9 @@
 
 #include <functional>
 #include <type_traits>
+#include <iterator>
+#include <vector>
+#include <list>
 
 template<typename T, template<typename> class P> class BasicStream;
 
@@ -73,6 +76,10 @@ public:
 
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
+
+    std::vector<T> as_vector();
+
+    std::list<T> as_list();
 
     template<typename Function>
     void for_each(Function&& function);
@@ -267,6 +274,19 @@ void BasicStream<T, P>::copy_to(OutputIterator out) {
     }
 }
 
+template<typename T, template<typename> class P>
+std::vector<T> BasicStream<T,P>::as_vector() {
+    std::vector<T> result;
+    copy_to(back_inserter(result));
+    return result;
+}
+
+template<typename T, template<typename> class P>
+std::list<T> BasicStream<T,P>::as_list() {
+    std::list<T> result;
+    copy_to(back_inserter(result));
+    return result;
+}
 
 template<typename T, template<typename> class P>
 template<typename Function>
