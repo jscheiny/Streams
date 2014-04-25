@@ -63,6 +63,8 @@ public:
     template<typename O, typename R = typename ZipResult<T, O>::Type>
     BasicStream<R, Pointer> zip(BasicStream<O, Pointer>&& other);
 
+    size_t count();
+
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
 
@@ -245,5 +247,16 @@ void BasicStream<T, P>::for_each(Function&& function) {
         function(*source_->Next());
     }
 }
+
+template<typename T, template<typename> class P>
+size_t BasicStream<T, P>::count() {
+    size_t count = 0;
+    while(source_->HasNext()) {
+        source_->Next();
+        count++;
+    }
+    return count;
+}
+
 
 #endif
