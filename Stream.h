@@ -51,8 +51,8 @@ public:
     template<typename Action>
     BasicStream<T, Pointer> peek(Action&& action);
 
-    template<typename Transform, typename R = ReturnType<Transform, T>>
-    BasicStream<R, Pointer> map(Transform&& transform);
+    template<typename Transform>
+    BasicStream<ReturnType<Transform, T>, Pointer> map(Transform&& transform);
 
     BasicStream<T, Pointer> limit(std::size_t length);
 
@@ -69,8 +69,9 @@ public:
 
     BasicStream<T, Pointer> extend(BasicStream<T, Pointer>&& other);
 
-    template<typename O, typename R = typename ZipResult<T, O>::Type>
-    BasicStream<R, Pointer> zip(BasicStream<O, Pointer>&& other);
+    template<typename Other>
+    BasicStream<ZipResult<T, Other>, Pointer>
+    zip(BasicStream<Other, Pointer>&& other);
 
     size_t count();
 
@@ -188,13 +189,15 @@ BasicStream<T, P> BasicStream<T, P>::peek(Action&& action) {
 }
 
 template<typename T, template<typename> class P>
-template<typename Transform, typename R>
-BasicStream<R, P> BasicStream<T, P>::map(Transform&& transform) {
+template<typename Transform>
+BasicStream<ReturnType<Transform, T>, P> BasicStream<T, P>::map(
+            Transform&& transform) {
 
-    auto new_source = StreamProviderPtr<T, P>(
-        new MappedStreamProvider<R, P, Transform>(
+    using Result = ReturnType<Transform, T>;
+    auto new_source = StreamProviderPtr<Result, P>(
+        new MappedStreamProvider<Result, P, Transform>(
             std::move(source_), std::forward<Transform>(transform)));
-    return BasicStream<T, P>(std::move(new_source));
+    return BasicStream<Result, P>(std::move(new_source));
 
 }
 
@@ -255,13 +258,15 @@ BasicStream<T, P> BasicStream<T, P>::extend(BasicStream<T, P>&& other) {
 }
 
 template<typename T, template<typename> class P>
-template<typename O, typename R>
-BasicStream<R, P> BasicStream<T, P>::zip(BasicStream<O, P>&& other) {
+template<typename Other>
+BasicStream<ZipResult<T, Other>, P> BasicStream<T, P>::zip(
+            BasicStream<Other, P>&& other) {
 
-    auto new_source = StreamProviderPtr<R, P>(
-        new ZippedStreamProvider<T, O, P>(
+    using Result = ZipResult<T, Other>;
+    auto new_source = StreamProviderPtr<Result, P>(
+        new ZippedStreamProvider<T, Other, P>(
             std::move(source_), std::move(other.source_)));
-    return BasicStream<R, P>(std::move(new_source));
+    return BasicStream<Result, P>(std::move(new_source));
 
 }
 
