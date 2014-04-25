@@ -69,9 +69,9 @@ public:
     adjacent_difference(Subtract&& subtract = Subtract());
 
     template<typename Iterator>
-    BasicStream<T, Pointer> extend(Iterator begin, Iterator end);
+    BasicStream<T, Pointer> concat(Iterator begin, Iterator end);
 
-    BasicStream<T, Pointer> extend(BasicStream<T, Pointer>&& other);
+    BasicStream<T, Pointer> concat(BasicStream<T, Pointer>&& other);
 
     template<typename Other>
     BasicStream<ZipResult<T, Other>, Pointer>
@@ -212,12 +212,12 @@ BasicStream<T, P> BasicStream<T, P>::distinct(Compare&& comparator) {
 
 template<typename T, template<typename> class P>
 template<typename Iterator>
-BasicStream<T, P> BasicStream<T, P>::extend(Iterator begin, Iterator end) {
-    return extend(BasicStream<T, P>(begin, end));
+BasicStream<T, P> BasicStream<T, P>::concat(Iterator begin, Iterator end) {
+    return concat(BasicStream<T, P>(begin, end));
 }
 
 template<typename T, template<typename> class P>
-BasicStream<T, P> BasicStream<T, P>::extend(BasicStream<T, P>&& other) {
+BasicStream<T, P> BasicStream<T, P>::concat(BasicStream<T, P>&& other) {
 
     return make_stream_provider <ConcatenatedStreamProvider, T, P>
         (std::move(source_), std::move(other.source_));
