@@ -13,6 +13,7 @@
 #include "MappedStreamProvider.h"
 #include "PeekStreamProvider.h"
 #include "SkippedStreamProvider.h"
+#include "SortedStreamProvider.h"
 #include "TakeWhileStreamProvider.h"
 #include "ZippedStreamProvider.h"
 

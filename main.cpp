@@ -42,6 +42,11 @@ int main(int argc, char const *argv[])
         .drop_while([](int x) { return x < 3; })
         .copy_to(ostream_iterator<int>(cout, " "));
     cout << endl;
+    range(0, 9)
+        .map([](int x) { return x % 5; })
+        .sort()
+        .copy_to(ostream_iterator<int>(cout, " "));
+    cout << endl;
 
     return 0;
 }
