@@ -6,6 +6,7 @@
 #include "ConcatenatedStreamProvider.h"
 #include "GeneratedStreamProvider.h"
 #include "FilteredStreamProvider.h"
+#include "IteratedStreamProvider.h"
 #include "IteratorStreamProvider.h"
 #include "LimitedStreamProvider.h"
 #include "MappedStreamProvider.h"

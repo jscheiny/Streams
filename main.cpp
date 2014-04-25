@@ -1,15 +1,18 @@
 #include "Stream.h"
 
+#include "Utility.h"
+
 #include <vector>
 #include <iterator>
 #include <iostream>
 
+
 using namespace std;
 
+
 Stream<int> range(int lower, int upper) {
-    return Stream<int>::generate([lower]() {
-        static int counter = lower; return ++counter;
-    }).limit(upper - lower + 1);
+    return Stream<int>::iterate(lower - 1, [](int x) { return x + 1; })
+        .limit(upper - lower + 1);
 }
 
 int main(int argc, char const *argv[])
@@ -26,12 +29,13 @@ int main(int argc, char const *argv[])
     copy(result.begin(), result.end(), ostream_iterator<int>(cout, " "));
     cout << endl;
 
-    vector<tuple<int, int, int>> result2;
-    range(1, 5).zip(range(6, 10)).zip(range(11, 15))
-        .copy_to(back_inserter(result2));
-    for(auto elem : result2) {
-        cout << "(" << get<0>(elem) << ", " << get<1>(elem) << ", " <<  get<2>(elem) << ")" << endl;
-    }
+    range(1,10)
+        .zip(range(11,20))
+        .for_each([](auto x) {
+            cout << x << endl;
+        });
+
+
 
     return 0;
 }

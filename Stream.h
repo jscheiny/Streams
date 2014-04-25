@@ -19,9 +19,11 @@ template<typename T, template<typename> class Pointer>
 class BasicStream {
 
 public:
-
     template<typename Generator>
     static BasicStream<T, Pointer> generate(Generator&& generator);
+
+    template<typename Function>
+    static BasicStream<T, Pointer> iterate(T initial, Function&& function);
 
     template<typename Iterator>
     BasicStream(Iterator begin, Iterator end)
@@ -52,6 +54,9 @@ public:
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
 
+    template<typename Function>
+    void for_each(Function&& function);
+
     bool occupied() const {
         return source_;
     }
@@ -73,6 +78,17 @@ BasicStream<T, P> BasicStream<T, P>::generate(Generator&& generator) {
     auto source = StreamProviderPtr<T, P>(
         new GeneratedStreamProvider<T, P, Generator>(
             std::forward<Generator>(generator)));
+    return BasicStream<T, P>(std::move(source));
+
+}
+
+template<typename T, template<typename> class P>
+template<typename Function>
+BasicStream<T, P> BasicStream<T, P>::iterate(T initial, Function&& function) {
+
+    auto source = StreamProviderPtr<T, P>(
+        new IteratedStreamProvider<T, P, Function>(
+            std::forward<T>(initial), std::forward<Function>(function)));
     return BasicStream<T, P>(std::move(source));
 
 }
@@ -161,6 +177,15 @@ void BasicStream<T, P>::copy_to(OutputIterator out) {
     while(source_->HasNext()) {
         *out = *source_->Next();
         out++;
+    }
+}
+
+
+template<typename T, template<typename> class P>
+template<typename Function>
+void BasicStream<T, P>::for_each(Function&& function) {
+    while(source_->HasNext()) {
+        function(*source_->Next());
     }
 }
 
