@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
     cout << endl;
     range(0, 9)
         .map([](int x) { return x % 5; })
-        .sort()
+        .distinct()
         .copy_to(ostream_iterator<int>(cout, " "));
     cout << endl;
 

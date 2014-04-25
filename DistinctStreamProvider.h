@@ -1,18 +1,17 @@
-#ifndef SORTED_STREAM_PROVIDER_H
-#define SORTED_STREAM_PROVIDER_H
+#ifndef DISTINCT_STREAM_PROVIDER_H
+#define DISTINCT_STREAM_PROVIDER_H
 
 #include "StreamProvider.h"
 #include "Utility.h"
 
-#include <vector>
-#include <queue>
+#include <set>
 
 template<typename T, template<typename> class Pointer, typename RawCompare>
-class SortedStreamProvider : public StreamProvider<T, Pointer> {
+class DistinctStreamProvider : public StreamProvider<T, Pointer> {
 
 public:
-    SortedStreamProvider(StreamProviderPtr<T, Pointer> source,
-                         RawCompare&& comparator)
+    DistinctStreamProvider(StreamProviderPtr<T, Pointer> source,
+                           RawCompare&& comparator)
         : source_(std::move(source)),
           sorted_(PointerCompare(std::forward<RawCompare>(comparator))) {}
 
@@ -23,24 +22,23 @@ public:
     bool advance() override {
         if(first_) {
             while(source_->advance()) {
-                sorted_.push(source_->get());
+                sorted_.insert(source_->get());
             }
             first_ = false;
         }
         if(sorted_.empty())
             return false;
         // Based on some research, this is what is widely agreed as the best way
-        // to get a move-only type out of the end of a priority queue.
-        current_ = std::move(const_cast<Pointer<T>&>(sorted_.top()));
-        sorted_.pop();
+        // to get a move only type out of the end of a set.
+        auto itr = sorted_.begin();
+        current_ = std::move(const_cast<Pointer<T>&>(*itr));
+        sorted_.erase(itr);
         return true;
     }
 
 private:
-    using PointerCompare = ComparePtrWrapper<T, Pointer, RawCompare, true>;
-    using PointerQueue = std::priority_queue<Pointer<T>, 
-                                             std::vector<Pointer<T>>,
-                                             PointerCompare>;
+    using PointerCompare = ComparePtrWrapper<T, Pointer, RawCompare>;
+    using PointerQueue = std::set<Pointer<T>, PointerCompare>;
 
     StreamProviderPtr<T, Pointer> source_;
     PointerQueue sorted_;

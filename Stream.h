@@ -58,6 +58,9 @@ public:
     template<typename Compare = std::less<T>>
     BasicStream<T, Pointer> sort(Compare&& comparator = Compare());
 
+    template<typename Compare = std::less<T>>
+    BasicStream<T, Pointer> distinct(Compare&& comparator = Compare());
+
     template<typename Iterator>
     BasicStream<T, Pointer> extend(Iterator begin, Iterator end);
 
@@ -212,6 +215,17 @@ BasicStream<T, P> BasicStream<T, P>::sort(Compare&& comparator) {
 
     auto new_source = StreamProviderPtr<T, P>(
         new SortedStreamProvider<T, P, Compare>(
+            std::move(source_), std::forward<Compare>(comparator)));
+    return BasicStream<T, P>(std::move(new_source));
+
+}
+
+template<typename T, template<typename> class P>
+template<typename Compare>
+BasicStream<T, P> BasicStream<T, P>::distinct(Compare&& comparator) {
+
+    auto new_source = StreamProviderPtr<T, P>(
+        new DistinctStreamProvider<T, P, Compare>(
             std::move(source_), std::forward<Compare>(comparator)));
     return BasicStream<T, P>(std::move(new_source));
 

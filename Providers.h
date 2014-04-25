@@ -4,6 +4,7 @@
 #include "StreamProvider.h"
 
 #include "ConcatenatedStreamProvider.h"
+#include "DistinctStreamProvider.h"
 #include "DropWhileStreamProvider.h"
 #include "GeneratedStreamProvider.h"
 #include "FilteredStreamProvider.h"
