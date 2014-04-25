@@ -35,16 +35,16 @@ int main(int argc, char const *argv[])
 
     range(1,10)
         .take_until([](int x) { return x > 5; })
-        .copy_to(ostream_iterator<int>(cout, " "));
+        .print_to(cout);
     cout << endl;
     range(1,10)
         .drop_while([](int x) { return x < 3; })
-        .copy_to(ostream_iterator<int>(cout, " "));
+        .print_to(cout);
     cout << endl;
     range(0, 9)
         .map([](int x) { return x % 5; })
         .distinct()
-        .copy_to(ostream_iterator<int>(cout, " "));
+        .print_to(cout);
     cout << endl;
 
     range(1,5).zip(range(6,10)).for_each([](std::tuple<int, int> x) {

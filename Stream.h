@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <type_traits>
+#include <iostream>
 #include <iterator>
 #include <vector>
 #include <list>
@@ -84,6 +85,8 @@ public:
 
     template<typename OutputIterator>
     void move_to(OutputIterator out);
+
+    void print_to(std::ostream& os, const char* delimiter = " ");
 
     std::vector<T> as_vector();
 
@@ -262,6 +265,12 @@ void BasicStream<T, P>::move_to(OutputIterator out) {
         out++;
     }
 }
+
+template<typename T, template<typename> class P>
+void BasicStream<T, P>::print_to(std::ostream& os, const char* delimiter) {
+    copy_to(std::ostream_iterator<T>(os, delimiter));
+}
+
 
 template<typename T, template<typename> class P>
 std::vector<T> BasicStream<T,P>::as_vector() {
