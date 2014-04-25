@@ -3,6 +3,8 @@
 
 #include "StreamProvider.h"
 
+#include "Utility.h"
+
 template<typename T, template<typename> class Pointer, typename Iterator>
 class IteratorStreamProvider : public StreamProvider<T, Pointer> {
 
@@ -11,7 +13,7 @@ public:
         : current_(begin), end_(end) {}
 
     Pointer<T> get() override {
-        return std::make_unique<T>(std::move(*current_));
+        return make_unique<T>(std::move(*current_));
     }
 
     bool advance() override {

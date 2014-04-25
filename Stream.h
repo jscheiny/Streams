@@ -27,7 +27,7 @@ public:
 
     template<typename Iterator>
     BasicStream(Iterator begin, Iterator end)
-        : source_(std::make_unique<IteratorStreamProvider<T, Pointer, Iterator>>(
+        : source_(make_unique<IteratorStreamProvider<T, Pointer, Iterator>>(
             begin, end)) {}
 
     template<typename Predicate>

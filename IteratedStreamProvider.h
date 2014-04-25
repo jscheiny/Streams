@@ -14,7 +14,7 @@ class IteratedStreamProvider : public StreamProvider<T, Pointer> {
 public:
     IteratedStreamProvider(T initial, Function&& function)
         : function_(function),
-          current_(std::make_unique<T>(initial)),
+          current_(make_unique<T>(initial)),
           current_copy_(*current_) {}
 
     Pointer<T> get() override {

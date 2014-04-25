@@ -4,9 +4,14 @@
 #include <iostream>
 #include <tuple>
 
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 template<typename T>
 std::unique_ptr<T> move_unique(T&& t) {
-    return std::make_unique<T>(std::move(t));
+    return make_unique<T>(std::move(t));
 }
 
 template<typename Transform, typename... Arg> using ReturnType =
