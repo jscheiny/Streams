@@ -14,6 +14,14 @@ public:
 template<typename T, template<typename> class P>
 using StreamProviderPtr = std::unique_ptr<StreamProvider<T, P>>;
 
-
+template<template<typename, template<typename> class, typename...> class Provider,
+         typename T, template<typename> class Pointer,
+         typename... TemplateArgs,
+         typename... ConstructorArgs>
+StreamProviderPtr<T, Pointer> make_stream_provider(ConstructorArgs&&... args) {
+    return StreamProviderPtr<T, Pointer>(
+        new Provider<T, Pointer, TemplateArgs...>(
+            std::forward<ConstructorArgs>(args)...));
+}
 
 #endif
