@@ -14,8 +14,15 @@ std::unique_ptr<T> move_unique(T&& t) {
     return make_unique<T>(std::move(t));
 }
 
-template<typename Transform, typename... Arg> using ReturnType =
-    decltype(std::declval<Transform>()(std::declval<Arg>()...));
+template<typename Function, typename... Arg> using ReturnType =
+    decltype(std::declval<Function>()(std::declval<Arg>()...));
+
+template<typename T>
+struct Minus {
+    auto operator() (T& lhs, T& rhs) -> decltype(lhs - rhs) {
+        return lhs - rhs;
+    }
+};
 
 template<typename T, template<typename> class Pointer, typename Compare,
          bool Reverse = false>

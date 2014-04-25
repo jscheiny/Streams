@@ -64,6 +64,10 @@ public:
     template<typename Compare = std::less<T>>
     BasicStream<T, Pointer> distinct(Compare&& comparator = Compare());
 
+    template<typename Subtract = Minus<T>> // std::minus<void> in c++14
+    BasicStream<ReturnType<Subtract, T&, T&>, Pointer>
+    adjacent_difference(Subtract&& subtract = Subtract());
+
     template<typename Iterator>
     BasicStream<T, Pointer> extend(Iterator begin, Iterator end);
 
@@ -214,6 +218,17 @@ BasicStream<T, P> BasicStream<T, P>::extend(BasicStream<T, P>&& other) {
 
     return make_stream_provider <ConcatenatedStreamProvider, T, P>
         (std::move(source_), std::move(other.source_));
+}
+
+template<typename T, template<typename> class P>
+template<typename Subtract>
+BasicStream<ReturnType<Subtract, T&, T&>, P>
+BasicStream<T, P>::adjacent_difference(Subtract&& subtract) {
+
+    using Result = ReturnType<Subtract, T&, T&>;
+    return std::move(StreamProviderPtr<Result, P>(
+        new AdjacentDifferenceStreamProvider<T, P, Subtract>(
+            std::move(source_), std::forward<Subtract>(subtract))));
 }
 
 template<typename T, template<typename> class P>

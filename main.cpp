@@ -9,7 +9,6 @@
 
 using namespace std;
 
-
 Stream<int> count(int start, int increment = 1) {
     return Stream<int>::iterate(start - increment,
         [](int x) { return x + 1; });
@@ -51,6 +50,13 @@ int main(int argc, char const *argv[])
     range(1,5).zip(range(6,10)).for_each([](std::tuple<int, int> x) {
         cout << x << endl;
     });
+
+    range(1, 10)
+        .map([](int x) { return x * x; })
+        .adjacent_difference()
+        .map([](int x) { return x - 1; })
+        .copy_to(ostream_iterator<int>(cout, " "));
+    cout << endl;
 
 
     return 0;
