@@ -10,6 +10,11 @@
 using namespace std;
 
 
+Stream<int> count(int start, int increment = 1) {
+    return Stream<int>::iterate(start - increment,
+        [](int x) { return x + 1; });
+}
+
 Stream<int> range(int lower, int upper) {
     return Stream<int>::iterate(lower - 1, [](int x) { return x + 1; })
         .limit(upper - lower + 1);
@@ -30,10 +35,8 @@ int main(int argc, char const *argv[])
     cout << endl;
 
     range(1,10)
-        .zip(range(11,20))
-        .for_each([](auto x) {
-            cout << x << endl;
-        });
+        .take_until([](int x) { return x > 5; })
+        .copy_to(ostream_iterator<int>(cout, "\n"));
 
 
 

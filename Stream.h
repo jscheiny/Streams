@@ -33,6 +33,12 @@ public:
     template<typename Predicate>
     BasicStream<T, Pointer> filter(Predicate&& predicate);
 
+    template<typename Predicate>
+    BasicStream<T, Pointer> take_while(Predicate&& predicate);
+
+    template<typename Predicate>
+    BasicStream<T, Pointer> take_until(Predicate&& predicate);
+
     template<typename Action>
     BasicStream<T, Pointer> peek(Action&& action);
 
@@ -101,6 +107,29 @@ BasicStream<T, P> BasicStream<T, P>::filter(Predicate&& predicate) {
         new FilteredStreamProvider<T, P, Predicate>(
             std::move(source_), std::forward<Predicate>(predicate)));
     return BasicStream<T, P>(std::move(new_source));
+
+}
+
+template<typename T, template<typename> class P>
+template<typename Predicate>
+BasicStream<T, P> BasicStream<T, P>::take_while(Predicate&& predicate) {
+
+    auto source = StreamProviderPtr<T, P>(
+        new TakeWhileStreamProvider<T, P, Predicate>(
+            std::move(source_), std::forward<Predicate>(predicate),
+            false));
+    return BasicStream<T, P>(std::move(source));
+
+}
+
+template<typename T, template<typename> class P>
+template<typename Predicate>
+BasicStream<T, P> BasicStream<T, P>::take_until(Predicate&& predicate) {
+
+    auto source = StreamProviderPtr<T, P>(
+        new TakeWhileStreamProvider<T, P, Predicate>(
+            std::move(source_), std::forward<Predicate>(predicate), true));
+    return BasicStream<T, P>(std::move(source));
 
 }
 
