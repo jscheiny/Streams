@@ -82,6 +82,9 @@ public:
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
 
+    template<typename OutputIterator>
+    void move_to(OutputIterator out);
+
     std::vector<T> as_vector();
 
     std::list<T> as_list();
@@ -247,6 +250,15 @@ template<typename OutputIterator>
 void BasicStream<T, P>::copy_to(OutputIterator out) {
     while(source_->advance()) {
         *out = *source_->get();
+        out++;
+    }
+}
+
+template<typename T, template<typename> class P>
+template<typename OutputIterator>
+void BasicStream<T, P>::move_to(OutputIterator out) {
+    while(source_->advance()) {
+        *out = std::move(*source_->get());
         out++;
     }
 }
