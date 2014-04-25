@@ -10,7 +10,8 @@ template<typename T, template<typename> class Pointer,
 class MappedStreamProvider : public StreamProvider<T, Pointer> {
 
 public:
-    MappedStreamProvider(StreamProviderPtr<In, Pointer> source, Transform&& transform)
+    MappedStreamProvider(StreamProviderPtr<In, Pointer> source,
+                         Transform&& transform)
         : source_(std::move(source)), transform_(transform) {}
 
     Pointer<T> get() override {

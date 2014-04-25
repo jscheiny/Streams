@@ -37,10 +37,12 @@ int main(int argc, char const *argv[])
         .take_until([](int x) { return x > 5; })
         .print_to(cout);
     cout << endl;
+
     range(1,10)
         .drop_while([](int x) { return x < 3; })
         .print_to(cout);
     cout << endl;
+
     range(0, 9)
         .map([](int x) { return x % 5; })
         .distinct()
@@ -55,9 +57,17 @@ int main(int argc, char const *argv[])
         .map([](int x) { return x * x; })
         .adjacent_difference()
         .map([](int x) { return x - 1; })
-        .copy_to(ostream_iterator<int>(cout, " "));
+        .print_to(cout);
     cout << endl;
 
+    range(1, 4)
+        .flat_map([](int x) {
+            return range(0, x);
+        })
+        .for_each([](int x) {
+            cout << x << " ";
+        });
+    cout << endl;
 
     return 0;
 }

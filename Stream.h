@@ -23,16 +23,18 @@ template<typename T, template<typename> class Pointer>
 class BasicStream {
 
 public:
+    using ElementType = T;
+
     template<typename Generator>
     static BasicStream<T, Pointer> generate(Generator&& generator);
 
     template<typename Function>
     static BasicStream<T, Pointer> iterate(T initial, Function&& function);
 
+    BasicStream();
+
     template<typename Iterator>
-    BasicStream(Iterator begin, Iterator end)
-        : source_(make_unique<IteratorStreamProvider<T, Pointer, Iterator>>(
-            begin, end)) {}
+    BasicStream(Iterator begin, Iterator end);
 
     template<typename Predicate>
     BasicStream<T, Pointer> filter(Predicate&& predicate);
@@ -53,7 +55,11 @@ public:
     BasicStream<T, Pointer> peek(Action&& action);
 
     template<typename Transform>
-    BasicStream<ReturnType<Transform, T>, Pointer> map(Transform&& transform);
+    BasicStream<ReturnType<Transform, T&>, Pointer> map(Transform&& transform);
+
+    template<typename Transform>
+    BasicStream<StreamType<ReturnType<Transform, T&>>, Pointer>
+    flat_map(Transform&& transform);
 
     BasicStream<T, Pointer> limit(std::size_t length);
 
@@ -99,7 +105,11 @@ public:
         return source_;
     }
 
-    template<typename X, template<typename> class P> friend class BasicStream;
+    template<typename, template<typename> class>
+    friend class BasicStream;
+    
+    template<typename, template<typename> class, typename, typename>
+    friend class FlatMappedStreamProvider;
 
 private:
     BasicStream(StreamProviderPtr<T, Pointer> source)
@@ -108,6 +118,16 @@ private:
     StreamProviderPtr<T, Pointer> source_;
 
 };
+
+template<typename T, template<typename> class P>
+BasicStream<T, P>::BasicStream()
+    : source_(make_stream_provider<EmptyStreamProvider, T, P>()) {}
+
+template<typename T, template<typename> class P>
+template<typename Iterator>
+BasicStream<T, P>::BasicStream(Iterator begin, Iterator end)
+    : source_(make_unique<IteratorStreamProvider<T, P, Iterator>>(
+        begin, end)) {}
 
 template<typename T, template<typename> class P>
 template<typename Generator>
@@ -175,12 +195,26 @@ BasicStream<T, P> BasicStream<T, P>::peek(Action&& action) {
 
 template<typename T, template<typename> class P>
 template<typename Transform>
-BasicStream<ReturnType<Transform, T>, P> BasicStream<T, P>::map(
+BasicStream<ReturnType<Transform, T&>, P> BasicStream<T, P>::map(
             Transform&& transform) {
 
     using Result = ReturnType<Transform, T>;
     return make_stream_provider <MappedStreamProvider, Result, P, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
+}
+
+template<typename T, template<typename> class P>
+template<typename Transform>
+BasicStream<StreamType<ReturnType<Transform, T&>>, P>
+BasicStream<T,P>::flat_map(Transform&& transform) {
+
+    using Result = ReturnType<Transform, T&>;
+    static_assert(IsStream<Result>::value,
+        "Flat map must be passed a function which returns a stream");
+    using S = StreamType<Result>;
+    return make_stream_provider <FlatMappedStreamProvider, S, P, Transform, T>
+        (std::move(source_), std::forward<Transform>(transform));
+
 }
 
 template<typename T, template<typename> class P>
