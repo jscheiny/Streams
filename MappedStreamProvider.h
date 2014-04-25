@@ -5,11 +5,12 @@
 
 #include "Utility.h"
 
-template<typename T, template<typename> class Pointer, typename Transform>
+template<typename T, template<typename> class Pointer,
+         typename Transform, typename In>
 class MappedStreamProvider : public StreamProvider<T, Pointer> {
 
 public:
-    MappedStreamProvider(StreamProviderPtr<T, Pointer> source, Transform&& transform)
+    MappedStreamProvider(StreamProviderPtr<In, Pointer> source, Transform&& transform)
         : source_(std::move(source)), transform_(transform) {}
 
     Pointer<T> get() override {
@@ -26,7 +27,7 @@ public:
     }
 
 private:
-    StreamProviderPtr<T, Pointer> source_;
+    StreamProviderPtr<In, Pointer> source_;
     Transform transform_;
     Pointer<T> current_;
 

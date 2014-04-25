@@ -48,5 +48,10 @@ int main(int argc, char const *argv[])
         .copy_to(ostream_iterator<int>(cout, " "));
     cout << endl;
 
+    range(1,5).zip(range(6,10)).for_each([](std::tuple<int, int> x) {
+        cout << x << endl;
+    });
+
+
     return 0;
 }

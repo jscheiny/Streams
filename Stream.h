@@ -169,7 +169,7 @@ BasicStream<ReturnType<Transform, T>, P> BasicStream<T, P>::map(
             Transform&& transform) {
 
     using Result = ReturnType<Transform, T>;
-    return make_stream_provider <MappedStreamProvider, Result, P, Transform>
+    return make_stream_provider <MappedStreamProvider, Result, P, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
 }
 
@@ -222,8 +222,9 @@ BasicStream<ZipResult<T, Other>, P> BasicStream<T, P>::zip(
             BasicStream<Other, P>&& other) {
 
     using Result = ZipResult<T, Other>;
-    return make_stream_provider <ZippedStreamProvider, T, Other, P>
-        (std::move(source_), std::move(other.source_));
+    return std::move(StreamProviderPtr<Result, P>(
+        new ZippedStreamProvider<T, Other, P>(
+            std::move(source_), std::move(other.source_))));
 }
 
 template<typename T, template<typename> class P>
