@@ -9,9 +9,7 @@ class DropWhileStreamProvider : public StreamProvider<T, Pointer> {
 public:
     DropWhileStreamProvider(StreamProviderPtr<T, Pointer> source,
                            Predicate&& predicate, bool end)
-        : source_(std::move(source)),
-          predicate_(predicate),
-          end_condition_(end) {}
+        : source_(std::move(source)), predicate_(predicate), end_(end) {}
 
     Pointer<T> get() override {
         return std::move(current_);
@@ -21,7 +19,7 @@ public:
         if(!dropped_) {
             while(source_->advance()) {
                 current_ = source_->get();
-                if(predicate_(*current_) == end_condition_) {
+                if(predicate_(*current_) == end_) {
                     dropped_ = true;
                     return true;
                 }
@@ -39,10 +37,9 @@ public:
 private:
     StreamProviderPtr<T, Pointer> source_;
     Predicate predicate_;
-    bool end_condition_;
+    bool end_;
     Pointer<T> current_;
     bool dropped_ = false;
 };
-
 
 #endif
