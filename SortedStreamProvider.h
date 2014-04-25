@@ -6,6 +6,14 @@
 #include <vector>
 #include <queue>
 
+/*
+ * There's something fundamentally annoying about the design here. If the pointer type
+ * is unique_ptr, then we have to do an incredibly ugly const_cast to get the pointer
+ * out of the priority queue via a move operation. The other possibility is to use a
+ * vector, read it in and then sort it. However, this is not as efficient.
+ * What to do?
+ */
+
 template<typename T, template<typename> class Pointer, typename Compare>
 class ComparePtrWrapper {
 public:
@@ -41,7 +49,7 @@ public:
         }
         if(sorted_.empty())
             return false;
-        current_ = std::move(const_cast<Pointer<T>&>(sorted_.top()));
+        current_ = std::move(const_cast<Pointer<T>&>(sorted_.top())); // Ugh.
         sorted_.pop();
         return true;
     }
