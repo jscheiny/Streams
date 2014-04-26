@@ -1,6 +1,8 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+#include "Utility-Impl.h"
+
 #include <iostream>
 #include <tuple>
 
@@ -13,9 +15,6 @@ template<typename T>
 std::unique_ptr<T> move_unique(T&& t) {
     return make_unique<T>(std::move(t));
 }
-
-template<typename Function, typename... Arg> using ReturnType =
-    decltype(std::declval<Function>()(std::declval<Arg>()...));
 
 template<typename T>
 struct Minus {
@@ -51,38 +50,25 @@ private:
     Compare comparator_;
 };
 
-
-template<size_t index, size_t last, typename... Args> struct PrintTuple;
-
 template<typename... Args>
 std::ostream& operator<< (std::ostream& os, const std::tuple<Args...>& tuple) {
-    PrintTuple<0, std::tuple_size<std::tuple<Args...>>::value - 1, Args...>::print(os, tuple);
+
+    PrintTuple<0, std::tuple_size<std::tuple<Args...>>::value - 1, Args...>
+        ::print(os, tuple);
     return os;
+
 }
 
-template<size_t index, size_t last, typename... Args>
-struct PrintTuple {
-    static void print(std::ostream& os, const std::tuple<Args...>& tuple) {
-        os << std::get<index>(tuple) << ", ";
-        PrintTuple<index + 1, last, Args...>::print(os, tuple);
-    }
-};
+template<typename Function, typename... Types>
+auto splat_tuple(Function&& function, const std::tuple<Types...>& tuple)
+        -> decltype(function(std::declval<Types>()...)) {
 
-template<size_t last, typename... Args>
-struct PrintTuple<0, last, Args...> {
-    static void print(std::ostream& os, const std::tuple<Args...>& tuple) {
-        os << "(" << std::get<0>(tuple) << ", ";
-        PrintTuple<1, last, Args...>::print(os, tuple);
-    }
-};
+    using Return = decltype(function(std::declval<Types>()...));
+    return SplatTuple<Return, Function, 0, sizeof...(Types),
+                      TupleWrapper<Types...>>
+        ::splat(std::forward<Function>(function), tuple);
 
-template<size_t index, typename... Args>
-struct PrintTuple<index, index, Args...> {
-    static void print(std::ostream& os, const std::tuple<Args...>& tuple) {
-        os << std::get<index>(tuple) << ")";
-    }
-};
-
+}
 
 
 #endif

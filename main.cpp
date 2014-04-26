@@ -69,5 +69,7 @@ int main(int argc, char const *argv[])
         });
     cout << endl;
 
+    splat_tuple(range, make_tuple(0, 5)).print_to(cout); cout << endl;
+
     return 0;
 }
