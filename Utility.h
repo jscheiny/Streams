@@ -60,14 +60,12 @@ std::ostream& operator<< (std::ostream& os, const std::tuple<Args...>& tuple) {
 }
 
 template<typename Function, typename... Types>
-auto splat_tuple(Function&& function, const std::tuple<Types...>& tuple)
-        -> decltype(function(std::declval<Types>()...)) {
+auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
+        -> decltype(function(std::declval<Types>()...));
 
-    using Return = decltype(function(std::declval<Types>()...));
-    return SplatTuple<Return, Function, 0, sizeof...(Types),
-                      TupleWrapper<Types...>>
-        ::splat(std::forward<Function>(function), tuple);
-
+template<typename Function>
+SplattedFunction<Function> splat(Function&& function) {
+    return SplattedFunction<Function>(std::forward<Function>(function));
 }
 
 

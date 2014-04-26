@@ -52,7 +52,7 @@ struct SplatTuple {
 
     static Return splat(Function&& function, const TupleType& tuple,
                         Args&&... args) {
-        return SplatTuple<Return, Function, index + 1, last, Tuple, 
+        return SplatTuple<Return, Function, index + 1, last, Tuple,
                           Args..., decltype(std::get<index>(tuple))>
             ::splat(std::forward<Function>(function), tuple,
                     std::forward<Args>(args)..., std::get<index>(tuple));
@@ -80,6 +80,35 @@ struct SplatTuple<Return, Function, last, last, Tuple, Args...> {
                         Args&&... args) {
         return function(std::forward<Args>(args)...);
     }
+};
+
+template<typename Function, typename... Types>
+auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
+        -> decltype(function(std::declval<Types>()...)) {
+
+    using Return = decltype(function(std::declval<Types>()...));
+    return SplatTuple<Return, Function, 0, sizeof...(Types),
+                      TupleWrapper<Types...>>
+        ::splat(std::forward<Function>(function), tuple);
+
+}
+
+template<typename Function>
+struct SplattedFunction {
+
+public:
+    SplattedFunction(Function&& function) : function_(function) {}
+
+    template<typename... Args>
+    auto operator() (const std::tuple<Args...>& tuple)
+            -> ReturnType<Function, Args...> {
+
+        return apply_tuple(function_, tuple);
+    }
+
+private:
+    Function function_;
+
 };
 
 #endif
