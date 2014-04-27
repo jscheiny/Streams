@@ -98,6 +98,7 @@ Stream<int>::iterate(0, [](int x) { return x + 1; })
         return x * x;
     });
 // Stream of perfect squares
+```
 
 ### Limit
 
