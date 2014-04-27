@@ -61,10 +61,11 @@ std::ostream& operator<< (std::ostream& os, const std::tuple<Args...>& tuple) {
 }
 
 template<typename Function, typename... Types>
-decltype(auto) apply_tuple(Function&& function, const std::tuple<Types...>& tuple);
+auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
+        -> decltype(function(std::declval<Types>()...));
 
 template<typename Function>
-auto splat(Function&& function) {
+SplattedFunction<Function> splat(Function&& function) {
     return SplattedFunction<Function>(std::forward<Function>(function));
 }
 
