@@ -40,8 +40,8 @@ struct TupleWrapper {
     enum { Length = sizeof...(Types) };
 };
 
-template<typename Return, typename Function, size_t index, size_t last,
-         typename Tuple, typename... Args>
+template<typename Function, size_t index, size_t last, typename Tuple,
+         typename... Args>
 struct SplatTuple {
     static_assert(index >= 0,
         "Splat tuple index cannot be less than 0.");
@@ -50,45 +50,39 @@ struct SplatTuple {
 
     using TupleType = typename Tuple::Type;
 
-    static Return splat(Function&& function, const TupleType& tuple,
-                        Args&&... args) {
-        return SplatTuple<Return, Function, index + 1, last, Tuple,
-                          Args..., decltype(std::get<index>(tuple))>
+    static decltype(auto) splat(Function&& function, const TupleType& tuple,
+                                Args&&... args) {
+        return SplatTuple<Function, index + 1, last, Tuple, Args...,
+                          decltype(std::get<index>(tuple))>
             ::splat(std::forward<Function>(function), tuple,
                     std::forward<Args>(args)..., std::get<index>(tuple));
     }
 };
 
-template<typename Return, typename Function, size_t last,
-         typename Tuple>
-struct SplatTuple<Return, Function, 0, last, Tuple> {
+template<typename Function, size_t last, typename Tuple>
+struct SplatTuple<Function, 0, last, Tuple> {
     using TupleType = typename Tuple::Type;
 
-    static Return splat(Function&& function, const TupleType& tuple) {
-        return SplatTuple<Return, Function, 1, last, Tuple,
-                          decltype(std::get<0>(tuple))>
+    static decltype(auto) splat(Function&& function, const TupleType& tuple) {
+        return SplatTuple<Function, 1, last, Tuple, decltype(std::get<0>(tuple))>
             ::splat(std::forward<Function>(function), tuple, std::get<0>(tuple));
     }
 };
 
-template<typename Return, typename Function, size_t last,
-         typename Tuple, typename... Args>
-struct SplatTuple<Return, Function, last, last, Tuple, Args...> {
+template<typename Function, size_t last, typename Tuple, typename... Args>
+struct SplatTuple<Function, last, last, Tuple, Args...> {
     using TupleType = typename Tuple::Type;
 
-    static Return splat(Function&& function, const TupleType& tuple,
-                        Args&&... args) {
+    static decltype(auto) splat(Function&& function, const TupleType& tuple,
+                                Args&&... args) {
         return function(std::forward<Args>(args)...);
     }
 };
 
 template<typename Function, typename... Types>
-auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
-        -> decltype(function(std::declval<Types>()...)) {
+decltype(auto) apply_tuple(Function&& function, const std::tuple<Types...>& tuple) {
 
-    using Return = decltype(function(std::declval<Types>()...));
-    return SplatTuple<Return, Function, 0, sizeof...(Types),
-                      TupleWrapper<Types...>>
+    return SplatTuple<Function, 0, sizeof...(Types), TupleWrapper<Types...>>
         ::splat(std::forward<Function>(function), tuple);
 
 }
@@ -100,9 +94,7 @@ public:
     SplattedFunction(Function&& function) : function_(function) {}
 
     template<typename... Args>
-    auto operator() (const std::tuple<Args...>& tuple)
-            -> ReturnType<Function, Args...> {
-
+    decltype(auto) operator() (const std::tuple<Args...>& tuple) {
         return apply_tuple(function_, tuple);
     }
 
