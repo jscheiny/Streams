@@ -72,5 +72,11 @@ int main(int argc, char const *argv[])
     range(1, 5).zip(range(6, 10)).for_each(splat([](int x, int y) {
         cout << x << " -> " << y << endl;
     }));
+
+    Stream<int>::generate([]() { return 1; })
+        .partial_sum()
+        .limit(10)
+        .print_to(cout, "|");
+    cout << endl;
     return 0;
 }

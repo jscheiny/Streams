@@ -4,15 +4,15 @@
 #include "StreamProvider.h"
 #include "Utility.h"
 
-template<typename T, typename Subtract>
+template<typename T, typename Subtractor>
 class AdjacentDifferenceStreamProvider
-    : public StreamProvider<ReturnType<Subtract, T&, T&>> {
+    : public StreamProvider<ReturnType<Subtractor, T&, T&>> {
 
 public:
-    using DiffType = ReturnType<Subtract, T&, T&>;
+    using DiffType = ReturnType<Subtractor, T&, T&>;
 
     AdjacentDifferenceStreamProvider(StreamProviderPtr<T> source,
-                                     Subtract&& subtract)
+                                     Subtractor&& subtract)
         : source_(std::move(source)), subtract_(subtract) {}
 
     std::shared_ptr<DiffType> get() override {
@@ -47,7 +47,7 @@ public:
 
 private:
     StreamProviderPtr<T> source_;
-    Subtract subtract_;
+    Subtractor subtract_;
     std::shared_ptr<T> first_;
     std::shared_ptr<T> second_;
     bool first_advance_ = true;

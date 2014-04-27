@@ -63,9 +63,12 @@ public:
     template<typename Compare = std::less<T>>
     Stream<T> distinct(Compare&& comparator = Compare());
 
-    template<typename Subtract = Minus<T>> // std::minus<void> in c++14
-    Stream<ReturnType<Subtract, T&, T&>>
-    adjacent_difference(Subtract&& subtract = Subtract());
+    template<typename Subtractor = Minus<T>> // std::minus<void> in c++14
+    Stream<ReturnType<Subtractor, T&, T&>>
+    adjacent_difference(Subtractor&& subtract = Subtractor());
+
+    template<typename Adder = std::plus<T>>
+    Stream<T> partial_sum(Adder&& add = Adder());
 
     template<typename Iterator>
     Stream<T> concat(Iterator begin, Iterator end);
@@ -124,7 +127,6 @@ Stream<T>::Stream(Iterator begin, Iterator end)
 template<typename T>
 template<typename Generator>
 Stream<T> Stream<T>::generate(Generator&& generator) {
-
     return make_stream_provider <GeneratedStreamProvider, T, Generator>
         (std::forward<Generator>(generator));
 }
@@ -132,7 +134,6 @@ Stream<T> Stream<T>::generate(Generator&& generator) {
 template<typename T>
 template<typename Function>
 Stream<T> Stream<T>::iterate(T initial, Function&& function) {
-
     return make_stream_provider <IteratedStreamProvider, T, Function>
         (std::forward<T>(initial), std::forward<Function>(function));
 }
@@ -140,7 +141,6 @@ Stream<T> Stream<T>::iterate(T initial, Function&& function) {
 template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::filter(Predicate&& predicate) {
-
     return make_stream_provider <FilteredStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate));
 }
@@ -148,7 +148,6 @@ Stream<T> Stream<T>::filter(Predicate&& predicate) {
 template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::take_while(Predicate&& predicate) {
-
     return make_stream_provider <TakeWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), false);
 }
@@ -156,7 +155,6 @@ Stream<T> Stream<T>::take_while(Predicate&& predicate) {
 template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::take_until(Predicate&& predicate) {
-
     return make_stream_provider <TakeWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), true);
 }
@@ -164,7 +162,6 @@ Stream<T> Stream<T>::take_until(Predicate&& predicate) {
 template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::drop_while(Predicate&& predicate) {
-
     return make_stream_provider <DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), false);
 }
@@ -172,7 +169,6 @@ Stream<T> Stream<T>::drop_while(Predicate&& predicate) {
 template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::drop_until(Predicate&& predicate) {
-
     return make_stream_provider <DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), true);
 }
@@ -180,16 +176,13 @@ Stream<T> Stream<T>::drop_until(Predicate&& predicate) {
 template<typename T>
 template<typename Action>
 Stream<T> Stream<T>::peek(Action&& action) {
-
     return make_stream_provider <PeekStreamProvider, T, Action>
         (std::move(source_), std::forward<Action>(action));
 }
 
 template<typename T>
 template<typename Transform>
-Stream<ReturnType<Transform, T&>> Stream<T>::map(
-            Transform&& transform) {
-
+Stream<ReturnType<Transform, T&>> Stream<T>::map(Transform&& transform) {
     using Result = ReturnType<Transform, T>;
     return make_stream_provider <MappedStreamProvider, Result, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
@@ -199,26 +192,22 @@ template<typename T>
 template<typename Transform>
 Stream<StreamType<ReturnType<Transform, T&>>>
 Stream<T>::flat_map(Transform&& transform) {
-
     using Result = ReturnType<Transform, T&>;
     static_assert(IsStream<Result>::value,
         "Flat map must be passed a function which returns a stream");
     using S = StreamType<Result>;
     return make_stream_provider <FlatMappedStreamProvider, S, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
-
 }
 
 template<typename T>
 Stream<T> Stream<T>::limit(std::size_t length) {
-
     return make_stream_provider <LimitedStreamProvider, T>
         (std::move(source_), length);
 }
 
 template<typename T>
 Stream<T> Stream<T>::skip(std::size_t amount) {
-
     return make_stream_provider <SkippedStreamProvider, T>
         (std::move(source_), amount);
 }
@@ -226,7 +215,6 @@ Stream<T> Stream<T>::skip(std::size_t amount) {
 template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::sort(Compare&& comparator) {
-
     return make_stream_provider <SortedStreamProvider, T, Compare>
         (std::move(source_), std::forward<Compare>(comparator));
 }
@@ -234,7 +222,6 @@ Stream<T> Stream<T>::sort(Compare&& comparator) {
 template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::distinct(Compare&& comparator) {
-
     return make_stream_provider <DistinctStreamProvider, T, Compare>
         (std::move(source_), std::forward<Compare>(comparator));
 }
@@ -247,27 +234,30 @@ Stream<T> Stream<T>::concat(Iterator begin, Iterator end) {
 
 template<typename T>
 Stream<T> Stream<T>::concat(Stream<T>&& other) {
-
     return make_stream_provider <ConcatenatedStreamProvider, T>
         (std::move(source_), std::move(other.source_));
 }
 
 template<typename T>
-template<typename Subtract>
-Stream<ReturnType<Subtract, T&, T&>>
-Stream<T>::adjacent_difference(Subtract&& subtract) {
-
-    using Result = ReturnType<Subtract, T&, T&>;
+template<typename Subtractor>
+Stream<ReturnType<Subtractor, T&, T&>>
+Stream<T>::adjacent_difference(Subtractor&& subtract) {
+    using Result = ReturnType<Subtractor, T&, T&>;
     return std::move(StreamProviderPtr<Result>(
-        new AdjacentDifferenceStreamProvider<T, Subtract>(
-            std::move(source_), std::forward<Subtract>(subtract))));
+        new AdjacentDifferenceStreamProvider<T, Subtractor>(
+            std::move(source_), std::forward<Subtractor>(subtract))));
+}
+
+template<typename T>
+template<typename Adder>
+Stream<T> Stream<T>::partial_sum(Adder&& add) {
+    return make_stream_provider<PartialSumStreamProvider, T, Adder>
+        (std::move(source_), std::forward<Adder>(add));
 }
 
 template<typename T>
 template<typename Other>
-Stream<ZipResult<T, Other>> Stream<T>::zip(
-            Stream<Other>&& other) {
-
+Stream<ZipResult<T, Other>> Stream<T>::zip(Stream<Other>&& other) {
     using Result = ZipResult<T, Other>;
     return std::move(StreamProviderPtr<Result>(
         new ZippedStreamProvider<T, Other>(
