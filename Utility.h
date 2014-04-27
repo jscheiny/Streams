@@ -12,11 +12,6 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 }
 
 template<typename T>
-std::unique_ptr<T> move_unique(T&& t) {
-    return make_unique<T>(std::move(t));
-}
-
-template<typename T>
 struct Minus {
     auto operator() (T& lhs, T& rhs) -> decltype(lhs - rhs) {
         return lhs - rhs;
