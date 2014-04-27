@@ -1,13 +1,8 @@
 OBJS =	main.o
 
 OPT = -O3
-ifeq ($(UNAME_S), Darwin)
-	CXX = clang++
-	CXXFLAGS = $(OPT) -std=c++11 -stdlib=libc++
-else
-	CXX = g++
-	CXXFLAGS = $(OPT) -std=c++11
-endif
+CXX = clang++
+CXXFLAGS = $(OPT) -std=c++11 -stdlib=libc++
 
 streams: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o streams
