@@ -101,7 +101,7 @@ public:
 
     template<typename... Args>
     auto operator() (const std::tuple<Args...>& tuple)
-            -> ReturnType<Function, Args...> {
+            -> decltype(std::declval<Function>()(std::declval<Args>()...)) {
 
         return apply_tuple(function_, tuple);
     }
