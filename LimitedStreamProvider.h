@@ -3,19 +3,20 @@
 
 #include "StreamProvider.h"
 
-template<typename T, template<typename> class Pointer>
-class LimitedStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T>
+class LimitedStreamProvider : public StreamProvider<T> {
 
 public:
-    LimitedStreamProvider(StreamProviderPtr<T, Pointer> source, size_t limit)
+    LimitedStreamProvider(StreamProviderPtr<T> source, size_t limit)
         : source_(std::move(source)), remaining_(limit) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
         if(remaining_ == 0) {
+            current_.reset();
             return false;
         }
         if(source_->advance()) {
@@ -23,12 +24,13 @@ public:
             remaining_--;
             return true;
         }
+        current_.reset();
         return false;
     }
 
 private:
-    StreamProviderPtr<T, Pointer> source_;
-    Pointer<T> current_;
+    StreamProviderPtr<T> source_;
+    std::shared_ptr<T> current_;
     std::size_t remaining_;
 
 };

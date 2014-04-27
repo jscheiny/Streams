@@ -4,19 +4,19 @@
 #include "StreamProvider.h"
 #include "Utility.h"
 
-template<typename T, template<typename> class Pointer, typename Subtract>
-class AdjacentDifferenceStreamProvider 
-    : public StreamProvider<ReturnType<Subtract, T&, T&>, Pointer> {
+template<typename T, typename Subtract>
+class AdjacentDifferenceStreamProvider
+    : public StreamProvider<ReturnType<Subtract, T&, T&>> {
 
 public:
     using DiffType = ReturnType<Subtract, T&, T&>;
 
-    AdjacentDifferenceStreamProvider(StreamProviderPtr<T, Pointer> source,
+    AdjacentDifferenceStreamProvider(StreamProviderPtr<T> source,
                                      Subtract&& subtract)
         : source_(std::move(source)), subtract_(subtract) {}
 
-    Pointer<DiffType> get() override {
-        return move_unique(subtract_(*second_, *first_));
+    std::shared_ptr<DiffType> get() override {
+        return std::make_shared<DiffType>(subtract_(*second_, *first_));
     }
 
     bool advance() override {
@@ -30,6 +30,7 @@ public:
             if(source_->advance()) {
                 second_ = source_->get();
             } else {
+                first_.reset();
                 return false;
             }
             return true;
@@ -40,14 +41,15 @@ public:
             second_ = source_->get();
             return true;
         }
+        first_.reset();
         return false;
     }
 
 private:
-    StreamProviderPtr<T, Pointer> source_;
+    StreamProviderPtr<T> source_;
     Subtract subtract_;
-    Pointer<T> first_;
-    Pointer<T> second_;
+    std::shared_ptr<T> first_;
+    std::shared_ptr<T> second_;
     bool first_advance_ = true;
 };
 

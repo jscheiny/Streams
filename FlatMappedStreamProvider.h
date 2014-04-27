@@ -5,41 +5,30 @@
 #include "Stream.h"
 #include "Utility.h"
 
-template<typename T, template<typename> class P> struct BasicStream;
+template<typename T> struct Stream;
 
 template<typename T>
-struct StreamIdentifier {
-    using Type = void;
-};
-
-template<typename T, template<typename> class P>
-struct StreamIdentifier<BasicStream<T, P>> { 
-    using Type = T;
-};
+struct StreamIdentifier {  using Type = void; };
+template<typename T>
+struct StreamIdentifier<Stream<T>> { using Type = T; };
 
 template<typename S> using StreamType = typename StreamIdentifier<S>::Type;
 
 template<typename T>
-struct IsStream {
-    enum { value = false };
-};
+struct IsStream { enum { value = false }; };
+template<typename T>
+struct IsStream<Stream<T>> { enum { value = true }; };
 
-template<typename T, template<typename> class P>
-struct IsStream<BasicStream<T, P>> { 
-    enum { value = true };
-};
-
-template<typename T, template<typename> class Pointer,
-         typename Transform, typename In>
-class FlatMappedStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T, typename Transform, typename In>
+class FlatMappedStreamProvider : public StreamProvider<T> {
 
 public:
-    FlatMappedStreamProvider(StreamProviderPtr<In, Pointer> source,
+    FlatMappedStreamProvider(StreamProviderPtr<In> source,
                              Transform&& transform)
         : source_(std::move(source)), transform_(transform) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
@@ -59,14 +48,15 @@ public:
             }
         }
 
+        current_.reset();
         return false;
     }
 
 private:
-    StreamProviderPtr<In, Pointer> source_;
+    StreamProviderPtr<In> source_;
     Transform transform_;
-    BasicStream<T, Pointer> current_stream_;
-    Pointer<T> current_;
+    Stream<T> current_stream_;
+    std::shared_ptr<T> current_;
     bool first_ = true;
 
 };

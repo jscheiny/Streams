@@ -5,25 +5,25 @@
 
 #include "Utility.h"
 
-template<typename T, template<typename> class Pointer, typename Generator>
-class GeneratedStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T, typename Generator>
+class GeneratedStreamProvider : public StreamProvider<T> {
 
 public:
     GeneratedStreamProvider(Generator&& generator)
         : generator_(generator) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
-        current_ = move_unique(generator_());
+        current_ = std::make_shared<T>(generator_());
         return true;
     }
 
 private:
     Generator generator_;
-    Pointer<T> current_;
+    std::shared_ptr<T> current_;
 
 };
 

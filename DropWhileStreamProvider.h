@@ -3,42 +3,43 @@
 
 #include "StreamProvider.h"
 
-template<typename T, template<typename> class Pointer, typename Predicate>
-class DropWhileStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T, typename Predicate>
+class DropWhileStreamProvider : public StreamProvider<T> {
 
 public:
-    DropWhileStreamProvider(StreamProviderPtr<T, Pointer> source,
+    DropWhileStreamProvider(StreamProviderPtr<T> source,
                            Predicate&& predicate, bool end)
         : source_(std::move(source)), predicate_(predicate), end_(end) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
         if(!dropped_) {
+            dropped_ = true;
             while(source_->advance()) {
                 current_ = source_->get();
                 if(predicate_(*current_) == end_) {
-                    dropped_ = true;
                     return true;
                 }
             }
-            dropped_ = true;
+            current_.reset();
             return false;
         }
         if(source_->advance()) {
             current_ = source_->get();
             return true;
         }
+        current_.reset();
         return false;
     }
 
 private:
-    StreamProviderPtr<T, Pointer> source_;
+    StreamProviderPtr<T> source_;
     Predicate predicate_;
     bool end_;
-    Pointer<T> current_;
+    std::shared_ptr<T> current_;
     bool dropped_ = false;
 };
 

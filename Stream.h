@@ -11,78 +11,70 @@
 #include <vector>
 #include <list>
 
-template<typename T, template<typename> class P> class BasicStream;
-
-template<typename T> using UniquePtr = std::unique_ptr<T>;
-template<typename T> using SharedPtr = std::shared_ptr<T>;
-template<typename T> using UniqueStream = BasicStream<T, UniquePtr>;
-template<typename T> using SharedStream = BasicStream<T, SharedPtr>;
-template<typename T> using Stream = UniqueStream<T>;
-
-template<typename T, template<typename> class Pointer>
-class BasicStream {
+template<typename T>
+class Stream {
 
 public:
     using ElementType = T;
 
     template<typename Generator>
-    static BasicStream<T, Pointer> generate(Generator&& generator);
+    static Stream<T> generate(Generator&& generator);
 
     template<typename Function>
-    static BasicStream<T, Pointer> iterate(T initial, Function&& function);
+    static Stream<T> iterate(T initial, Function&& function);
 
-    BasicStream();
+    Stream();
 
     template<typename Iterator>
-    BasicStream(Iterator begin, Iterator end);
+    Stream(Iterator begin, Iterator end);
 
     template<typename Predicate>
-    BasicStream<T, Pointer> filter(Predicate&& predicate);
+    Stream<T> filter(Predicate&& predicate);
 
     template<typename Predicate>
-    BasicStream<T, Pointer> take_while(Predicate&& predicate);
+    Stream<T> take_while(Predicate&& predicate);
 
     template<typename Predicate>
-    BasicStream<T, Pointer> take_until(Predicate&& predicate);
+    Stream<T> take_until(Predicate&& predicate);
 
     template<typename Predicate>
-    BasicStream<T, Pointer> drop_while(Predicate&& predicate);
+    Stream<T> drop_while(Predicate&& predicate);
 
     template<typename Predicate>
-    BasicStream<T, Pointer> drop_until(Predicate&& predicate);
+    Stream<T> drop_until(Predicate&& predicate);
 
     template<typename Action>
-    BasicStream<T, Pointer> peek(Action&& action);
+    Stream<T> peek(Action&& action);
 
     template<typename Transform>
-    BasicStream<ReturnType<Transform, T&>, Pointer> map(Transform&& transform);
+    Stream<ReturnType<Transform, T&>> map(Transform&& transform);
 
     template<typename Transform>
-    BasicStream<StreamType<ReturnType<Transform, T&>>, Pointer>
+    Stream<StreamType<ReturnType<Transform, T&>>>
     flat_map(Transform&& transform);
 
-    BasicStream<T, Pointer> limit(std::size_t length);
+    Stream<T> limit(std::size_t length);
 
-    BasicStream<T, Pointer> skip(std::size_t amount);
-
-    template<typename Compare = std::less<T>>
-    BasicStream<T, Pointer> sort(Compare&& comparator = Compare());
+    Stream<T> skip(std::size_t amount);
 
     template<typename Compare = std::less<T>>
-    BasicStream<T, Pointer> distinct(Compare&& comparator = Compare());
+    Stream<T> sort(Compare&& comparator = Compare());
+
+    template<typename Compare = std::less<T>>
+    Stream<T> distinct(Compare&& comparator = Compare());
 
     template<typename Subtract = Minus<T>> // std::minus<void> in c++14
-    BasicStream<ReturnType<Subtract, T&, T&>, Pointer>
+    Stream<ReturnType<Subtract, T&, T&>>
     adjacent_difference(Subtract&& subtract = Subtract());
 
     template<typename Iterator>
-    BasicStream<T, Pointer> concat(Iterator begin, Iterator end);
+    Stream<T> concat(Iterator begin, Iterator end);
 
-    BasicStream<T, Pointer> concat(BasicStream<T, Pointer>&& other);
+    Stream<T> concat(Stream<T>&& other);
 
     template<typename Other>
-    BasicStream<ZipResult<T, Other>, Pointer>
-    zip(BasicStream<Other, Pointer>&& other);
+    Stream<ZipResult<T, Other>>
+    zip(Stream<Other>&& other);
 
     size_t count();
 
@@ -105,231 +97,231 @@ public:
         return source_;
     }
 
-    template<typename, template<typename> class>
-    friend class BasicStream;
-    
-    template<typename, template<typename> class, typename, typename>
+    template<typename>
+    friend class Stream;
+
+    template<typename, typename, typename>
     friend class FlatMappedStreamProvider;
 
 private:
-    BasicStream(StreamProviderPtr<T, Pointer> source)
+    Stream(StreamProviderPtr<T> source)
         : source_(std::move(source)) {}
 
-    StreamProviderPtr<T, Pointer> source_;
+    StreamProviderPtr<T> source_;
 
 };
 
-template<typename T, template<typename> class P>
-BasicStream<T, P>::BasicStream()
-    : source_(make_stream_provider<EmptyStreamProvider, T, P>()) {}
+template<typename T>
+Stream<T>::Stream()
+    : source_(make_stream_provider<EmptyStreamProvider, T>()) {}
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Iterator>
-BasicStream<T, P>::BasicStream(Iterator begin, Iterator end)
-    : source_(make_unique<IteratorStreamProvider<T, P, Iterator>>(
+Stream<T>::Stream(Iterator begin, Iterator end)
+    : source_(make_unique<IteratorStreamProvider<T, Iterator>>(
         begin, end)) {}
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Generator>
-BasicStream<T, P> BasicStream<T, P>::generate(Generator&& generator) {
+Stream<T> Stream<T>::generate(Generator&& generator) {
 
-    return make_stream_provider <GeneratedStreamProvider, T, P, Generator>
+    return make_stream_provider <GeneratedStreamProvider, T, Generator>
         (std::forward<Generator>(generator));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Function>
-BasicStream<T, P> BasicStream<T, P>::iterate(T initial, Function&& function) {
+Stream<T> Stream<T>::iterate(T initial, Function&& function) {
 
-    return make_stream_provider <IteratedStreamProvider, T, P, Function>
+    return make_stream_provider <IteratedStreamProvider, T, Function>
         (std::forward<T>(initial), std::forward<Function>(function));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Predicate>
-BasicStream<T, P> BasicStream<T, P>::filter(Predicate&& predicate) {
+Stream<T> Stream<T>::filter(Predicate&& predicate) {
 
-    return make_stream_provider <FilteredStreamProvider, T, P, Predicate>
+    return make_stream_provider <FilteredStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Predicate>
-BasicStream<T, P> BasicStream<T, P>::take_while(Predicate&& predicate) {
+Stream<T> Stream<T>::take_while(Predicate&& predicate) {
 
-    return make_stream_provider <TakeWhileStreamProvider, T, P, Predicate>
+    return make_stream_provider <TakeWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), false);
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Predicate>
-BasicStream<T, P> BasicStream<T, P>::take_until(Predicate&& predicate) {
+Stream<T> Stream<T>::take_until(Predicate&& predicate) {
 
-    return make_stream_provider <TakeWhileStreamProvider, T, P, Predicate>
+    return make_stream_provider <TakeWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), true);
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Predicate>
-BasicStream<T, P> BasicStream<T, P>::drop_while(Predicate&& predicate) {
+Stream<T> Stream<T>::drop_while(Predicate&& predicate) {
 
-    return make_stream_provider <DropWhileStreamProvider, T, P, Predicate>
+    return make_stream_provider <DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), false);
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Predicate>
-BasicStream<T, P> BasicStream<T, P>::drop_until(Predicate&& predicate) {
+Stream<T> Stream<T>::drop_until(Predicate&& predicate) {
 
-    return make_stream_provider <DropWhileStreamProvider, T, P, Predicate>
+    return make_stream_provider <DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), true);
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Action>
-BasicStream<T, P> BasicStream<T, P>::peek(Action&& action) {
+Stream<T> Stream<T>::peek(Action&& action) {
 
-    return make_stream_provider <PeekStreamProvider, T, P, Action>
+    return make_stream_provider <PeekStreamProvider, T, Action>
         (std::move(source_), std::forward<Action>(action));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Transform>
-BasicStream<ReturnType<Transform, T&>, P> BasicStream<T, P>::map(
+Stream<ReturnType<Transform, T&>> Stream<T>::map(
             Transform&& transform) {
 
     using Result = ReturnType<Transform, T>;
-    return make_stream_provider <MappedStreamProvider, Result, P, Transform, T>
+    return make_stream_provider <MappedStreamProvider, Result, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Transform>
-BasicStream<StreamType<ReturnType<Transform, T&>>, P>
-BasicStream<T,P>::flat_map(Transform&& transform) {
+Stream<StreamType<ReturnType<Transform, T&>>>
+Stream<T>::flat_map(Transform&& transform) {
 
     using Result = ReturnType<Transform, T&>;
     static_assert(IsStream<Result>::value,
         "Flat map must be passed a function which returns a stream");
     using S = StreamType<Result>;
-    return make_stream_provider <FlatMappedStreamProvider, S, P, Transform, T>
+    return make_stream_provider <FlatMappedStreamProvider, S, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
 
 }
 
-template<typename T, template<typename> class P>
-BasicStream<T, P> BasicStream<T, P>::limit(std::size_t length) {
+template<typename T>
+Stream<T> Stream<T>::limit(std::size_t length) {
 
-    return make_stream_provider <LimitedStreamProvider, T, P>
+    return make_stream_provider <LimitedStreamProvider, T>
         (std::move(source_), length);
 }
 
-template<typename T, template<typename> class P>
-BasicStream<T, P> BasicStream<T, P>::skip(std::size_t amount) {
+template<typename T>
+Stream<T> Stream<T>::skip(std::size_t amount) {
 
-    return make_stream_provider <SkippedStreamProvider, T, P>
+    return make_stream_provider <SkippedStreamProvider, T>
         (std::move(source_), amount);
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Compare>
-BasicStream<T, P> BasicStream<T, P>::sort(Compare&& comparator) {
+Stream<T> Stream<T>::sort(Compare&& comparator) {
 
-    return make_stream_provider <SortedStreamProvider, T, P, Compare>
+    return make_stream_provider <SortedStreamProvider, T, Compare>
         (std::move(source_), std::forward<Compare>(comparator));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Compare>
-BasicStream<T, P> BasicStream<T, P>::distinct(Compare&& comparator) {
+Stream<T> Stream<T>::distinct(Compare&& comparator) {
 
-    return make_stream_provider <DistinctStreamProvider, T, P, Compare>
+    return make_stream_provider <DistinctStreamProvider, T, Compare>
         (std::move(source_), std::forward<Compare>(comparator));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Iterator>
-BasicStream<T, P> BasicStream<T, P>::concat(Iterator begin, Iterator end) {
-    return concat(BasicStream<T, P>(begin, end));
+Stream<T> Stream<T>::concat(Iterator begin, Iterator end) {
+    return concat(Stream<T>(begin, end));
 }
 
-template<typename T, template<typename> class P>
-BasicStream<T, P> BasicStream<T, P>::concat(BasicStream<T, P>&& other) {
+template<typename T>
+Stream<T> Stream<T>::concat(Stream<T>&& other) {
 
-    return make_stream_provider <ConcatenatedStreamProvider, T, P>
+    return make_stream_provider <ConcatenatedStreamProvider, T>
         (std::move(source_), std::move(other.source_));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Subtract>
-BasicStream<ReturnType<Subtract, T&, T&>, P>
-BasicStream<T, P>::adjacent_difference(Subtract&& subtract) {
+Stream<ReturnType<Subtract, T&, T&>>
+Stream<T>::adjacent_difference(Subtract&& subtract) {
 
     using Result = ReturnType<Subtract, T&, T&>;
-    return std::move(StreamProviderPtr<Result, P>(
-        new AdjacentDifferenceStreamProvider<T, P, Subtract>(
+    return std::move(StreamProviderPtr<Result>(
+        new AdjacentDifferenceStreamProvider<T, Subtract>(
             std::move(source_), std::forward<Subtract>(subtract))));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Other>
-BasicStream<ZipResult<T, Other>, P> BasicStream<T, P>::zip(
-            BasicStream<Other, P>&& other) {
+Stream<ZipResult<T, Other>> Stream<T>::zip(
+            Stream<Other>&& other) {
 
     using Result = ZipResult<T, Other>;
-    return std::move(StreamProviderPtr<Result, P>(
-        new ZippedStreamProvider<T, Other, P>(
+    return std::move(StreamProviderPtr<Result>(
+        new ZippedStreamProvider<T, Other>(
             std::move(source_), std::move(other.source_))));
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename OutputIterator>
-void BasicStream<T, P>::copy_to(OutputIterator out) {
+void Stream<T>::copy_to(OutputIterator out) {
     while(source_->advance()) {
         *out = *source_->get();
         out++;
     }
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename OutputIterator>
-void BasicStream<T, P>::move_to(OutputIterator out) {
+void Stream<T>::move_to(OutputIterator out) {
     while(source_->advance()) {
         *out = std::move(*source_->get());
         out++;
     }
 }
 
-template<typename T, template<typename> class P>
-void BasicStream<T, P>::print_to(std::ostream& os, const char* delimiter) {
+template<typename T>
+void Stream<T>::print_to(std::ostream& os, const char* delimiter) {
     copy_to(std::ostream_iterator<T>(os, delimiter));
 }
 
 
-template<typename T, template<typename> class P>
-std::vector<T> BasicStream<T,P>::as_vector() {
+template<typename T>
+std::vector<T> Stream<T>::as_vector() {
     std::vector<T> result;
     copy_to(back_inserter(result));
     return result;
 }
 
-template<typename T, template<typename> class P>
-std::list<T> BasicStream<T,P>::as_list() {
+template<typename T>
+std::list<T> Stream<T>::as_list() {
     std::list<T> result;
     copy_to(back_inserter(result));
     return result;
 }
 
-template<typename T, template<typename> class P>
+template<typename T>
 template<typename Function>
-void BasicStream<T, P>::for_each(Function&& function) {
+void Stream<T>::for_each(Function&& function) {
     while(source_->advance()) {
         function(*source_->get());
     }
 }
 
-template<typename T, template<typename> class P>
-size_t BasicStream<T, P>::count() {
+template<typename T>
+size_t Stream<T>::count() {
     size_t count = 0;
     while(source_->advance()) {
         source_->get();

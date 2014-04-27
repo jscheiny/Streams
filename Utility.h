@@ -23,13 +23,13 @@ struct Minus {
     }
 };
 
-template<typename T, template<typename> class Pointer, typename Compare,
-         bool Reverse = false>
+template<typename T, typename Compare, bool Reverse = false>
 class ComparePtrWrapper {
 public:
     ComparePtrWrapper(Compare&& comparator) : comparator_(comparator) {}
 
-    bool operator() (const Pointer<T>& left, const Pointer<T>& right) {
+    bool operator() (const std::shared_ptr<T>& left,
+                     const std::shared_ptr<T>& right) {
         return comparator_(*left, *right);
     }
 
@@ -37,12 +37,13 @@ private:
     Compare comparator_;
 };
 
-template<typename T, template<typename> class Pointer, typename Compare>
-class ComparePtrWrapper<T, Pointer, Compare, true> {
+template<typename T, typename Compare>
+class ComparePtrWrapper<T, Compare, true> {
 public:
     ComparePtrWrapper(Compare&& comparator) : comparator_(comparator) {}
 
-    bool operator() (const Pointer<T>& left, const Pointer<T>& right) {
+    bool operator() (const std::shared_ptr<T>& left,
+                     const std::shared_ptr<T>& right) {
         return comparator_(*right, *left);
     }
 

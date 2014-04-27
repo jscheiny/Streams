@@ -5,15 +5,15 @@
 
 #include "Utility.h"
 
-template<typename T, template<typename> class Pointer, typename Iterator>
-class IteratorStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T, typename Iterator>
+class IteratorStreamProvider : public StreamProvider<T> {
 
 public:
     IteratorStreamProvider(Iterator begin, Iterator end)
         : current_(begin), end_(end) {}
 
-    Pointer<T> get() override {
-        return make_unique<T>(std::move(*current_));
+    std::shared_ptr<T> get() override {
+        return std::make_shared<T>(std::move(*current_));
     }
 
     bool advance() override {

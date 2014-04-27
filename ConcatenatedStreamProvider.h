@@ -5,22 +5,22 @@
 
 #include <list>
 
-template<typename T, template<typename> class Pointer>
-class ConcatenatedStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T>
+class ConcatenatedStreamProvider : public StreamProvider<T> {
 
 public:
     template<typename Iterator>
     ConcatenatedStreamProvider(Iterator begin, Iterator end)
         : source_(begin, end) {}
 
-    ConcatenatedStreamProvider(StreamProviderPtr<T, Pointer> first,
-                               StreamProviderPtr<T, Pointer> second) {
+    ConcatenatedStreamProvider(StreamProviderPtr<T> first,
+                               StreamProviderPtr<T> second) {
         source_.push_back(std::move(first));
         source_.push_back(std::move(second));
     }
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
@@ -32,12 +32,13 @@ public:
             }
             source_.pop_front();
         }
+        current_.reset();
         return false;
     }
 
 private:
-    std::list<StreamProviderPtr<T, Pointer>> source_;
-    Pointer<T> current_;
+    std::list<StreamProviderPtr<T>> source_;
+    std::shared_ptr<T> current_;
 
 };
 

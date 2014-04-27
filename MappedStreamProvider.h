@@ -5,32 +5,32 @@
 
 #include "Utility.h"
 
-template<typename T, template<typename> class Pointer,
-         typename Transform, typename In>
-class MappedStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T, typename Transform, typename In>
+class MappedStreamProvider : public StreamProvider<T> {
 
 public:
-    MappedStreamProvider(StreamProviderPtr<In, Pointer> source,
+    MappedStreamProvider(StreamProviderPtr<In> source,
                          Transform&& transform)
         : source_(std::move(source)), transform_(transform) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
         if(source_->advance()) {
             auto preimage = source_->get();
-            current_ = move_unique(transform_(*preimage));
+            current_ = std::make_shared<T>(transform_(*preimage));
             return true;
         }
+        current_.reset();
         return false;
     }
 
 private:
-    StreamProviderPtr<In, Pointer> source_;
+    StreamProviderPtr<In> source_;
     Transform transform_;
-    Pointer<T> current_;
+    std::shared_ptr<T> current_;
 
 };
 

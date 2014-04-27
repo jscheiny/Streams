@@ -2,7 +2,7 @@ OBJS =	main.o
 
 OPT = -O3
 CXX = clang++
-CXXFLAGS = $(OPT) -std=c++11 -stdlib=libc++
+CXXFLAGS = $(OPT) -std=c++1y -stdlib=libc++
 
 streams: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o streams

@@ -3,11 +3,11 @@
 
 #include "StreamProvider.h"
 
-template<typename T, template<typename> class Pointer>
-class EmptyStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T>
+class EmptyStreamProvider : public StreamProvider<T> {
 
 public:
-    Pointer<T> get() override {
+    std::shared_ptr<T> get() override {
         return nullptr;
     }
 

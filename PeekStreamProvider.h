@@ -1,15 +1,15 @@
 #ifndef PEEK_STREAM_PROVIDER_H
 #define PEEK_STREAM_PROVIDER_H
 
-template<typename T, template<typename> class Pointer, typename Action>
-class PeekStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T, typename Action>
+class PeekStreamProvider : public StreamProvider<T> {
 
 public:
-    PeekStreamProvider(StreamProviderPtr<T, Pointer> source, Action&& action)
+    PeekStreamProvider(StreamProviderPtr<T> source, Action&& action)
         : source_(std::move(source)), action_(action) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
@@ -18,13 +18,14 @@ public:
             action_(*current_);
             return true;
         }
+        current_.reset();
         return false;
     }
 
 private:
-    StreamProviderPtr<T, Pointer> source_;
+    StreamProviderPtr<T> source_;
     Action action_;
-    Pointer<T> current_;
+    std::shared_ptr<T> current_;
 
 };
 

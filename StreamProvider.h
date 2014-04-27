@@ -3,24 +3,24 @@
 
 #include <memory>
 
-template<typename T, template<typename> class Pointer = std::unique_ptr>
+template<typename T>
 struct StreamProvider {
 public:
-    virtual Pointer<T> get() = 0;
+    virtual std::shared_ptr<T> get() = 0;
     virtual bool advance() = 0;
 
 };
 
-template<typename T, template<typename> class P>
-using StreamProviderPtr = std::unique_ptr<StreamProvider<T, P>>;
+template<typename T>
+using StreamProviderPtr = std::unique_ptr<StreamProvider<T>>;
 
-template<template<typename, template<typename> class, typename...> class Provider,
-         typename T, template<typename> class Pointer,
+template<template<typename...> class Provider,
+         typename T,
          typename... TemplateArgs,
          typename... ConstructorArgs>
-StreamProviderPtr<T, Pointer> make_stream_provider(ConstructorArgs&&... args) {
-    return StreamProviderPtr<T, Pointer>(
-        new Provider<T, Pointer, TemplateArgs...>(
+StreamProviderPtr<T> make_stream_provider(ConstructorArgs&&... args) {
+    return StreamProviderPtr<T>(
+        new Provider<T, TemplateArgs...>(
             std::forward<ConstructorArgs>(args)...));
 }
 

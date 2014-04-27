@@ -3,15 +3,15 @@
 
 #include "StreamProvider.h"
 
-template<typename T, template<typename> class Pointer>
-class SkippedStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T>
+class SkippedStreamProvider : public StreamProvider<T> {
 
 public:
-    SkippedStreamProvider(StreamProviderPtr<T, Pointer> source, size_t skip)
+    SkippedStreamProvider(StreamProviderPtr<T> source, size_t skip)
         : source_(std::move(source)), skip_(skip) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
@@ -20,6 +20,7 @@ public:
                 if(source_->advance()) {
                     current_ = source_->get();
                 } else {
+                    current_.reset();
                     return false;
                 }
             }
@@ -30,12 +31,13 @@ public:
             current_ = source_->get();
             return true;
         }
+        current_.reset();
         return false;
     }
 
 private:
-    StreamProviderPtr<T, Pointer> source_;
-    Pointer<T> current_;
+    StreamProviderPtr<T> source_;
+    std::shared_ptr<T> current_;
     std::size_t skip_;
 
 };

@@ -8,29 +8,26 @@
 #include <iostream>
 #include <type_traits>
 
-template<typename T, template<typename> class Pointer, typename Function>
-class IteratedStreamProvider : public StreamProvider<T, Pointer> {
+template<typename T, typename Function>
+class IteratedStreamProvider : public StreamProvider<T> {
 
 public:
     IteratedStreamProvider(T initial, Function&& function)
         : function_(function),
-          current_(make_unique<T>(initial)),
-          current_copy_(*current_) {}
+          current_(std::make_shared<T>(initial)) {}
 
-    Pointer<T> get() override {
-        return std::move(current_);
+    std::shared_ptr<T> get() override {
+        return current_;
     }
 
     bool advance() override {
-        current_ = move_unique(function_(current_copy_));
-        current_copy_ = *current_;
+        current_ = std::make_shared<T>(function_(*current_));
         return true;
     }
 
 private:
     Function function_;
-    Pointer<T> current_;
-    typename std::decay<T>::type current_copy_;
+    std::shared_ptr<T> current_;
 };
 
 
