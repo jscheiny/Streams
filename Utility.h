@@ -64,5 +64,15 @@ SplattedFunction<Function> splat(Function&& function) {
     return SplattedFunction<Function>(std::forward<Function>(function));
 }
 
+template<typename... Types>
+SplattableTuple<Types...> operator+(const std::tuple<Types...>& tup) {
+    return SplattableTuple<Types...>(tup);
+}
+
+template<typename Function>
+SplattableFunction<Function> splattable(Function&& function) {
+    return SplattableFunction<Function>(std::forward<Function>(function));
+}
+
 
 #endif

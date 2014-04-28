@@ -78,5 +78,19 @@ int main(int argc, char const *argv[])
         .limit(10)
         .print_to(cout, "|");
     cout << endl;
+
+    auto fn = [](int x, string s, int y) {
+        cout << "x = " << x << ", s = " << s << ", y = " << y << endl;
+    };
+
+    auto fn_ = splattable(fn);
+    auto tup1 = make_tuple(3, string("Hello"));
+    auto tup2 = make_tuple(string("Hi"), 4);
+    auto tup3 = make_tuple(2, string("What"), 4);
+
+    fn_(+tup1, 8);
+    fn_(0, +tup2);
+    fn_(+tup3);
+
     return 0;
 }

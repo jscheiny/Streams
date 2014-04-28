@@ -111,4 +111,70 @@ private:
 
 };
 
+// More generic splatting
+
+template<typename... Types>
+struct SplattableTuple {
+    SplattableTuple(const std::tuple<Types...>& value_) : value(value_) {}
+
+    const std::tuple<Types...>& value;
+};
+
+template<size_t index, size_t last, typename First, typename... Args>
+struct ArgsToTuple {
+    static auto tuplize(First&& first_arg, Args&&... args) {
+        return std::tuple_cat(std::make_tuple(std::forward<First>(first_arg)),
+            ArgsToTuple<index + 1, last, Args...>
+                ::tuplize(std::forward<Args>(args)...));
+    }
+};
+
+template<size_t last, typename Last>
+struct ArgsToTuple<last, last, Last> {
+    static auto tuplize(Last&& last_arg) {
+        return std::make_tuple(std::forward<Last>(last_arg));
+    }
+};
+
+template<size_t index, size_t last, typename... Types, typename... Args>
+struct ArgsToTuple<index, last, SplattableTuple<Types...>, Args...> {
+    using InTuple = SplattableTuple<Types...>;
+    static auto tuplize(InTuple&& first, Args&&... args) {
+        return std::tuple_cat(first.value,
+            ArgsToTuple<index + 1, last, Args...>
+                ::tuplize(std::forward<Args>(args)...));
+    }
+};
+
+template<size_t last, typename... Types>
+struct ArgsToTuple<last, last, SplattableTuple<Types...>> {
+    static std::tuple<Types...> tuplize(SplattableTuple<Types...>&& first) {
+        return first.value;
+    }
+};
+
+template<typename... Args>
+auto args2tuple(Args&&... args) {
+    return ArgsToTuple<0, sizeof...(Args)-1, Args...>
+        ::tuplize(std::forward<Args>(args)...);
+}
+
+template<typename Function>
+struct SplattableFunction {
+
+public:
+    SplattableFunction(Function&& function) : function_(function) {}
+
+    template<typename... Args>
+    auto operator() (Args&&... args) {
+        return apply_tuple(function_,
+            ArgsToTuple<0, sizeof...(Args)-1, Args...>
+                ::tuplize(std::forward<Args>(args)...));
+    }
+
+private:
+    Function function_;
+
+};
+
 #endif
