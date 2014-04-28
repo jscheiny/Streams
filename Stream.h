@@ -17,6 +17,8 @@ class Stream {
 public:
     using ElementType = T;
 
+    static Stream<T> repeat(T&& value);
+
     template<typename Generator>
     static Stream<T> generate(Generator&& generator);
 
@@ -123,6 +125,12 @@ template<typename Iterator>
 Stream<T>::Stream(Iterator begin, Iterator end)
     : source_(make_unique<IteratorStreamProvider<T, Iterator>>(
         begin, end)) {}
+
+template<typename T>
+Stream<T> Stream<T>::repeat(T&& value) {
+    return make_stream_provider <RepeatedStreamProvider, T>
+        (std::forward<T>(value));
+}
 
 template<typename T>
 template<typename Generator>

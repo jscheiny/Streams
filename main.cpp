@@ -6,7 +6,6 @@
 #include <iterator>
 #include <iostream>
 
-
 using namespace std;
 
 Stream<int> count(int start, int increment = 1) {
@@ -73,10 +72,10 @@ int main(int argc, char const *argv[])
         cout << x << " -> " << y << endl;
     }));
 
-    Stream<int>::generate([]() { return 1; })
+    Stream<int>::repeat(1)
         .partial_sum()
         .limit(10)
-        .print_to(cout, "|");
+        .print_to(cout, " ");
     cout << endl;
 
     auto fn = [](int x, string s, int y) {
@@ -91,6 +90,8 @@ int main(int argc, char const *argv[])
     fn_(+tup1, 8);
     fn_(0, +tup2);
     fn_(+tup3);
+
+
 
     return 0;
 }

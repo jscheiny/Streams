@@ -17,6 +17,7 @@
 #include "MappedStreamProvider.h"
 #include "PartialSumStreamProvider.h"
 #include "PeekStreamProvider.h"
+#include "RepeatedStreamProvider.h"
 #include "SkippedStreamProvider.h"
 #include "SortedStreamProvider.h"
 #include "TakeWhileStreamProvider.h"
