@@ -48,7 +48,7 @@ int main(int argc, char const *argv[])
         .print_to(cout);
     cout << endl;
 
-    range(1,5).zip(range(6,10)).for_each([](std::tuple<int, int> x) {
+    range(1,5).zip_with(range(6,10)).for_each([](std::tuple<int, int> x) {
         cout << x << endl;
     });
 
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[])
         });
     cout << endl;
 
-    range(1, 5).zip(range(6, 10)).for_each(splat([](int x, int y) {
+    range(1, 5).zip_with(range(6, 10)).for_each(splat([](int x, int y) {
         cout << x << " -> " << y << endl;
     }));
 
@@ -90,8 +90,6 @@ int main(int argc, char const *argv[])
     fn_(+tup1, 8);
     fn_(0, +tup2);
     fn_(+tup3);
-
-
 
     return 0;
 }

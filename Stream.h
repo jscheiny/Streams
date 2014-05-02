@@ -79,7 +79,7 @@ public:
 
     template<typename Other>
     Stream<ZipResult<T, Other>>
-    zip(Stream<Other>&& other);
+    zip_with(Stream<Other>&& other);
 
     size_t count();
 
@@ -123,7 +123,7 @@ Stream<T>::Stream()
 template<typename T>
 template<typename Iterator>
 Stream<T>::Stream(Iterator begin, Iterator end)
-    : source_(make_unique<IteratorStreamProvider<T, Iterator>>(
+    : source_(std::make_unique<IteratorStreamProvider<T, Iterator>>(
         begin, end)) {}
 
 template<typename T>
@@ -265,7 +265,7 @@ Stream<T> Stream<T>::partial_sum(Adder&& add) {
 
 template<typename T>
 template<typename Other>
-Stream<ZipResult<T, Other>> Stream<T>::zip(Stream<Other>&& other) {
+Stream<ZipResult<T, Other>> Stream<T>::zip_with(Stream<Other>&& other) {
     using Result = ZipResult<T, Other>;
     return std::move(StreamProviderPtr<Result>(
         new ZippedStreamProvider<T, Other>(
