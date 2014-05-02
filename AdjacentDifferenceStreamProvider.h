@@ -16,7 +16,7 @@ public:
         : source_(std::move(source)), subtract_(subtract) {}
 
     std::shared_ptr<DiffType> get() override {
-        return std::make_shared<DiffType>(subtract_(*second_, *first_));
+        return result_;
     }
 
     bool advance() override {
@@ -33,15 +33,18 @@ public:
                 first_.reset();
                 return false;
             }
+            result_ = std::make_shared<DiffType>(subtract_(*second_, *first_));
             return true;
         }
 
         first_ = std::move(second_);
         if(source_->advance()) {
             second_ = source_->get();
+            result_ = std::make_shared<DiffType>(subtract_(*second_, *first_));
             return true;
         }
         first_.reset();
+        result_.reset();
         return false;
     }
 
@@ -50,6 +53,7 @@ private:
     Subtractor subtract_;
     std::shared_ptr<T> first_;
     std::shared_ptr<T> second_;
+    std::shared_ptr<DiffType> result_;
     bool first_advance_ = true;
 };
 
