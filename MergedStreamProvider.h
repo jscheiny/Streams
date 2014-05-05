@@ -4,29 +4,6 @@
 #include "StreamProvider.h"
 #include "Utility.h"
 
-enum DepleteState {
-    NeitherDepleted,
-    FirstDepleted,
-    SecondDepleted,
-    BothDepleted
-};
-
-
-std::ostream& operator<<(std::ostream& os, DepleteState deplete) {
-    switch(deplete) {
-    case NeitherDepleted:
-        return os << "Neither depleted";
-    case FirstDepleted:
-        return os << "First depleted";
-    case SecondDepleted:
-        return os << "Second depleted";
-    case BothDepleted:
-        return os << "Both depleted";
-    }
-
-}
-
-
 template<typename T, typename Compare>
 class MergedStreamProvider : public StreamProvider<T> {
 
@@ -39,9 +16,6 @@ public:
           comparator_(comparator) {}
 
     std::shared_ptr<T> get() override {
-        if(!result_) {
-            std::cout << "UH OH" << std::endl;
-        }
         return result_;
     }
 
@@ -55,12 +29,18 @@ public:
     }
 
 private:
+    enum DepleteState {
+        NeitherDepleted,
+        FirstDepleted,
+        SecondDepleted,
+        BothDepleted
+    };
+
     enum ToAdvance {
         FirstSource,
         SecondSource,
         BothSources
     };
-
 
     ToAdvance advance_ = BothSources;
     DepleteState depletion_ = NeitherDepleted;
