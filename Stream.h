@@ -94,6 +94,15 @@ public:
 
     size_t count();
 
+    template<typename Predicate>
+    bool any(Predicate&& predicate);
+
+    template<typename Predicate>
+    bool all(Predicate&& predicate);
+
+    template<typename Predicate>
+    bool none(Predicate&& predicate);
+
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
 
@@ -314,6 +323,44 @@ Stream<T> Stream<T>::set_intersection(Stream<T>&& other, Compare&& compare) {
 }
 
 template<typename T>
+size_t Stream<T>::count() {
+    size_t count = 0;
+    while(source_->advance()) {
+        source_->get();
+        count++;
+    }
+    return count;
+}
+
+template<typename T>
+template<typename Predicate>
+bool Stream<T>::any(Predicate&& predicate) {
+    while(source_->advance()) {
+        if(predicate(source_->get())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename T>
+template<typename Predicate>
+bool Stream<T>::all(Predicate&& predicate) {
+    while(source_->advance()) {
+        if(!predicate(source_->get())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+template<typename Predicate>
+bool Stream<T>::none(Predicate&& predicate) {
+    return !any(std::forward<Predicate>(predicate));
+}
+
+template<typename T>
 template<typename OutputIterator>
 void Stream<T>::copy_to(OutputIterator out) {
     while(source_->advance()) {
@@ -358,16 +405,5 @@ void Stream<T>::for_each(Function&& function) {
         function(*source_->get());
     }
 }
-
-template<typename T>
-size_t Stream<T>::count() {
-    size_t count = 0;
-    while(source_->advance()) {
-        source_->get();
-        count++;
-    }
-    return count;
-}
-
 
 #endif
