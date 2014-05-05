@@ -21,6 +21,7 @@
 #include "RepeatedStreamProvider.h"
 #include "SkippedStreamProvider.h"
 #include "SortedStreamProvider.h"
+#include "StatefulStreamProvider.h"
 #include "TakeWhileStreamProvider.h"
 #include "ZippedStreamProvider.h"
 

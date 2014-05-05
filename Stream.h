@@ -65,6 +65,9 @@ public:
     template<typename Compare = std::less<T>>
     Stream<T> distinct(Compare&& comparator = Compare());
 
+    // Is there a better name for this? force_state()?
+    Stream<T> state_point();
+
     template<typename Subtractor = Minus<T>> // std::minus<void> in c++14
     Stream<ReturnType<Subtractor, T&, T&>>
     adjacent_difference(Subtractor&& subtract = Subtractor());
@@ -227,6 +230,12 @@ template<typename Compare>
 Stream<T> Stream<T>::sort(Compare&& comparator) {
     return make_stream_provider <SortedStreamProvider, T, Compare>
         (std::move(source_), std::forward<Compare>(comparator));
+}
+
+template<typename T>
+Stream<T> Stream<T>::state_point() {
+    return make_stream_provider <StatefulStreamProvider, T>
+        (std::move(source_));
 }
 
 template<typename T>

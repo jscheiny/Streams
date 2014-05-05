@@ -20,16 +20,16 @@ Stream<int> range(int lower, int upper) {
 
 int main(int argc, char const *argv[])
 {
-    vector<int> result = Stream<int>
+    Stream<int>
         ::generate([]() { static int counter; return ++counter; })
         .skip(3)
         .filter([](int x) { return x % 2 == 0; })
         .peek([](int x) { cout << "value = " << x << endl; })
         .limit(4)
+        .state_point()
         .map([](int x) { return x * 2; })
         .concat(Stream<int>::generate([]() { return 5; }).limit(3))
-        .as_vector();
-    copy(result.begin(), result.end(), ostream_iterator<int>(cout, " "));
+        .print_to(cout, " ");
     cout << endl;
 
     range(1,10)
