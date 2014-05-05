@@ -1,16 +1,16 @@
-#ifndef MERGED_STREAM_PROVIDER_H
-#define MERGED_STREAM_PROVIDER_H
+#ifndef SET_UNION_STREAM_PROVIDER_H
+#define SET_UNION_STREAM_PROVIDER_H
 
 #include "StreamProvider.h"
 #include "Utility.h"
 
 template<typename T, typename Compare>
-class MergedStreamProvider : public StreamProvider<T> {
+class SetUnionStreamProvider : public StreamProvider<T> {
 
 public:
-    MergedStreamProvider(StreamProviderPtr<T> source1,
-                         StreamProviderPtr<T> source2,
-                         Compare&& comparator)
+    SetUnionStreamProvider(StreamProviderPtr<T> source1,
+                           StreamProviderPtr<T> source2,
+                           Compare&& comparator)
         : source1_(std::move(source1)),
           source2_(std::move(source2)),
           comparator_(comparator) {}
@@ -95,9 +95,12 @@ private:
             if(comparator_(*current1_, *current2_)) { // curr1 < curr2
                 advance_ = FirstSource;
                 result_ = current1_;
-            } else {
+            } else if(comparator_(*current2_, *current1_ )) { // curr2 < curr1
                 advance_ = SecondSource;
                 result_ = current2_;
+            } else {
+                advance_ = BothSources;
+                result_ = current1_;
             }
             return true;
         case FirstDepleted:

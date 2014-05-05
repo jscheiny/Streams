@@ -91,13 +91,19 @@ int main(int argc, char const *argv[])
     fn_(0, +tup2);
     fn_(+tup3);
 
-    vector<int> x { 1, 3, 8, 10, 15, 23 };
-    vector<int> y { 1, 6, 7, 11, 12, 50, 53 };
+    vector<int> x { 1, 3, 8, 8, 10, 15, 23 };
+    vector<int> y { 1, 6, 7, 10, 11, 12, 50, 53 };
 
-    Stream<int> xs (x.begin(), x.end());
-    Stream<int> ys (y.begin(), y.end());
+    Stream<int>(x.begin(), x.end())
+        .merge_with(Stream<int>(y.begin(), y.end()))
+        .print_to(cout, " <= ");
+    cout << endl;
 
-    xs.merge_with(std::move(ys))
+    x = { 1, 3, 8, 10, 15, 23 };
+    y = { 1, 6, 7, 10, 11, 12, 50, 53 };
+
+    Stream<int>(x.begin(), x.end())
+        .set_union(Stream<int>(y.begin(), y.end()))
         .print_to(cout, " <= ");
     cout << endl;
 

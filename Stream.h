@@ -86,6 +86,9 @@ public:
     template<typename Compare = std::less<T>>
     Stream<T> merge_with(Stream<T>&& other, Compare&& compare = Compare());
 
+    template<typename Compare = std::less<T>>
+    Stream<T> set_union(Stream<T>&& other, Compare&& compare = Compare());
+
     size_t count();
 
     template<typename OutputIterator>
@@ -290,6 +293,15 @@ Stream<T> Stream<T>::merge_with(Stream<T>&& other, Compare&& compare) {
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare));
 }
+
+template<typename T>
+template<typename Compare>
+Stream<T> Stream<T>::set_union(Stream<T>&& other, Compare&& compare) {
+    return make_stream_provider <SetUnionStreamProvider, T, Compare>
+        (std::move(source_), std::move(other.source_),
+         std::forward<Compare>(compare));
+}
+
 
 template<typename T>
 template<typename OutputIterator>
