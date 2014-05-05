@@ -100,10 +100,15 @@ int main(int argc, char const *argv[])
     cout << endl;
 
     x = { 1, 3, 8, 10, 15, 23 };
-    y = { 1, 6, 7, 10, 11, 12, 50, 53 };
+    y = { 1, 6, 7, 10, 11, 12, 23, 50, 53 };
 
     Stream<int>(x.begin(), x.end())
         .set_union(Stream<int>(y.begin(), y.end()))
+        .print_to(cout, " <= ");
+    cout << endl;
+
+    Stream<int>(x.begin(), x.end())
+        .set_intersection(Stream<int>(y.begin(), y.end()))
         .print_to(cout, " <= ");
     cout << endl;
 

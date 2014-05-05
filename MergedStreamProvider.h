@@ -99,16 +99,12 @@ private:
             }
             return true;
         case FirstDepleted:
-            current1_.reset();
             result_ = current2_;
             return true;
         case SecondDepleted:
-            current2_.reset();
             result_ = current1_;
             return true;
         case BothDepleted:
-            current1_.reset();
-            current2_.reset();
             return false;
         }
     }

@@ -89,6 +89,9 @@ public:
     template<typename Compare = std::less<T>>
     Stream<T> set_union(Stream<T>&& other, Compare&& compare = Compare());
 
+    template<typename Compare = std::less<T>>
+    Stream<T> set_intersection(Stream<T>&& other, Compare&& compare = Compare());
+
     size_t count();
 
     template<typename OutputIterator>
@@ -302,6 +305,13 @@ Stream<T> Stream<T>::set_union(Stream<T>&& other, Compare&& compare) {
          std::forward<Compare>(compare), false);
 }
 
+template<typename T>
+template<typename Compare>
+Stream<T> Stream<T>::set_intersection(Stream<T>&& other, Compare&& compare) {
+    return make_stream_provider <SetIntersectionStreamProvider, T, Compare>
+        (std::move(source_), std::move(other.source_),
+         std::forward<Compare>(compare));
+}
 
 template<typename T>
 template<typename OutputIterator>
