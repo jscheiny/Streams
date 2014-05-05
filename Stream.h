@@ -78,8 +78,10 @@ public:
     Stream<T> concat(Stream<T>&& other);
 
     template<typename Other>
-    Stream<ZipResult<T, Other>>
-    zip_with(Stream<Other>&& other);
+    Stream<ZipResult<T, Other>> zip_with(Stream<Other>&& other);
+
+    template<typename Compare = std::less<T>>
+    Stream<T> merge_with(Stream<T>&& other, Compare&& compare = Compare());
 
     size_t count();
 
@@ -270,6 +272,14 @@ Stream<ZipResult<T, Other>> Stream<T>::zip_with(Stream<Other>&& other) {
     return std::move(StreamProviderPtr<Result>(
         new ZippedStreamProvider<T, Other>(
             std::move(source_), std::move(other.source_))));
+}
+
+template<typename T>
+template<typename Compare>
+Stream<T> Stream<T>::merge_with(Stream<T>&& other, Compare&& compare) {
+    return make_stream_provider <MergedStreamProvider, T, Compare>
+        (std::move(source_), std::move(other.source_),
+         std::forward<Compare>(compare));
 }
 
 template<typename T>

@@ -15,6 +15,7 @@
 #include "IteratorStreamProvider.h"
 #include "LimitedStreamProvider.h"
 #include "MappedStreamProvider.h"
+#include "MergedStreamProvider.h"
 #include "PartialSumStreamProvider.h"
 #include "PeekStreamProvider.h"
 #include "RepeatedStreamProvider.h"
