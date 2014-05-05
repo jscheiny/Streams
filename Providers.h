@@ -19,7 +19,6 @@
 #include "PartialSumStreamProvider.h"
 #include "PeekStreamProvider.h"
 #include "RepeatedStreamProvider.h"
-#include "SetUnionStreamProvider.h"
 #include "SkippedStreamProvider.h"
 #include "SortedStreamProvider.h"
 #include "StatefulStreamProvider.h"

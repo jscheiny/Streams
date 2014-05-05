@@ -291,15 +291,15 @@ template<typename Compare>
 Stream<T> Stream<T>::merge_with(Stream<T>&& other, Compare&& compare) {
     return make_stream_provider <MergedStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare));
+         std::forward<Compare>(compare), true);
 }
 
 template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::set_union(Stream<T>&& other, Compare&& compare) {
-    return make_stream_provider <SetUnionStreamProvider, T, Compare>
+    return make_stream_provider <MergedStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare));
+         std::forward<Compare>(compare), false);
 }
 
 

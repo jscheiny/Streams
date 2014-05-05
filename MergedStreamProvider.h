@@ -10,10 +10,12 @@ class MergedStreamProvider : public StreamProvider<T> {
 public:
     MergedStreamProvider(StreamProviderPtr<T> source1,
                          StreamProviderPtr<T> source2,
-                         Compare&& comparator)
+                         Compare&& comparator,
+                         bool allow_duplicates)
         : source1_(std::move(source1)),
           source2_(std::move(source2)),
-          comparator_(comparator) {}
+          comparator_(comparator),
+          allow_duplicates_(allow_duplicates) {}
 
     std::shared_ptr<T> get() override {
         return result_;
@@ -46,14 +48,12 @@ private:
     DepleteState depletion_ = NeitherDepleted;
 
     Compare comparator_;
-
     StreamProviderPtr<T> source1_;
     StreamProviderPtr<T> source2_;
-
     std::shared_ptr<T> current1_;
     std::shared_ptr<T> current2_;
-
     std::shared_ptr<T> result_;
+    bool allow_duplicates_;
 
     bool advance_stream(StreamProviderPtr<T>& source,
                         std::shared_ptr<T>& current,
@@ -92,12 +92,10 @@ private:
     bool perform_update() {
         switch(depletion_) {
         case NeitherDepleted:
-            if(comparator_(*current1_, *current2_)) { // curr1 < curr2
-                advance_ = FirstSource;
-                result_ = current1_;
+            if(allow_duplicates_) {
+                duplicates_update();
             } else {
-                advance_ = SecondSource;
-                result_ = current2_;
+                no_duplicates_update();
             }
             return true;
         case FirstDepleted:
@@ -112,6 +110,29 @@ private:
             current1_.reset();
             current2_.reset();
             return false;
+        }
+    }
+
+    void duplicates_update() {
+        if(comparator_(*current1_, *current2_)) { // curr1 < curr2
+            advance_ = FirstSource;
+            result_ = current1_;
+        } else {
+            advance_ = SecondSource;
+            result_ = current2_;
+        }
+    }
+
+    void no_duplicates_update() {
+        if(comparator_(*current1_, *current2_)) { // curr1 < curr2
+            advance_ = FirstSource;
+            result_ = current1_;
+        } else if(comparator_(*current2_, *current1_ )) { // curr2 < curr1
+            advance_ = SecondSource;
+            result_ = current2_;
+        } else {
+            advance_ = BothSources;
+            result_ = current1_;
         }
     }
 
