@@ -336,7 +336,7 @@ template<typename T>
 template<typename Predicate>
 bool Stream<T>::any(Predicate&& predicate) {
     while(source_->advance()) {
-        if(predicate(source_->get())) {
+        if(predicate(*source_->get())) {
             return true;
         }
     }
@@ -347,7 +347,7 @@ template<typename T>
 template<typename Predicate>
 bool Stream<T>::all(Predicate&& predicate) {
     while(source_->advance()) {
-        if(!predicate(source_->get())) {
+        if(!predicate(*source_->get())) {
             return false;
         }
     }
