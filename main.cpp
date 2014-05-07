@@ -113,5 +113,11 @@ int main(int argc, char const *argv[])
         .print_to(cout, " <= ");
     cout << endl;
 
+    vector<int> z { 1, 1, 2, 2, 3, 3, 3, 3, 4, 5, 6, 6, 1, 1 };
+    Stream<int>(z.begin(), z.end())
+        .adjacent_distinct()
+        .print_to(cout);
+    cout << endl;
+
     return 0;
 }

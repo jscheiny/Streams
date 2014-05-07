@@ -59,6 +59,9 @@ public:
 
     Stream<T> skip(std::size_t amount);
 
+    template<typename Equal = std::equal_to<T>>
+    Stream<T> adjacent_distinct(Equal&& equal = Equal());
+
     template<typename Compare = std::less<T>>
     Stream<T> sort(Compare&& comparator = Compare());
 
@@ -238,6 +241,13 @@ template<typename T>
 Stream<T> Stream<T>::skip(std::size_t amount) {
     return make_stream_provider <SkippedStreamProvider, T>
         (std::move(source_), amount);
+}
+
+template<typename T>
+template<typename Equal>
+Stream<T> Stream<T>::adjacent_distinct(Equal&& equal) {
+    return make_stream_provider <AdjacentDistinctStreamProvider, T, Equal>
+        (std::move(source_), std::forward<Equal>(equal));
 }
 
 template<typename T>
