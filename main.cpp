@@ -28,7 +28,8 @@ int main(int argc, char const *argv[])
         .limit(4)
         .state_point()
         .map([](int x) { return x * 2; })
-        .concat(Stream<int>::generate([]() { return 5; }).limit(3))
+        .concat(Stream<int>::repeat(5).limit(3))
+        .concat(Stream<int>::repeat(3).limit(5))
         .print_to(cout, " ");
     cout << endl;
 

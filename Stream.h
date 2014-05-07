@@ -268,6 +268,11 @@ Stream<T> Stream<T>::concat(Iterator begin, Iterator end) {
 
 template<typename T>
 Stream<T> Stream<T>::concat(Stream<T>&& other) {
+    auto concat_ptr = dynamic_cast<ConcatenatedStreamProvider<T>*>(source_.get());
+    if(concat_ptr) {
+        concat_ptr->concat(std::move(other.source_));
+        return std::move(*this);
+    }
     return make_stream_provider <ConcatenatedStreamProvider, T>
         (std::move(source_), std::move(other.source_));
 }

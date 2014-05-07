@@ -11,12 +11,12 @@ class ConcatenatedStreamProvider : public StreamProvider<T> {
 public:
     template<typename Iterator>
     ConcatenatedStreamProvider(Iterator begin, Iterator end)
-        : source_(begin, end) {}
+        : sources_(begin, end) {}
 
     ConcatenatedStreamProvider(StreamProviderPtr<T> first,
                                StreamProviderPtr<T> second) {
-        source_.push_back(std::move(first));
-        source_.push_back(std::move(second));
+        sources_.push_back(std::move(first));
+        sources_.push_back(std::move(second));
     }
 
     std::shared_ptr<T> get() override {
@@ -24,20 +24,24 @@ public:
     }
 
     bool advance() override {
-        while(!source_.empty()) {
-            auto& provider = source_.front();
+        while(!sources_.empty()) {
+            auto& provider = sources_.front();
             if(provider->advance()) {
                 current_ = provider->get();
                 return true;
             }
-            source_.pop_front();
+            sources_.pop_front();
         }
         current_.reset();
         return false;
     }
 
+    void concat(StreamProviderPtr<T>&& source) {
+        sources_.push_back(std::move(source));
+    }
+
 private:
-    std::list<StreamProviderPtr<T>> source_;
+    std::list<StreamProviderPtr<T>> sources_;
     std::shared_ptr<T> current_;
 
 };
