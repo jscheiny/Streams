@@ -79,7 +79,8 @@ auto st = MakeStream::iterate(1245, [](int x) {
 ### Counter
 
 
-The static `counter` method takes an initial value and returns a strema produced by incrementing that value indefinitely.
+The static `counter` method takes an initial value and returns a stream produced
+by incrementing that value indefinitely.
 
 ```cpp
 auto st = MakeStream::counter(5); // 5, 6, 7, ...
@@ -90,9 +91,10 @@ The counter method is equivalent to the following:
 ```cpp
 template<typename T>
 Stream<T> make_stream_counter(T initial) {
-    return MakeStream::iterate(initial, [](T value) {
-        return ++value;
-    });
+    return MakeStream::singleton(initial).concat(
+           MakeStream::iterate(initial, [](T value) {
+               return ++value;
+           }));
 }
 
 ```
