@@ -21,6 +21,7 @@
 #include "PeekStreamProvider.h"
 #include "RepeatedStreamProvider.h"
 #include "SetIntersectionStreamProvider.h"
+#include "SingletonStreamProvider.h"
 #include "SkippedStreamProvider.h"
 #include "SortedStreamProvider.h"
 #include "StatefulStreamProvider.h"

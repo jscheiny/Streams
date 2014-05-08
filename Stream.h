@@ -11,24 +11,56 @@
 #include <vector>
 #include <list>
 
+struct MakeStream {
+    template<typename T>
+    static Stream<T> repeat(T&& value);
+
+    template<typename Generator, typename T = ReturnType<Generator>>
+    static Stream<T> generate(Generator&& generator);
+
+    template<typename T, typename Function>
+    static Stream<T> iterate(T initial, Function&& function);
+
+    template<typename T>
+    static Stream<T> singleton(T&& value);
+
+    template<typename Iterator,
+             typename T = typename std::iterator_traits<Iterator>::value_type>
+    static Stream<T> from(Iterator begin, Iterator end);
+
+    template<typename Container,
+             typename T = typename std::iterator_traits<
+                    decltype(std::begin(std::declval<Container>()))
+                >::value_type>
+    static Stream<T> from(const Container& cont);
+
+    template<typename Container,
+             typename T = typename std::iterator_traits<
+                    decltype(std::begin(std::declval<Container>()))
+                >::value_type>
+    static Stream<T> from(Container&& cont);
+
+    template<typename T>
+    static Stream<T> from(T* array, std::size_t length);
+
+    template<typename T>
+    static Stream<T> from(std::initializer_list<T> init);
+};
+
 template<typename T>
 class Stream {
 
 public:
     using ElementType = T;
 
-    static Stream<T> repeat(T&& value);
-
-    template<typename Generator>
-    static Stream<T> generate(Generator&& generator);
-
-    template<typename Function>
-    static Stream<T> iterate(T initial, Function&& function);
-
     Stream();
 
     template<typename Iterator>
     Stream(Iterator begin, Iterator end);
+
+    template<typename Container>
+    Stream(const Container& cont);
+
 
     template<typename Predicate>
     Stream<T> filter(Predicate&& predicate);
@@ -125,6 +157,8 @@ public:
         return source_;
     }
 
+    friend class MakeStream;
+
     template<typename>
     friend class Stream;
 
@@ -140,6 +174,55 @@ private:
 };
 
 template<typename T>
+Stream<T> MakeStream::repeat(T&& value) {
+    return make_stream_provider <RepeatedStreamProvider, T>
+        (std::forward<T>(value));
+}
+
+template<typename Generator, typename T>
+Stream<T> MakeStream::generate(Generator&& generator) {
+    return make_stream_provider <GeneratedStreamProvider, T, Generator>
+        (std::forward<Generator>(generator));
+}
+
+template<typename T, typename Function>
+Stream<T> MakeStream::iterate(T initial, Function&& function) {
+    return make_stream_provider <IteratedStreamProvider, T, Function>
+        (std::forward<T>(initial), std::forward<Function>(function));
+}
+
+template<typename T>
+Stream<T> MakeStream::singleton(T&& value) {
+    return make_stream_provider <SingletonStreamProvider, T>
+        (std::forward<T>(value));
+}
+
+template<typename Iterator, typename T>
+Stream<T> MakeStream::from(Iterator begin, Iterator end) {
+    return Stream<T>(begin, end);
+}
+
+template<typename T>
+Stream<T> MakeStream::from(T* array, std::size_t length) {
+    return Stream<T>(array, array + length);
+}
+
+template<typename Container, typename T>
+Stream<T> MakeStream::from(const Container& cont) {
+    return Stream<T>(std::begin(cont), std::end(cont));
+}
+
+template<typename Container, typename T>
+Stream<T> MakeStream::from(Container&& cont) {
+    return Stream<T>(std::begin(cont), std::end(cont));
+}
+
+template<typename T>
+Stream<T> MakeStream::from(std::initializer_list<T> init) {
+    return Stream<T>(init.begin(), init.end());
+}
+
+template<typename T>
 Stream<T>::Stream()
     : source_(make_stream_provider<EmptyStreamProvider, T>()) {}
 
@@ -149,25 +232,6 @@ Stream<T>::Stream(Iterator begin, Iterator end)
     : source_(std::make_unique<IteratorStreamProvider<T, Iterator>>(
         begin, end)) {}
 
-template<typename T>
-Stream<T> Stream<T>::repeat(T&& value) {
-    return make_stream_provider <RepeatedStreamProvider, T>
-        (std::forward<T>(value));
-}
-
-template<typename T>
-template<typename Generator>
-Stream<T> Stream<T>::generate(Generator&& generator) {
-    return make_stream_provider <GeneratedStreamProvider, T, Generator>
-        (std::forward<Generator>(generator));
-}
-
-template<typename T>
-template<typename Function>
-Stream<T> Stream<T>::iterate(T initial, Function&& function) {
-    return make_stream_provider <IteratedStreamProvider, T, Function>
-        (std::forward<T>(initial), std::forward<Function>(function));
-}
 
 template<typename T>
 template<typename Predicate>

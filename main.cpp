@@ -9,27 +9,26 @@
 using namespace std;
 
 Stream<int> count(int start, int increment = 1) {
-    return Stream<int>::iterate(start - increment,
+    return MakeStream::iterate(start - increment,
         [](int x) { return x + 1; });
 }
 
 Stream<int> range(int lower, int upper) {
-    return Stream<int>::iterate(lower - 1, [](int x) { return x + 1; })
+    return MakeStream::iterate(lower - 1, [](int x) { return x + 1; })
         .limit(upper - lower + 1);
 }
 
 int main(int argc, char const *argv[])
 {
-    Stream<int>
-        ::generate([]() { static int counter; return ++counter; })
+    MakeStream::generate([]() { static int counter; return ++counter; })
         .skip(3)
         .filter([](int x) { return x % 2 == 0; })
         .peek([](int x) { cout << "value = " << x << endl; })
         .limit(4)
         .state_point()
         .map([](int x) { return x * 2; })
-        .concat(Stream<int>::repeat(5).limit(3))
-        .concat(Stream<int>::repeat(3).limit(5))
+        .concat(MakeStream::repeat(5).limit(3))
+        .concat(MakeStream::repeat(3).limit(5))
         .print_to(cout, " ");
     cout << endl;
 
@@ -49,9 +48,11 @@ int main(int argc, char const *argv[])
         .print_to(cout);
     cout << endl;
 
-    range(1,5).zip_with(range(6,10)).for_each([](std::tuple<int, int> x) {
-        cout << x << endl;
-    });
+    range(1,5)
+        .zip_with(range(6,10))
+        .for_each([](std::tuple<int, int> x) {
+            cout << x << endl;
+        });
 
     range(1, 10)
         .map([](int x) { return x * x; })
@@ -69,11 +70,13 @@ int main(int argc, char const *argv[])
         });
     cout << endl;
 
-    range(1, 5).zip_with(range(6, 10)).for_each(splat([](int x, int y) {
-        cout << x << " -> " << y << endl;
-    }));
+    range(1, 5)
+        .zip_with(range(6, 10))
+        .for_each(splat([](int x, int y) {
+            cout << x << " -> " << y << endl;
+        }));
 
-    Stream<int>::repeat(1)
+    MakeStream::repeat(1)
         .partial_sum()
         .limit(10)
         .print_to(cout, " ");
@@ -95,27 +98,30 @@ int main(int argc, char const *argv[])
     vector<int> x { 1, 3, 8, 8, 10, 15, 23 };
     vector<int> y { 1, 6, 7, 10, 11, 12, 50, 53 };
 
-    Stream<int>(x.begin(), x.end())
-        .merge_with(Stream<int>(y.begin(), y.end()))
+    MakeStream::from(x)
+        .merge_with(MakeStream::from(y))
         .print_to(cout, " <= ");
     cout << endl;
 
     x = { 1, 3, 8, 10, 15, 23 };
     y = { 1, 6, 7, 10, 11, 12, 23, 50, 53 };
 
-    Stream<int>(x.begin(), x.end())
-        .set_union(Stream<int>(y.begin(), y.end()))
+    MakeStream::from(x)
+        .set_union(MakeStream::from(y))
         .print_to(cout, " <= ");
     cout << endl;
 
-    Stream<int>(x.begin(), x.end())
-        .set_intersection(Stream<int>(y.begin(), y.end()))
+    MakeStream::from(x)
+        .set_intersection(MakeStream::from(y))
         .print_to(cout, " <= ");
     cout << endl;
 
-    vector<int> z { 1, 1, 2, 2, 3, 3, 3, 3, 4, 5, 6, 6, 1, 1 };
-    Stream<int>(z.begin(), z.end())
+    MakeStream::from({ 1, 1, 2, 2, 3, 3, 3, 3, 4, 5, 6, 6, 1, 1 })
         .adjacent_distinct()
+        .print_to(cout);
+    cout << endl;
+
+    MakeStream::singleton(5)
         .print_to(cout);
     cout << endl;
 
