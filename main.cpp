@@ -8,14 +8,9 @@
 
 using namespace std;
 
-Stream<int> count(int start, int increment = 1) {
-    return MakeStream::iterate(start - increment,
-        [](int x) { return x + 1; });
-}
 
 Stream<int> range(int lower, int upper) {
-    return MakeStream::iterate(lower - 1, [](int x) { return x + 1; })
-        .limit(upper - lower + 1);
+    return MakeStream::counter(lower).limit(upper - lower + 1);
 }
 
 int main(int argc, char const *argv[])

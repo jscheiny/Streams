@@ -22,10 +22,10 @@ struct MakeStream {
     static Stream<T> iterate(T initial, Function&& function);
 
     template<typename T>
-    static Stream<T> counter(T&& value);
+    static Stream<T> counter(T value);
 
     template<typename T>
-    static Stream<T> singleton(T&& value);
+    static Stream<T> singleton(T value);
 
     template<typename Iterator,
              typename T = typename std::iterator_traits<Iterator>::value_type>
@@ -194,16 +194,15 @@ Stream<T> MakeStream::iterate(T initial, Function&& function) {
 }
 
 template<typename T>
-Stream<T> MakeStream::counter(T&& value) {
-    return MakeStream::iterate(std::forward<T>(value), [](T value) {
+Stream<T> MakeStream::counter(T value) {
+    return MakeStream::singleton(value).concat(MakeStream::iterate(value, [](T value) {
         return ++value;
-    });
+    }));
 }
 
 template<typename T>
-Stream<T> MakeStream::singleton(T&& value) {
-    return make_stream_provider <SingletonStreamProvider, T>
-        (std::forward<T>(value));
+Stream<T> MakeStream::singleton(T value) {
+    return make_stream_provider<SingletonStreamProvider, T>(value);
 }
 
 template<typename Iterator, typename T>
