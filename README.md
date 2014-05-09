@@ -193,8 +193,7 @@ streams.
 ```cpp
 MakeStream::counter(1)
     .flat_map([](int x) {
-        return MakeStream::repeat(1)
-            .partial_sum()
+        return MakeStream::counter(1)
             .limit(x);
     });
 // Stream contains 1, 1, 2, 1, 2, 3, 1, 2, 3, 4, ...
