@@ -12,6 +12,7 @@
 #include "FilteredStreamProvider.h"
 #include "FlatMappedStreamProvider.h"
 #include "GeneratedStreamProvider.h"
+#include "GroupedStreamProvider.h"
 #include "IteratedStreamProvider.h"
 #include "IteratorStreamProvider.h"
 #include "LimitedStreamProvider.h"
