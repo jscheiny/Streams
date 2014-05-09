@@ -25,7 +25,8 @@ auto stream1 = MakeStream::from(x.begin(), x.end());
 auto stream2 = MakeStream::from(x);
 ```
 
-The `MakeStream::from` method can also be used to create streams from arrays and initializer lists:
+The `MakeStream::from` method can also be used to create streams from arrays and
+initializer lists:
 
 ```cpp
 int x[] = {1,2,3,4,5};
@@ -36,11 +37,13 @@ auto stream2 = MakeStream::from({1,2,3,4,5});
 
 ## Stream generation
 
-There are a number of stream operations in `MakeStream` that produce streams, given no initial stream. These are as follows:
+There are a number of stream operations in `MakeStream` that produce streams,
+given no initial stream. These are as follows:
 
 ### Singleton
 
-The static `singleton` method creates a stream with the given value and only that value.
+The static `singleton` method creates a stream with the given value and only
+that value.
 
 ```cpp
 MakeStream::singleton(5).print_to(std::cout);
@@ -65,9 +68,9 @@ auto st = MakeStream::generate([]() {
 The static `iterate` method takes an initial value and a function that takes a
 single argument of the stream type and returns a value of the stream type. The
 stream is then produced by repeatedly applying the function to its previous
-result. Thus producing the stream $f(x)$, $f(f(x))$, $f(f(f(x)))$, $\dots$ and so on.
-In the following example, we produce a stream that investigates the [Collatz
-conjecture](http://en.wikipedia.org/wiki/Collatz_conjecture):
+result. Thus producing the stream $f(x)$, $f(f(x))$, $f(f(f(x)))$, $\dots$ and
+so on. In the following example, we produce a stream that investigates the
+[Collatz conjecture](http://en.wikipedia.org/wiki/Collatz_conjecture):
 
 ```cpp
 auto st = MakeStream::iterate(1245, [](int x) {
@@ -101,8 +104,8 @@ Stream<T> make_stream_counter(T initial) {
 
 ### Repeat
 
-The static `repeat` method produces an infinite stream whose contents are all the
-same element.
+The static `repeat` method produces an infinite stream whose contents are all
+the same element.
 
 ```cpp
 auto st = MakeStream::repeat(0); // stream of infinite 0's.
@@ -371,7 +374,8 @@ MakeStream::counter(1)
 
 ### Concat
 
-Concatenates the given stream to the end of the current stream, to be processed when the current stream reaches its end.
+Concatenates the given stream to the end of the current stream, to be processed
+when the current stream reaches its end.
 
 ```cpp
 vector<int> x = {4, 5, 6};
