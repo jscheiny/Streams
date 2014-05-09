@@ -111,10 +111,12 @@ int main(int argc, char const *argv[])
         .print_to(cout, " <= ");
     cout << endl;
 
-    MakeStream::from({ 1, 1, 2, 2, 3, 3, 3, 3, 4, 5, 6, 6, 1, 1 })
+    MakeStream::from({ 1, 1, 2, 2, 3, 3, 3, 3, 4, 5, 6, 6, 1, 1, 2, 3 })
         .adjacent_distinct()
-        .print_to(cout);
-    cout << endl;
+        .grouped<3>()
+        .for_each([](auto x) {
+            cout << x << endl;
+        });
 
     MakeStream::singleton(5)
         .print_to(cout);

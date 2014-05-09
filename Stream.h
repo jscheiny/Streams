@@ -117,6 +117,11 @@ public:
 
     Stream<T> concat(Stream<T>&& other);
 
+    Stream<GroupResult<T, 2>> pairwise();
+
+    template<size_t N>
+    Stream<GroupResult<T, N>> grouped();
+
     template<typename Other>
     Stream<ZipResult<T, Other>> zip_with(Stream<Other>&& other);
 
@@ -357,6 +362,19 @@ Stream<T> Stream<T>::concat(Stream<T>&& other) {
     }
     return make_stream_provider <ConcatenatedStreamProvider, T>
         (std::move(source_), std::move(other.source_));
+}
+
+template<typename T>
+Stream<GroupResult<T, 2>> Stream<T>::pairwise() {
+    return grouped<2>();
+}
+
+template<typename T>
+template<size_t N>
+Stream<GroupResult<T, N>> Stream<T>::grouped() {
+    using GroupType = GroupResult<T, N>;
+    return std::move(StreamProviderPtr<GroupType>(
+        new GroupedStreamProvider<T, N>(std::move(source_))));
 }
 
 template<typename T>
