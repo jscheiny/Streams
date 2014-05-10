@@ -93,6 +93,11 @@ auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
 
 }
 
+template<typename Function, typename L, typename R>
+auto apply_tuple(Function&& function, const std::pair<L, R>& pair) {
+    return function(pair.first, pair.second);
+}
+
 template<typename Function>
 struct SplattedFunction {
 
