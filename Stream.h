@@ -105,7 +105,7 @@ public:
     // Is there a better name for this? force_state()?
     Stream<T> state_point();
 
-    template<typename Subtractor = Minus<T>> // std::minus<void> in c++14
+    template<typename Subtractor = std::minus<void>>
     Stream<ReturnType<Subtractor, T&, T&>>
     adjacent_difference(Subtractor&& subtract = Subtractor());
 
@@ -122,8 +122,9 @@ public:
     template<size_t N>
     Stream<GroupResult<T, N>> grouped();
 
-    template<typename Other>
-    Stream<ZipResult<T, Other>> zip_with(Stream<Other>&& other);
+    template<typename Other, typename Function = Zipper>
+    Stream<ReturnType<Function, T&, Other&>> zip_with(Stream<Other>&& other,
+        Function&& zipper = Function());
 
     template<typename Compare = std::less<T>>
     Stream<T> merge_with(Stream<T>&& other, Compare&& compare = Compare());
@@ -395,12 +396,14 @@ Stream<T> Stream<T>::partial_sum(Adder&& add) {
 }
 
 template<typename T>
-template<typename Other>
-Stream<ZipResult<T, Other>> Stream<T>::zip_with(Stream<Other>&& other) {
-    using Result = ZipResult<T, Other>;
+template<typename Other, typename Function>
+Stream<ReturnType<Function, T&, Other&>> Stream<T>::zip_with(
+        Stream<Other>&& other, Function&& zipper) {
+    using Result = ReturnType<Function, T&, Other&>;
     return std::move(StreamProviderPtr<Result>(
-        new ZippedStreamProvider<T, Other>(
-            std::move(source_), std::move(other.source_))));
+        new ZippedStreamProvider<T, Other, Function>(
+            std::move(source_), std::move(other.source_),
+            std::forward<Function>(zipper))));
 }
 
 template<typename T>

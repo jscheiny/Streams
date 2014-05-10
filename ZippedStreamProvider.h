@@ -5,8 +5,10 @@
 
 #include <tuple>
 
+namespace detail {
+
 template<typename L, typename R>
-struct Zipper {
+struct ZipperImpl {
     using Type = std::tuple<L, R>;
 
     static Type zip(L&& a, R&& b) {
@@ -15,7 +17,7 @@ struct Zipper {
 };
 
 template<typename L, typename... RArgs>
-struct Zipper<L, std::tuple<RArgs...>> {
+struct ZipperImpl<L, std::tuple<RArgs...>> {
     using Type = std::tuple<L, RArgs...>;
 
     static Type zip(L&& a, std::tuple<RArgs...>&& b) {
@@ -25,7 +27,7 @@ struct Zipper<L, std::tuple<RArgs...>> {
 
 
 template<typename... LArgs, typename R>
-struct Zipper<std::tuple<LArgs...>, R> {
+struct ZipperImpl<std::tuple<LArgs...>, R> {
     using Type = std::tuple<LArgs..., R>;
 
     static Type zip(std::tuple<LArgs...>&& a, R&& b) {
@@ -34,7 +36,7 @@ struct Zipper<std::tuple<LArgs...>, R> {
 };
 
 template<typename... LArgs, typename... RArgs>
-struct Zipper<std::tuple<LArgs...>, std::tuple<RArgs...>> {
+struct ZipperImpl<std::tuple<LArgs...>, std::tuple<RArgs...>> {
     using Type = std::tuple<LArgs..., RArgs...>;
 
     static Type zip(std::tuple<LArgs...>&& a, std::tuple<RArgs...>&& b) {
@@ -42,19 +44,30 @@ struct Zipper<std::tuple<LArgs...>, std::tuple<RArgs...>> {
     }
 };
 
-template<typename L, typename R>
-using ZipResult = typename Zipper<L, R>::Type;
+} /* detail */
 
-template<typename L, typename R>
-class ZippedStreamProvider : public StreamProvider<ZipResult<L, R>> {
+struct Zipper {
+    template<typename L, typename R>
+    auto operator() (L&& left, R&& right) {
+        using Left = typename std::decay<L>::type;
+        using Right = typename std::decay<R>::type;
+        return detail::ZipperImpl<Left, Right>::zip(std::forward<Left>(left),
+                                                    std::forward<Right>(right));
+    }
+};
+
+template<typename L, typename R, typename Function>
+class ZippedStreamProvider : public StreamProvider<ReturnType<Function, L&, R&>> {
 
 public:
-    using ValueType = ZipResult<L, R>;
+    using ValueType = ReturnType<Function, L&, R&>;
 
     ZippedStreamProvider(StreamProviderPtr<L> left_source,
-                         StreamProviderPtr<R> right_source)
+                         StreamProviderPtr<R> right_source,
+                         Function&& zipper)
         : left_source_(std::move(left_source)),
-          right_source_(std::move(right_source)) {}
+          right_source_(std::move(right_source)),
+          zipper_(zipper) {}
 
     std::shared_ptr<ValueType> get() override {
         return current_;
@@ -63,8 +76,8 @@ public:
     bool advance() override {
         if(left_source_->advance() && right_source_->advance()) {
             current_ = std::make_shared<ValueType>(
-                Zipper<L, R>::zip(std::move(*left_source_->get()),
-                                  std::move(*right_source_->get())));
+                zipper_(std::move(*left_source_->get()),
+                        std::move(*right_source_->get())));
             return true;
         }
         current_.reset();
@@ -75,6 +88,7 @@ private:
     StreamProviderPtr<L> left_source_;
     StreamProviderPtr<R> right_source_;
     std::shared_ptr<ValueType> current_;
+    Function zipper_;
 };
 
 #endif
