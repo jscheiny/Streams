@@ -201,9 +201,9 @@ Stream<T> MakeStream::iterate(T initial, Function&& function) {
 
 template<typename T>
 Stream<T> MakeStream::counter(T value) {
-    return MakeStream::singleton(value).concat(MakeStream::iterate(value, [](T value) {
+    return MakeStream::iterate(value, [](T value) {
         return ++value;
-    }));
+    });
 }
 
 template<typename T>

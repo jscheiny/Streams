@@ -21,11 +21,16 @@ public:
     }
 
     bool advance() override {
+        if(first_) {
+            first_ = false;
+            return true;
+        }
         current_ = std::make_shared<T>(function_(*current_));
         return true;
     }
 
 private:
+    bool first_ = true;
     Function function_;
     std::shared_ptr<T> current_;
 };
