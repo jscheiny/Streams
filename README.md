@@ -68,8 +68,8 @@ auto st = MakeStream::generate([]() {
 The static `iterate` method takes an initial value and a function that takes a
 single argument of the stream type and returns a value of the stream type. The
 stream is then produced by repeatedly applying the function to its previous
-result. Thus producing the stream $f(x)$, $f(f(x))$, $f(f(f(x)))$, $\dots$ and
-so on. In the following example, we produce a stream that investigates the
+result. Thus producing the stream x, f(x), f(f(x)), f(f(f(x))), ... and so on.
+In the following example, we produce a stream that investigates the
 [Collatz conjecture](http://en.wikipedia.org/wiki/Collatz_conjecture):
 
 ```cpp
@@ -80,7 +80,6 @@ auto st = MakeStream::iterate(1245, [](int x) {
 ```
 
 ### Counter
-
 
 The static `counter` method takes an initial value and returns a stream produced
 by incrementing that value indefinitely.
@@ -94,10 +93,9 @@ The counter method is equivalent to the following:
 ```cpp
 template<typename T>
 Stream<T> make_stream_counter(T initial) {
-    return MakeStream::singleton(initial).concat(
-           MakeStream::iterate(initial, [](T value) {
-               return ++value;
-           }));
+    return MakeStream::iterate(initial, [](T& value) {
+           return ++value;
+        });
 }
 
 ```
@@ -369,6 +367,18 @@ MakeStream::counter(1)
     .map(splat([](int first, int second) {
         return first * second;
     }));
+```
+
+Zip with can also be provided a function that takes arguments of types of the
+two streams and returns a stream produced by repeated calling of the function
+on index equivalent elements of both streams:
+
+```cpp
+MakeStream::counter(1.0)
+    .zip_with(MakeStream::counter(2.0), [](double a, double b) {
+        return std::complex<double>(a, b);
+    });
+// Stream contains 1+2i, 2+3i, 3+4i, ...
 ```
 
 ### Concat
