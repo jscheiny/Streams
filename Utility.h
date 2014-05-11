@@ -6,13 +6,6 @@
 #include <iostream>
 #include <tuple>
 
-template<typename T>
-struct Minus {
-    auto operator() (T& lhs, T& rhs) -> decltype(lhs - rhs) {
-        return lhs - rhs;
-    }
-};
-
 template<typename T, typename Compare, bool Reverse = false>
 class ComparePtrWrapper {
 public:

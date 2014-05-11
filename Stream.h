@@ -292,7 +292,7 @@ Stream<T> Stream<T>::peek(Action&& action) {
 template<typename T>
 template<typename Transform>
 Stream<ReturnType<Transform, T&>> Stream<T>::map(Transform&& transform) {
-    using Result = ReturnType<Transform, T>;
+    using Result = ReturnType<Transform, T&>;
     return make_stream_provider <MappedStreamProvider, Result, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
 }
@@ -513,5 +513,7 @@ void Stream<T>::for_each(Function&& function) {
         function(*source_->get());
     }
 }
+
+#include "StreamAlgebra.h"
 
 #endif

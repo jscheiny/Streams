@@ -122,5 +122,10 @@ int main(int argc, char const *argv[])
         .print_to(cout);
     cout << endl;
 
+    ((MakeStream::counter(5) + MakeStream::counter(1)) * 3)
+        .limit(10)
+        .print_to(cout);
+    cout << endl;
+
     return 0;
 }
