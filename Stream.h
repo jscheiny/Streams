@@ -35,6 +35,12 @@ struct MakeStream {
     static Stream<RemoveRef<T>> counter(T&& start);
 
     template<typename T>
+    static Stream<RemoveRef<T>> counter(T&& start, T&& increment);
+
+    template<typename T>
+    static Stream<RemoveRef<T>> counter(T&& start, const T& increment);
+
+    template<typename T>
     static Stream<RemoveRef<T>> singleton(T&& value);
 
     template<typename Iterator>
@@ -224,6 +230,24 @@ Stream<RemoveRef<T>> MakeStream::counter(T&& start) {
     using R = RemoveRef<T>;
     return MakeStream::iterate(std::forward<T>(start), [](R& value) {
             return ++value;
+        });
+}
+
+template<typename T>
+Stream<RemoveRef<T>> MakeStream::counter(T&& start, T&& increment) {
+    using R = RemoveRef<T>;
+    return MakeStream::iterate(std::forward<T>(start),
+        [inc = std::forward<T>(increment)](R& value) {
+            return value + inc;
+        });
+}
+
+template<typename T>
+Stream<RemoveRef<T>> MakeStream::counter(T&& start, const T& increment) {
+    using R = RemoveRef<T>;
+    return MakeStream::iterate(std::forward<T>(start),
+        [&inc = increment](R& value) {
+            return value + inc;
         });
 }
 
