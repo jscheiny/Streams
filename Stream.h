@@ -74,13 +74,7 @@ public:
     Stream<T> take_while(Predicate&& predicate);
 
     template<typename Predicate>
-    Stream<T> take_until(Predicate&& predicate);
-
-    template<typename Predicate>
     Stream<T> drop_while(Predicate&& predicate);
-
-    template<typename Predicate>
-    Stream<T> drop_until(Predicate&& predicate);
 
     template<typename Action>
     Stream<T> peek(Action&& action);
@@ -289,15 +283,7 @@ template<typename Predicate>
 Stream<T> Stream<T>::take_while(Predicate&& predicate) {
     check_vacant("take_while");
     return make_stream_provider<TakeWhileStreamProvider, T, Predicate>
-        (std::move(source_), std::forward<Predicate>(predicate), false);
-}
-
-template<typename T>
-template<typename Predicate>
-Stream<T> Stream<T>::take_until(Predicate&& predicate) {
-    check_vacant("take_until");
-    return make_stream_provider<TakeWhileStreamProvider, T, Predicate>
-        (std::move(source_), std::forward<Predicate>(predicate), true);
+        (std::move(source_), std::forward<Predicate>(predicate));
 }
 
 template<typename T>
@@ -305,15 +291,7 @@ template<typename Predicate>
 Stream<T> Stream<T>::drop_while(Predicate&& predicate) {
     check_vacant("drop_while");
     return make_stream_provider<DropWhileStreamProvider, T, Predicate>
-        (std::move(source_), std::forward<Predicate>(predicate), false);
-}
-
-template<typename T>
-template<typename Predicate>
-Stream<T> Stream<T>::drop_until(Predicate&& predicate) {
-    check_vacant("drop_until");
-    return make_stream_provider<DropWhileStreamProvider, T, Predicate>
-        (std::move(source_), std::forward<Predicate>(predicate), true);
+        (std::move(source_), std::forward<Predicate>(predicate));
 }
 
 template<typename T>

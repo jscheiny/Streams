@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
     cout << endl;
 
     range(1,10)
-        .take_until([](int x) { return x > 5; })
+        .take_while(not_([](int x) { return x > 5; }))
         .print_to(cout);
     cout << endl;
 

@@ -7,6 +7,23 @@
 #include <iterator>
 #include <tuple>
 
+template<typename Function>
+struct InvertedPredicate {
+    InvertedPredicate(Function&& fn) : function(fn) {}
+
+    template<typename... Args>
+    bool operator() (Args&&... args) {
+        return !function(std::forward<Args>(args)...);
+    }
+
+    Function function;
+};
+
+template<typename Function>
+InvertedPredicate<Function> not_(Function&& fn) {
+    return {std::forward<Function>(fn)};
+}
+
 template<typename T>
 using RemoveRef = typename std::remove_reference<T>::type;
 
