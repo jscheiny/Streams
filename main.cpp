@@ -135,5 +135,11 @@ int main(int argc, char const *argv[])
         cout << "ERROR: " << e.what() << endl;
     }
 
+    vector<int> seq = range(1,4).to_vector();
+    MakeStream::cycle(seq)
+        .limit(20)
+        .print_to(cout);
+    cout << endl;
+
     return 0;
 }

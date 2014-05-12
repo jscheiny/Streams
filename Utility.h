@@ -6,6 +6,9 @@
 #include <iostream>
 #include <tuple>
 
+template<typename T>
+using RemoveRef = typename std::remove_reference<T>::type;
+
 template<typename T, typename Compare, bool Reverse = false>
 class ComparePtrWrapper {
 public:

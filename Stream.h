@@ -14,7 +14,17 @@
 
 struct MakeStream {
     template<typename T>
-    static Stream<T> repeat(T&& value);
+    static Stream<RemoveRef<T>> repeat(T&& value);
+
+    template<typename Iterator,
+             typename T = typename std::iterator_traits<Iterator>::value_type>
+    static Stream<T> cycle(Iterator begin, Iterator end);
+
+    template<typename Container,
+             typename T = typename std::iterator_traits<
+                    decltype(std::begin(std::declval<Container>()))
+                >::value_type>
+    static Stream<T> cycle(Container&& cont);
 
     template<typename Generator, typename T = ReturnType<Generator>>
     static Stream<T> generate(Generator&& generator);
@@ -183,9 +193,23 @@ private:
 };
 
 template<typename T>
-Stream<T> MakeStream::repeat(T&& value) {
-    return make_stream_provider <RepeatedStreamProvider, T>
-        (std::forward<T>(value));
+Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
+    using R = RemoveRef<T>;
+    return make_stream_provider <RepeatedStreamProvider, R>
+        (std::forward<R>(value));
+}
+
+template<typename Iterator, typename T>
+Stream<T> MakeStream::cycle(Iterator begin, Iterator end) {
+    return MakeStream::repeat(make_pair(begin, end))
+        .flat_map([](std::pair<Iterator, Iterator> sequence) {
+            return MakeStream::from(sequence.first, sequence.second);
+        });
+}
+
+template<typename Container, typename T>
+Stream<T> MakeStream::cycle(Container&& cont) {
+    return MakeStream::cycle(std::begin(cont), std::end(cont));
 }
 
 template<typename Generator, typename T>
