@@ -16,21 +16,17 @@ struct MakeStream {
     template<typename T>
     static Stream<RemoveRef<T>> repeat(T&& value);
 
-    template<typename Iterator,
-             typename T = IteratorType<Iterator>>
-    static Stream<T> cycle(Iterator begin, Iterator end);
+    template<typename Iterator>
+    static Stream<IteratorType<Iterator>> cycle(Iterator begin, Iterator end);
 
-    template<typename Container,
-             typename T = ContainerType<Container>>
-    static Stream<T> cycle(const Container& cont);
+    template<typename Container>
+    static Stream<ContainerType<Container>> cycle(const Container& cont);
 
-    template<typename Container,
-             typename T = ContainerType<Container>>
-    static Stream<T> cycle(Container&& cont);
+    template<typename Container>
+    static Stream<ContainerType<Container>> cycle(Container&& cont);
 
-    template<typename Generator,
-             typename T = ReturnType<Generator>>
-    static Stream<T> generate(Generator&& generator);
+    template<typename Generator>
+    static Stream<ReturnType<Generator>> generate(Generator&& generator);
 
     template<typename T, typename Function>
     static Stream<RemoveRef<T>> iterate(T&& initial, Function&& function);
@@ -41,17 +37,14 @@ struct MakeStream {
     template<typename T>
     static Stream<RemoveRef<T>> singleton(T&& value);
 
-    template<typename Iterator,
-             typename T = IteratorType<Iterator>>
-    static Stream<T> from(Iterator begin, Iterator end);
+    template<typename Iterator>
+    static Stream<IteratorType<Iterator>> from(Iterator begin, Iterator end);
 
-    template<typename Container,
-             typename T = ContainerType<Container>>
-    static Stream<T> from(const Container& cont);
+    template<typename Container>
+    static Stream<ContainerType<Container>> from(const Container& cont);
 
-    template<typename Container,
-             typename T = ContainerType<Container>>
-    static Stream<T> from(Container&& cont);
+    template<typename Container>
+    static Stream<ContainerType<Container>> from(Container&& cont);
 
     template<typename T>
     static Stream<T> from(T* array, std::size_t length);
@@ -187,7 +180,7 @@ private:
 
     StreamProviderPtr<T> source_;
 
-    void check_vacant(const std::string& method);
+    inline void check_vacant(const std::string& method);
 
 };
 
@@ -198,27 +191,29 @@ Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
         (std::forward<R>(value));
 }
 
-template<typename Iterator, typename T>
-Stream<T> MakeStream::cycle(Iterator begin, Iterator end) {
+template<typename Iterator>
+Stream<IteratorType<Iterator>> MakeStream::cycle(Iterator begin, Iterator end) {
+    using T = IteratorType<Iterator>;
     return MakeStream::repeat(make_pair(begin, end))
         .flat_map([](std::pair<Iterator, Iterator> sequence) {
             return MakeStream::from(sequence.first, sequence.second);
         });
 }
 
-template<typename Container, typename T>
-Stream<T> MakeStream::cycle(const Container& cont) {
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::cycle(const Container& cont) {
     return MakeStream::cycle(std::begin(cont), std::end(cont));
 }
 
 
-template<typename Container, typename T>
-Stream<T> MakeStream::cycle(Container&& cont) {
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::cycle(Container&& cont) {
     return MakeStream::cycle(std::begin(cont), std::end(cont));
 }
 
-template<typename Generator, typename T>
-Stream<T> MakeStream::generate(Generator&& generator) {
+template<typename Generator>
+Stream<ReturnType<Generator>> MakeStream::generate(Generator&& generator) {
+    using T = ReturnType<Generator>;
     return make_stream_provider<GeneratedStreamProvider, T, Generator>
         (std::forward<Generator>(generator));
 }
@@ -245,9 +240,9 @@ Stream<RemoveRef<T>> MakeStream::singleton(T&& value) {
         (std::forward<R>(value));
 }
 
-template<typename Iterator, typename T>
-Stream<T> MakeStream::from(Iterator begin, Iterator end) {
-    return Stream<T>(begin, end);
+template<typename Iterator>
+Stream<IteratorType<Iterator>> MakeStream::from(Iterator begin, Iterator end) {
+    return {begin, end};
 }
 
 template<typename T>
@@ -255,14 +250,14 @@ Stream<T> MakeStream::from(T* array, std::size_t length) {
     return Stream<T>(array, array + length);
 }
 
-template<typename Container, typename T>
-Stream<T> MakeStream::from(const Container& cont) {
-    return Stream<T>(std::begin(cont), std::end(cont));
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::from(const Container& cont) {
+    return {std::begin(cont), std::end(cont)};
 }
 
-template<typename Container, typename T>
-Stream<T> MakeStream::from(Container&& cont) {
-    return Stream<T>(std::begin(cont), std::end(cont));
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::from(Container&& cont) {
+    return {std::begin(cont), std::end(cont)};
 }
 
 template<typename T>
@@ -597,7 +592,6 @@ void Stream<T>::check_vacant(const std::string& method) {
     if(!occupied())
         throw VacantStreamException(method);
 }
-
 
 #include "StreamAlgebra.h"
 
