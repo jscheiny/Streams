@@ -127,5 +127,13 @@ int main(int argc, char const *argv[])
         .print_to(cout);
     cout << endl;
 
+    try {
+        Stream<int> x = MakeStream::counter(1);
+        Stream<int> y = move(x);
+        x.count();
+    } catch(StreamException& e) {
+        cout << "ERROR: " << e.what() << endl;
+    }
+
     return 0;
 }
