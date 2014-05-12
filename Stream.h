@@ -194,7 +194,7 @@ private:
 template<typename T>
 Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
     using R = RemoveRef<T>;
-    return make_stream_provider <RepeatedStreamProvider, R>
+    return make_stream_provider<RepeatedStreamProvider, R>
         (std::forward<R>(value));
 }
 
@@ -219,14 +219,14 @@ Stream<T> MakeStream::cycle(Container&& cont) {
 
 template<typename Generator, typename T>
 Stream<T> MakeStream::generate(Generator&& generator) {
-    return make_stream_provider <GeneratedStreamProvider, T, Generator>
+    return make_stream_provider<GeneratedStreamProvider, T, Generator>
         (std::forward<Generator>(generator));
 }
 
 template<typename T, typename Function>
 Stream<RemoveRef<T>> MakeStream::iterate(T&& initial, Function&& function) {
     using R = RemoveRef<T>;
-    return make_stream_provider <IteratedStreamProvider, R, Function>
+    return make_stream_provider<IteratedStreamProvider, R, Function>
         (std::forward<T>(initial), std::forward<Function>(function));
 }
 
@@ -285,7 +285,7 @@ template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::filter(Predicate&& predicate) {
     check_vacant("filter");
-    return make_stream_provider <FilteredStreamProvider, T, Predicate>
+    return make_stream_provider<FilteredStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate));
 }
 
@@ -293,7 +293,7 @@ template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::take_while(Predicate&& predicate) {
     check_vacant("take_while");
-    return make_stream_provider <TakeWhileStreamProvider, T, Predicate>
+    return make_stream_provider<TakeWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), false);
 }
 
@@ -301,7 +301,7 @@ template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::take_until(Predicate&& predicate) {
     check_vacant("take_until");
-    return make_stream_provider <TakeWhileStreamProvider, T, Predicate>
+    return make_stream_provider<TakeWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), true);
 }
 
@@ -309,7 +309,7 @@ template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::drop_while(Predicate&& predicate) {
     check_vacant("drop_while");
-    return make_stream_provider <DropWhileStreamProvider, T, Predicate>
+    return make_stream_provider<DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), false);
 }
 
@@ -317,7 +317,7 @@ template<typename T>
 template<typename Predicate>
 Stream<T> Stream<T>::drop_until(Predicate&& predicate) {
     check_vacant("drop_until");
-    return make_stream_provider <DropWhileStreamProvider, T, Predicate>
+    return make_stream_provider<DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate), true);
 }
 
@@ -325,7 +325,7 @@ template<typename T>
 template<typename Action>
 Stream<T> Stream<T>::peek(Action&& action) {
     check_vacant("peek");
-    return make_stream_provider <PeekStreamProvider, T, Action>
+    return make_stream_provider<PeekStreamProvider, T, Action>
         (std::move(source_), std::forward<Action>(action));
 }
 
@@ -337,7 +337,7 @@ Stream<ReturnType<Transform, T&>> Stream<T>::map(Transform&& transform) {
         "Return type of the mapping function cannot be void.");
 
     check_vacant("map");
-    return make_stream_provider <MappedStreamProvider, Result, Transform, T>
+    return make_stream_provider<MappedStreamProvider, Result, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
 }
 
@@ -351,21 +351,21 @@ Stream<T>::flat_map(Transform&& transform) {
     using S = StreamType<Result>;
 
     check_vacant("flat_map");
-    return make_stream_provider <FlatMappedStreamProvider, S, Transform, T>
+    return make_stream_provider<FlatMappedStreamProvider, S, Transform, T>
         (std::move(source_), std::forward<Transform>(transform));
 }
 
 template<typename T>
 Stream<T> Stream<T>::limit(std::size_t length) {
     check_vacant("limit");
-    return make_stream_provider <LimitedStreamProvider, T>
+    return make_stream_provider<LimitedStreamProvider, T>
         (std::move(source_), length);
 }
 
 template<typename T>
 Stream<T> Stream<T>::skip(std::size_t amount) {
     check_vacant("skip");
-    return make_stream_provider <SkippedStreamProvider, T>
+    return make_stream_provider<SkippedStreamProvider, T>
         (std::move(source_), amount);
 }
 
@@ -373,7 +373,7 @@ template<typename T>
 template<typename Equal>
 Stream<T> Stream<T>::adjacent_distinct(Equal&& equal) {
     check_vacant("adjacent_distinct");
-    return make_stream_provider <AdjacentDistinctStreamProvider, T, Equal>
+    return make_stream_provider<AdjacentDistinctStreamProvider, T, Equal>
         (std::move(source_), std::forward<Equal>(equal));
 }
 
@@ -381,14 +381,14 @@ template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::sort(Compare&& comparator) {
     check_vacant("sort");
-    return make_stream_provider <SortedStreamProvider, T, Compare>
+    return make_stream_provider<SortedStreamProvider, T, Compare>
         (std::move(source_), std::forward<Compare>(comparator));
 }
 
 template<typename T>
 Stream<T> Stream<T>::state_point() {
     check_vacant("state_point");
-    return make_stream_provider <StatefulStreamProvider, T>
+    return make_stream_provider<StatefulStreamProvider, T>
         (std::move(source_));
 }
 
@@ -396,7 +396,7 @@ template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::distinct(Compare&& comparator) {
     check_vacant("distinct");
-    return make_stream_provider <DistinctStreamProvider, T, Compare>
+    return make_stream_provider<DistinctStreamProvider, T, Compare>
         (std::move(source_), std::forward<Compare>(comparator));
 }
 
@@ -414,7 +414,7 @@ Stream<T> Stream<T>::concat(Stream<T>&& other) {
         concat_ptr->concat(std::move(other.source_));
         return std::move(*this);
     }
-    return make_stream_provider <ConcatenatedStreamProvider, T>
+    return make_stream_provider<ConcatenatedStreamProvider, T>
         (std::move(source_), std::move(other.source_));
 }
 
@@ -475,7 +475,7 @@ template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::merge_with(Stream<T>&& other, Compare&& compare) {
     check_vacant("merge_with");
-    return make_stream_provider <MergedStreamProvider, T, Compare>
+    return make_stream_provider<MergedStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare), true);
 }
@@ -484,7 +484,7 @@ template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::set_union(Stream<T>&& other, Compare&& compare) {
     check_vacant("set_union");
-    return make_stream_provider <MergedStreamProvider, T, Compare>
+    return make_stream_provider<MergedStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare), false);
 }
@@ -493,7 +493,7 @@ template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::set_intersection(Stream<T>&& other, Compare&& compare) {
     check_vacant("set_intersection");
-    return make_stream_provider <SetIntersectionStreamProvider, T, Compare>
+    return make_stream_provider<SetIntersectionStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare));
 }
