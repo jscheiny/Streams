@@ -17,41 +17,40 @@ struct MakeStream {
     static Stream<RemoveRef<T>> repeat(T&& value);
 
     template<typename Iterator,
-             typename T = typename std::iterator_traits<Iterator>::value_type>
+             typename T = IteratorType<Iterator>>
     static Stream<T> cycle(Iterator begin, Iterator end);
 
     template<typename Container,
-             typename T = typename std::iterator_traits<
-                    decltype(std::begin(std::declval<Container>()))
-                >::value_type>
+             typename T = ContainerType<Container>>
+    static Stream<T> cycle(const Container& cont);
+
+    template<typename Container,
+             typename T = ContainerType<Container>>
     static Stream<T> cycle(Container&& cont);
 
-    template<typename Generator, typename T = ReturnType<Generator>>
+    template<typename Generator,
+             typename T = ReturnType<Generator>>
     static Stream<T> generate(Generator&& generator);
 
     template<typename T, typename Function>
-    static Stream<T> iterate(T initial, Function&& function);
+    static Stream<RemoveRef<T>> iterate(T&& initial, Function&& function);
 
     template<typename T>
-    static Stream<T> counter(T value);
+    static Stream<RemoveRef<T>> counter(T&& start);
 
     template<typename T>
-    static Stream<T> singleton(T value);
+    static Stream<RemoveRef<T>> singleton(T&& value);
 
     template<typename Iterator,
-             typename T = typename std::iterator_traits<Iterator>::value_type>
+             typename T = IteratorType<Iterator>>
     static Stream<T> from(Iterator begin, Iterator end);
 
     template<typename Container,
-             typename T = typename std::iterator_traits<
-                    decltype(std::begin(std::declval<Container>()))
-                >::value_type>
+             typename T = ContainerType<Container>>
     static Stream<T> from(const Container& cont);
 
     template<typename Container,
-             typename T = typename std::iterator_traits<
-                    decltype(std::begin(std::declval<Container>()))
-                >::value_type>
+             typename T = ContainerType<Container>>
     static Stream<T> from(Container&& cont);
 
     template<typename T>
@@ -208,6 +207,12 @@ Stream<T> MakeStream::cycle(Iterator begin, Iterator end) {
 }
 
 template<typename Container, typename T>
+Stream<T> MakeStream::cycle(const Container& cont) {
+    return MakeStream::cycle(std::begin(cont), std::end(cont));
+}
+
+
+template<typename Container, typename T>
 Stream<T> MakeStream::cycle(Container&& cont) {
     return MakeStream::cycle(std::begin(cont), std::end(cont));
 }
@@ -219,21 +224,25 @@ Stream<T> MakeStream::generate(Generator&& generator) {
 }
 
 template<typename T, typename Function>
-Stream<T> MakeStream::iterate(T initial, Function&& function) {
-    return make_stream_provider <IteratedStreamProvider, T, Function>
+Stream<RemoveRef<T>> MakeStream::iterate(T&& initial, Function&& function) {
+    using R = RemoveRef<T>;
+    return make_stream_provider <IteratedStreamProvider, R, Function>
         (std::forward<T>(initial), std::forward<Function>(function));
 }
 
 template<typename T>
-Stream<T> MakeStream::counter(T value) {
-    return MakeStream::iterate(value, [](T& value) {
-        return ++value;
-    });
+Stream<RemoveRef<T>> MakeStream::counter(T&& start) {
+    using R = RemoveRef<T>;
+    return MakeStream::iterate(std::forward<T>(start), [](R& value) {
+            return ++value;
+        });
 }
 
 template<typename T>
-Stream<T> MakeStream::singleton(T value) {
-    return make_stream_provider<SingletonStreamProvider, T>(value);
+Stream<RemoveRef<T>> MakeStream::singleton(T&& value) {
+    using R = RemoveRef<T>;
+    return make_stream_provider<SingletonStreamProvider, R>
+        (std::forward<R>(value));
 }
 
 template<typename Iterator, typename T>

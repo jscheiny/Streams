@@ -4,10 +4,18 @@
 #include "Utility-Impl.h"
 
 #include <iostream>
+#include <iterator>
 #include <tuple>
 
 template<typename T>
 using RemoveRef = typename std::remove_reference<T>::type;
+
+template<typename Itr>
+using IteratorType = typename std::iterator_traits<Itr>::value_type;
+
+template<typename Container>
+using ContainerType = IteratorType
+    <decltype(std::begin(std::declval<Container>()))>;
 
 template<typename T, typename Compare, bool Reverse = false>
 class ComparePtrWrapper {
