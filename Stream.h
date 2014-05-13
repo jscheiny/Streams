@@ -16,6 +16,9 @@ struct MakeStream {
     template<typename T>
     static Stream<RemoveRef<T>> repeat(T&& value);
 
+    template<typename T>
+    static Stream<RemoveRef<T>> repeat(T&& value, size_t times);
+
     template<typename Iterator>
     static Stream<IteratorType<Iterator>> cycle(Iterator begin, Iterator end);
 
@@ -193,6 +196,11 @@ Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
         (std::forward<R>(value));
 }
 
+template<typename T>
+Stream<RemoveRef<T>> MakeStream::repeat(T&& value, size_t times) {
+    return MakeStream::repeat(value).limit(times);
+}
+
 template<typename Iterator>
 Stream<IteratorType<Iterator>> MakeStream::cycle(Iterator begin, Iterator end) {
     using T = IteratorType<Iterator>;
@@ -326,7 +334,6 @@ Stream<T> Stream<T>::slice(size_t start, size_t end, size_t increment) {
     return make_stream_provider<SlicedStreamProvider, T>
         (std::move(source_), start, end, increment);
 }
-
 
 template<typename T>
 template<typename Action>
