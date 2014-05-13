@@ -24,6 +24,7 @@
 #include "SetIntersectionStreamProvider.h"
 #include "SingletonStreamProvider.h"
 #include "SkippedStreamProvider.h"
+#include "SlicedStreamProvider.h"
 #include "SortedStreamProvider.h"
 #include "StatefulStreamProvider.h"
 #include "TakeWhileStreamProvider.h"

@@ -82,6 +82,8 @@ public:
     template<typename Predicate>
     Stream<T> drop_while(Predicate&& predicate);
 
+    Stream<T> slice(size_t start, size_t end, size_t increment = 1);
+
     template<typename Action>
     Stream<T> peek(Action&& action);
 
@@ -317,6 +319,14 @@ Stream<T> Stream<T>::drop_while(Predicate&& predicate) {
     return make_stream_provider<DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate));
 }
+
+template<typename T>
+Stream<T> Stream<T>::slice(size_t start, size_t end, size_t increment) {
+    check_vacant("slice");
+    return make_stream_provider<SlicedStreamProvider, T>
+        (std::move(source_), start, end, increment);
+}
+
 
 template<typename T>
 template<typename Action>
