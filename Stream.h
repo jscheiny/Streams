@@ -206,10 +206,10 @@ Stream<RemoveRef<T>> MakeStream::repeat(T&& value, size_t times) {
 template<typename Iterator>
 Stream<IteratorType<Iterator>> MakeStream::cycle(Iterator begin, Iterator end) {
     using T = IteratorType<Iterator>;
-    return MakeStream::repeat(make_pair(begin, end))
-        .flat_map([](std::pair<Iterator, Iterator> sequence) {
-            return MakeStream::from(sequence.first, sequence.second);
-        });
+    return MakeStream::repeat(make_tuple(begin, end))
+        .flat_map(splat([](Iterator b, Iterator e) {
+            return MakeStream::from(b, e);
+        }));
 }
 
 template<typename Container>
