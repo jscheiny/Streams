@@ -14,6 +14,9 @@
 
 struct MakeStream {
     template<typename T>
+    static Stream<RemoveRef<T>> empty();
+
+    template<typename T>
     static Stream<RemoveRef<T>> repeat(T&& value);
 
     template<typename T>
@@ -190,6 +193,11 @@ private:
     inline void check_vacant(const std::string& method);
 
 };
+
+template<typename T>
+Stream<RemoveRef<T>> MakeStream::empty() {
+    return {};
+}
 
 template<typename T>
 Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
