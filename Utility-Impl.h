@@ -111,6 +111,13 @@ public:
         return apply_tuple(function_, tuple);
     }
 
+    template<typename L, typename R>
+    auto operator() (const std::pair<L, R>& pair)
+            -> decltype(std::declval<Function>()(pair.first, pair.second)) {
+
+        return apply_tuple(function_, pair);
+    }
+
 private:
     Function function_;
 

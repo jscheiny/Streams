@@ -75,6 +75,10 @@ template<typename Function, typename... Types>
 auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
         -> decltype(function(std::declval<Types>()...));
 
+template<typename Function, typename L, typename R>
+auto apply_tuple(Function&& function, const std::pair<L, R>& pair)
+        -> decltype(function(pair.first, pair.second));
+
 template<typename Function>
 SplattedFunction<Function> splat(Function&& function) {
     return SplattedFunction<Function>(std::forward<Function>(function));
