@@ -70,6 +70,15 @@ class Stream {
 
 public:
     using ElementType = T;
+    using iterator = typename StreamProvider<T>::Iterator;
+
+    iterator begin() {
+        return source_->begin();
+    }
+
+    iterator end() {
+        return source_->end();
+    }
 
     Stream();
 

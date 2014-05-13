@@ -31,4 +31,18 @@ private:
     }
 };
 
+class ConsumsedIteratorException : public StreamException {
+
+public:
+    explicit ConsumsedIteratorException(const std::string& op)
+        : StreamException(build_message(op)) {}
+
+private:
+    static std::string build_message(const std::string& op) {
+        std::stringstream message;
+        message << "Cannot perform " << op << " on consumed stream iterator.";
+        return message.str();
+    }
+};
+
 #endif
