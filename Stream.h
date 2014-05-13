@@ -125,6 +125,8 @@ public:
 
     Stream<T> concat(Stream<T>&& other);
 
+    Stream<T> pad(T&& padding);
+
     Stream<GroupResult<T, 2>> pairwise();
 
     template<size_t N>
@@ -431,6 +433,12 @@ Stream<T> Stream<T>::concat(Stream<T>&& other) {
     return make_stream_provider<ConcatenatedStreamProvider, T>
         (std::move(source_), std::move(other.source_));
 }
+
+template<typename T>
+Stream<T> Stream<T>::pad(T&& padding) {
+    return concat(MakeStream::repeat(std::forward<T>(padding)));
+}
+
 
 template<typename T>
 Stream<GroupResult<T, 2>> Stream<T>::pairwise() {
