@@ -116,6 +116,16 @@ auto st = MakeStream::repeat(1).partial_sum();
 // stream contains 1, 2, 3, ...
 ```
 
+### Cycle
+
+The static `cycle` method produces an infinite stream whose contents cycle through
+a given input sequence.
+
+```cpp
+vector<int> x{1, 3, 8};
+MakeStream::cycle(x) // Contains 1, 3, 8, 1, 3, 8, 1, ...
+```
+
 ## Saving streams
 
 To print out a stream simply use the `print_to` method:
@@ -392,6 +402,30 @@ vector<int> y = {1, 2, 3};
 MakeStream::from(x)
     .concat(Makestream::from(y));
 // Stream contains 4, 5, 6, 1, 2, 3
+```
+
+### Pad
+
+Concatenates an infinite stream of repeated values to the end of the current
+stream.
+
+```cpp
+vector<int> x = {1, 2, 3};
+MakeStream::from(x)
+    .pad(0);
+// Stream contains 1, 2, 3, 0, 0, 0, ...
+```
+
+Effectively, the pad functionality:
+
+```cpp
+stream.pad(value);
+```
+
+is equivalent to:
+
+```cpp
+stream.concat(MakeStream::repeat(value))
 ```
 
 ### Merge
