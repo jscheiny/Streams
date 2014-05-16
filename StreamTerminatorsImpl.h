@@ -22,13 +22,29 @@ T Stream<T>::reduce(const T& initial, Combiner&& combine) {
     return value;
 }
 
+template<typename Combiner>
+T Stream<T>::reduce(Combiner&& combine) {
+    if(source_->advance()) {
+        return reduce(*source_->get(), std::forward<Function>(function));
+    } else {
+        throw EmptyStreamException("reduce");
+    }
+}
+
+template<typename T>
+template<typename Function>
+T Stream<T>::no_identity_reduction(const std::string& name,
+                                   Function&& function) {
+    try {
+        return reduce(std::forward<Function>(function));
+    } catch(EmptyStreamException& e) {
+        throw EmptyStreamException(name);
+    }
+}
+
 template<typename T>
 T Stream<T>::sum() {
-    if(source_->advance()) {
-        return reduce(*source_->get(), std::plus<T>());
-    } else {
-        throw EmptyStreamException("sum");
-    }
+    return no_identity_reduction("sum", std::plus<T>());
 }
 
 template<typename T>
@@ -38,16 +54,30 @@ T Stream<T>::sum(const T& identity) {
 
 template<typename T>
 T Stream<T>::product() {
-    if(source_->advance()) {
-        return reduce(*source_->get(), std::multiplies<T>());
-    } else {
-        throw EmptyStreamException("product");
-    }
+    return no_identity_reduction("product", std::multiplies<T>());
 }
 
 template<typename T>
 T Stream<T>::product(const T& identity) {
     return reduce(identity, std::multiplies<T>());
+}
+
+template<typename T>
+template<typename Compare>
+T Stream<T>::max(Compare&& compare) {
+    return no_identity_reduction("max", [less=std::forward<Compare>(compare)]
+        (T& a, T& b) {
+            return less(a, b) ? b : a;
+        });
+}
+
+template<typename T>
+template<typename Compare>
+T Stream<T>::min(Compare&& compare) {
+    return no_identity_reduction("min", [less=std::forward<Compare>(compare)]
+        (T& a, T& b) {
+            return less(a, b) ? a : b;
+        });
 }
 
 template<typename T>

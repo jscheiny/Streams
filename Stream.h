@@ -166,6 +166,9 @@ public:
     template<typename Combiner>
     T reduce(const T& initial, Combiner&& combine);
 
+    template<typename Combiner>
+    T reduce(Combiner&& combine);
+
     T sum();
 
     T sum(const T& identity);
@@ -173,6 +176,12 @@ public:
     T product();
 
     T product(const T& identity);
+
+    template<typename Compare = std::less<T>>
+    T max(Compare&& compare = Compare());
+
+    template<typename Compare = std::less<T>>
+    T min(Compare&& compare = Compare());
 
     template<typename Predicate>
     bool any(Predicate&& predicate);
@@ -215,6 +224,9 @@ private:
     StreamProviderPtr<T> source_;
 
     inline void check_vacant(const std::string& method);
+
+    template<typename Function>
+    T no_identity_reduction(const std::string& name, Function&& function);
 
 };
 
