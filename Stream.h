@@ -191,6 +191,10 @@ public:
     template<typename Compare = std::less<T>>
     std::pair<T, T> minmax(Compare&& compare = Compare());
 
+    T first();
+
+    T last();
+
     template<typename Predicate>
     bool any(Predicate&& predicate);
 

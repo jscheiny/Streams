@@ -49,7 +49,6 @@ template<typename Function>
 T Stream<T>::no_identity_reduction(const std::string& name,
                                    Function&& function) {
     try {
-        return reduce(std::forward<Function>(function));
     } catch(EmptyStreamException& e) {
         throw EmptyStreamException(name);
     }
@@ -111,9 +110,7 @@ template<typename T>
 template<typename Compare>
 std::pair<T, T> Stream<T>::minmax(Compare&& compare) {
     return no_identity_reduction("minmax",
-        [](T& value) {
-            return std::make_pair(value, value);
-        },
+        [](T& value) { return std::make_pair(value, value); },
         [less=std::forward<Compare>(compare)] (const auto& accumulated, T& value) {
             if(less(value, accumulated.first)) {
                 return std::make_pair(value, accumulated.second);
@@ -125,6 +122,20 @@ std::pair<T, T> Stream<T>::minmax(Compare&& compare) {
         });
 }
 
+template<typename T>
+T Stream<T>::first() {
+    if(source_->advance()) {
+        return *source_->get();
+    } else {
+        throw EmptyStreamException("first");
+    }
+}
+
+template<typename T>
+T Stream<T>::last() {
+    return no_identity_reduction("last",
+        [](T& first, T& second) { return second; });
+}
 
 template<typename T>
 template<typename Predicate>
