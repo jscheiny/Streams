@@ -8,11 +8,12 @@ class SlicedStreamProvider : public StreamProvider<T> {
 
 public:
     SlicedStreamProvider(StreamProviderPtr<T> source,
-                         size_t start, size_t end, size_t increment)
+                         size_t start, size_t end, size_t increment, bool no_end_)
         : source_(std::move(source)),
           start_(start),
           end_(end),
-          increment_(increment) {}
+          increment_(increment),
+          no_end_(no_end_) {}
 
     std::shared_ptr<T> get() override {
         return current_;
@@ -31,7 +32,7 @@ public:
             return true;
         }
 
-        if(index_ + increment_ < end_) {
+        if(no_end_ || index_ + increment_ < end_) {
             for(size_t k = 0; k < increment_; k++) {
                 index_++;
                 if(source_->advance()) {
@@ -56,6 +57,7 @@ private:
     size_t start_;
     size_t end_;
     size_t increment_;
+    bool no_end_;
 
 
 };

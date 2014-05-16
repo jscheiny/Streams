@@ -29,7 +29,14 @@ template<typename T>
 Stream<T> Stream<T>::slice(size_t start, size_t end, size_t increment) {
     check_vacant("slice");
     return make_stream_provider<SlicedStreamProvider, T>
-        (std::move(source_), start, end, increment);
+        (std::move(source_), start, end, increment, false);
+}
+
+template<typename T>
+Stream<T> Stream<T>::slice_to_end(size_t start, size_t increment) {
+    check_vacant("slice_to_end");
+    return make_stream_provider<SlicedStreamProvider, T>
+        (std::move(source_), start, 0, increment, true);
 }
 
 template<typename T>
