@@ -163,11 +163,14 @@ public:
 
     size_t count();
 
-    template<typename Combiner>
-    T reduce(const T& initial, Combiner&& combine);
+    template<typename U, typename Accumulator>
+    U reduce(const U& identity, Accumulator&& accumulator);
 
-    template<typename Combiner>
-    T reduce(Combiner&& combine);
+    template<typename Identity, typename Accumulator>
+    ReturnType<Identity, T&> reduce(Identity&& identity, Accumulator&& accum);
+
+    template<typename Accumulator>
+    T reduce(Accumulator&& accumulator);
 
     T sum();
 
@@ -182,6 +185,9 @@ public:
 
     template<typename Compare = std::less<T>>
     T min(Compare&& compare = Compare());
+
+    template<typename Compare = std::less<T>>
+    std::pair<T, T> minmax(Compare&& compare = Compare());
 
     template<typename Predicate>
     bool any(Predicate&& predicate);
@@ -228,6 +234,11 @@ private:
     template<typename Function>
     T no_identity_reduction(const std::string& name, Function&& function);
 
+    template<typename Identity, typename Function>
+    ReturnType<Identity, T&> no_identity_reduction(
+        const std::string& name,
+        Identity&& identity,
+        Function&& function);
 };
 
 template<typename T>

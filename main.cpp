@@ -17,9 +17,10 @@ int main(int argc, char const *argv[])
 {
 
     auto seq = range(1, 5).to_vector();
-    int total = MakeStream::cycle(seq)
+    int min, max;
+    tie(min, max) = MakeStream::cycle(seq)
         .limit(10)
-        .max();
-    cout << total << endl;
+        .minmax();
+    cout << min << ", " << max << endl;
     return 0;
 }

@@ -13,19 +13,32 @@ size_t Stream<T>::count() {
 }
 
 template<typename T>
-template<typename Combiner>
-T Stream<T>::reduce(const T& initial, Combiner&& combine) {
-    T value = initial;
+template<typename U, typename Accumulator>
+U Stream<T>::reduce(const U& identity, Accumulator&& accumulator) {
+    U result = identity;
     while(source_->advance()) {
-        value = combine(value, *source_->get());
+        result = accumulator(result, *source_->get());
     }
-    return value;
+    return result;
 }
 
-template<typename Combiner>
-T Stream<T>::reduce(Combiner&& combine) {
+template<typename T>
+template<typename Identity, typename Accumulator>
+ReturnType<Identity, T&> Stream<T>::reduce(Identity&& identity,
+                                           Accumulator&& accumulator) {
     if(source_->advance()) {
-        return reduce(*source_->get(), std::forward<Function>(function));
+        return reduce(identity(*source_->get()),
+                      std::forward<Accumulator>(accumulator));
+    } else {
+        throw EmptyStreamException("reduce");
+    }
+}
+
+template<typename T>
+template<typename Accumulator>
+T Stream<T>::reduce(Accumulator&& accumulator) {
+    if(source_->advance()) {
+        return reduce(*source_->get(), std::forward<Accumulator>(accumulator));
     } else {
         throw EmptyStreamException("reduce");
     }
@@ -37,6 +50,20 @@ T Stream<T>::no_identity_reduction(const std::string& name,
                                    Function&& function) {
     try {
         return reduce(std::forward<Function>(function));
+    } catch(EmptyStreamException& e) {
+        throw EmptyStreamException(name);
+    }
+}
+
+template<typename T>
+template<typename Identity, typename Function>
+ReturnType<Identity, T&> Stream<T>::no_identity_reduction(
+            const std::string& name,
+            Identity&& identity,
+            Function&& function) {
+    try {
+        return reduce(std::forward<Identity>(identity),
+                      std::forward<Function>(function));
     } catch(EmptyStreamException& e) {
         throw EmptyStreamException(name);
     }
@@ -79,6 +106,25 @@ T Stream<T>::min(Compare&& compare) {
             return less(a, b) ? a : b;
         });
 }
+
+template<typename T>
+template<typename Compare>
+std::pair<T, T> Stream<T>::minmax(Compare&& compare) {
+    return no_identity_reduction("minmax",
+        [](T& value) {
+            return std::make_pair(value, value);
+        },
+        [less=std::forward<Compare>(compare)] (const auto& accumulated, T& value) {
+            if(less(value, accumulated.first)) {
+                return std::make_pair(value, accumulated.second);
+            }
+            if(less(accumulated.second, value)) {
+                return std::make_pair(accumulated.first, value);
+            }
+            return accumulated;
+        });
+}
+
 
 template<typename T>
 template<typename Predicate>
