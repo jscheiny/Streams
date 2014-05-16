@@ -13,6 +13,44 @@ size_t Stream<T>::count() {
 }
 
 template<typename T>
+template<typename Combiner>
+T Stream<T>::reduce(const T& initial, Combiner&& combine) {
+    T value = initial;
+    while(source_->advance()) {
+        value = combine(value, *source_->get());
+    }
+    return value;
+}
+
+template<typename T>
+T Stream<T>::sum() {
+    if(source_->advance()) {
+        return reduce(*source_->get(), std::plus<T>());
+    } else {
+        throw EmptyStreamException("sum");
+    }
+}
+
+template<typename T>
+T Stream<T>::sum(const T& identity) {
+    return reduce(identity, std::plus<T>());
+}
+
+template<typename T>
+T Stream<T>::product() {
+    if(source_->advance()) {
+        return reduce(*source_->get(), std::multiplies<T>());
+    } else {
+        throw EmptyStreamException("product");
+    }
+}
+
+template<typename T>
+T Stream<T>::product(const T& identity) {
+    return reduce(identity, std::multiplies<T>());
+}
+
+template<typename T>
 template<typename Predicate>
 bool Stream<T>::any(Predicate&& predicate) {
     check_vacant("any");

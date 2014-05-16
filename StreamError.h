@@ -17,6 +17,20 @@ private:
 
 };
 
+class EmptyStreamException : public StreamException {
+
+public:
+    explicit EmptyStreamException(const std::string& term)
+          : StreamException(build_message(term)) {}
+
+private:
+    static std::string build_message(const std::string& term) {
+        std::stringstream message;
+        message << "No terminal result for operation Stream::" << term;
+        return message.str();
+    }
+};
+
 class VacantStreamException : public StreamException {
 
 public:
@@ -26,7 +40,7 @@ public:
 private:
     static std::string build_message(const std::string& method) {
         std::stringstream message;
-        message << "Cannot call Stream::" << method << " on an empty stream";
+        message << "Cannot call Stream::" << method << " on a vacant stream";
         return message.str();
     }
 };

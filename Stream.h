@@ -88,6 +88,8 @@ public:
     template<typename Container>
     Stream(const Container& cont);
 
+    /*** Intermediate Stream Operations ***/
+
     template<typename Predicate>
     Stream<T> filter(Predicate&& predicate);
 
@@ -157,7 +159,20 @@ public:
     template<typename Compare = std::less<T>>
     Stream<T> set_intersection(Stream<T>&& other, Compare&& compare = Compare());
 
+    /*** Terminal Stream operations ***/
+
     size_t count();
+
+    template<typename Combiner>
+    T reduce(const T& initial, Combiner&& combine);
+
+    T sum();
+
+    T sum(const T& identity);
+
+    T product();
+
+    T product(const T& identity);
 
     template<typename Predicate>
     bool any(Predicate&& predicate);

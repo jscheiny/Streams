@@ -17,11 +17,9 @@ int main(int argc, char const *argv[])
 {
 
     auto seq = range(1, 5).to_vector();
-    auto st = MakeStream::cycle(seq)
-        .limit(10);
-    for(int x : st) {
-        cout << x << " ";
-    }
-    cout << endl;
+    int total = MakeStream::cycle(seq)
+        .limit(10)
+        .product();
+    cout << total << endl;
     return 0;
 }
