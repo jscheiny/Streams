@@ -201,16 +201,16 @@ Stream<T> Stream<T>::merge_with(Stream<T>&& other, Compare&& compare) {
     check_vacant("merge_with");
     return make_stream_provider<MergedStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare), true);
+         std::forward<Compare>(compare));
 }
 
 template<typename T>
 template<typename Compare>
 Stream<T> Stream<T>::set_union(Stream<T>&& other, Compare&& compare) {
     check_vacant("set_union");
-    return make_stream_provider<MergedStreamProvider, T, Compare>
+    return make_stream_provider<SetUnionStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare), false);
+         std::forward<Compare>(compare));
 }
 
 template<typename T>
@@ -218,6 +218,24 @@ template<typename Compare>
 Stream<T> Stream<T>::set_intersection(Stream<T>&& other, Compare&& compare) {
     check_vacant("set_intersection");
     return make_stream_provider<SetIntersectionStreamProvider, T, Compare>
+        (std::move(source_), std::move(other.source_),
+         std::forward<Compare>(compare));
+}
+
+template<typename T>
+template<typename Compare>
+Stream<T> Stream<T>::set_difference(Stream<T>&& other, Compare&& compare) {
+    check_vacant("set_difference");
+    return make_stream_provider<SetDifferenceStreamProvider, T, Compare>
+        (std::move(source_), std::move(other.source_),
+         std::forward<Compare>(compare));
+}
+
+template<typename T>
+template<typename Compare>
+Stream<T> Stream<T>::set_symmetric_difference(Stream<T>&& other, Compare&& compare) {
+    check_vacant("set_symmetric_difference");
+    return make_stream_provider<SetSymmetricDifferenceStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare));
 }

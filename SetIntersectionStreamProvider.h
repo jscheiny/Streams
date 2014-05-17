@@ -20,14 +20,14 @@ public:
     }
 
     bool advance() override {
-        if(depletion_ == EitherDepleted) {
+        if(depletion_ == DepleteState::Either) {
             return false;
         }
 
         advance_stream(source1_, current1_);
         advance_stream(source2_, current2_);
 
-        while(depletion_ == NeitherDepleted) {
+        while(depletion_ == DepleteState::Neither) {
             if(comparator_(*current1_, *current2_)) { // curr1 < curr2
                 advance_stream(source1_, current1_);
             } else if(comparator_(*current2_, *current1_)) { // curr2 < curr1
@@ -41,12 +41,12 @@ public:
     }
 
 private:
-    enum DepleteState {
-        NeitherDepleted,
-        EitherDepleted
+    enum class DepleteState {
+        Neither,
+        Either
     };
 
-    DepleteState depletion_ = NeitherDepleted;
+    DepleteState depletion_ = DepleteState::Neither;
 
     Compare comparator_;
     StreamProviderPtr<T> source1_;
@@ -62,7 +62,7 @@ private:
             return true;
         } else {
             current.reset();
-            depletion_ = EitherDepleted;
+            depletion_ = DepleteState::Either;
             return false;
         }
     }

@@ -173,6 +173,12 @@ public:
     template<typename Compare = std::less<T>>
     Stream<T> set_intersection(Stream<T>&& other, Compare&& compare = Compare());
 
+    template<typename Compare = std::less<T>>
+    Stream<T> set_difference(Stream<T>&& other, Compare&& compare = Compare());
+
+    template<typename Compare = std::less<T>>
+    Stream<T> set_symmetric_difference(Stream<T>&& other, Compare&& compare = Compare());
+
     /*** Terminal Stream operations ***/
 
     size_t count();
