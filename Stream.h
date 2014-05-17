@@ -233,6 +233,10 @@ public:
 
     inline bool occupied() const;
 
+    inline void swap(Stream<T>& other) {
+        source_.swap(other.source_);
+    }
+
     friend class MakeStream;
 
     template<typename>
