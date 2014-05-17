@@ -31,6 +31,18 @@ struct MakeStream {
     template<typename Container>
     static Stream<ContainerType<Container>> cycle(Container&& cont);
 
+    template<typename Iterator>
+    static Stream<IteratorType<Iterator>> cycle(Iterator begin, Iterator end,
+                                                size_t times);
+
+    template<typename Container>
+    static Stream<ContainerType<Container>> cycle(const Container& cont,
+                                                  size_t times);
+
+    template<typename Container>
+    static Stream<ContainerType<Container>> cycle(Container&& cont,
+                                                  size_t times);
+
     template<typename Generator>
     static Stream<ReturnType<Generator>> generate(Generator&& generator);
 

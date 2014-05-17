@@ -17,8 +17,7 @@ int main(int argc, char const *argv[])
 {
 
     auto seq = range(1, 5).to_vector();
-    MakeStream::cycle(seq)
-        .limit(100)
+    MakeStream::cycle(seq, 20)
         .slice_to_end(1, 10)
         .print_to(cout);
     cout << endl;

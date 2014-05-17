@@ -38,6 +38,28 @@ Stream<ContainerType<Container>> MakeStream::cycle(Container&& cont) {
     return MakeStream::cycle(std::begin(cont), std::end(cont));
 }
 
+template<typename Iterator>
+Stream<IteratorType<Iterator>> MakeStream::cycle(Iterator begin, Iterator end,
+                                                 size_t times) {
+    using T = IteratorType<Iterator>;
+    return MakeStream::repeat(make_pair(begin, end), times)
+        .flat_map(splat([](Iterator b, Iterator e) {
+            return MakeStream::from(b, e);
+        }));
+}
+
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::cycle(const Container& cont,
+                                                   size_t times) {
+    return MakeStream::cycle(std::begin(cont), std::end(cont), times);
+}
+
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::cycle(Container&& cont,
+                                                   size_t times) {
+    return MakeStream::cycle(std::begin(cont), std::end(cont), times);
+}
+
 template<typename Generator>
 Stream<ReturnType<Generator>> MakeStream::generate(Generator&& generator) {
     using T = ReturnType<Generator>;
