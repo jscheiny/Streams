@@ -396,20 +396,20 @@ auto operator^ (const T& left, Stream<S>&& right)
     });
 }
 
-template<typename T1, typename T2>
-Stream<decltype(std::declval<T1&>() << std::declval<T2&>())>
-operator<< (Stream<T1>&& left, Stream<T2>&& right) {
-    return left.zip_with(right, [](T1& t1, T2& t2) {
-        return t1 << t2; });
-}
+// template<typename T1, typename T2>
+// Stream<decltype(std::declval<T1&>() << std::declval<T2&>())>
+// operator<< (Stream<T1>&& left, Stream<T2>&& right) {
+//     return left.zip_with(right, [](T1& t1, T2& t2) {
+//         return t1 << t2; });
+// }
 
-template<typename S, typename T>
-auto operator<< (Stream<S>&& left, const T& right)
-        -> Stream<decltype(std::declval<S&>() << right)> {
-    return left.map([&right] (S& value) {
-        return value << right;
-    });
-}
+// template<typename S, typename T>
+// auto operator<< (Stream<S>&& left, const T& right)
+//         -> Stream<decltype(std::declval<S&>() << right)> {
+//     return left.map([&right] (S& value) {
+//         return value << right;
+//     });
+// }
 
 template<typename S, typename T>
 auto operator<< (const T& left, Stream<S>&& right)

@@ -36,6 +36,13 @@ public:
         return true;
     }
 
+    std::pair<int, int> print(std::ostream& os, int indent) const override {
+        this->print_indent_arrow(os, indent);
+        os << "Sort:\n";
+        auto sub = source_->print(os, indent + 1);
+        return {sub.first + 1, sub.second};
+    }
+
 private:
     using PointerCompare = ComparePtrWrapper<T, RawCompare, true>;
     using PointerQueue = std::priority_queue<std::shared_ptr<T>,

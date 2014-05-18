@@ -243,6 +243,8 @@ public:
         source_.swap(other.source_);
     }
 
+    std::ostream& print_pipeline(std::ostream& os);
+
     friend class MakeStream;
 
     template<typename>
@@ -289,6 +291,16 @@ inline void Stream<T>::check_vacant(const std::string& method) {
     if(!occupied()) {
         throw VacantStreamException(method);
     }
+}
+
+template<typename T>
+std::ostream& Stream<T>::print_pipeline(std::ostream& os) {
+    int stages, sources;
+    std::tie(stages, sources) = source_->print(os, 1);
+    os << "Stream pipeline with " 
+       << stages << " stage" << (stages == 1 ? "" : "s") << " and "
+       << sources << " source" << (sources == 1 ? "" : "s") << "." << std::endl;
+    return os;
 }
 
 #include "StreamFactoriesImpl.h"

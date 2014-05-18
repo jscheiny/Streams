@@ -46,6 +46,10 @@ protected:
         return UpdateState::StreamFinished;
     }
 
+    std::string get_operation_name() override {
+        return "Difference";
+    }
+
 private:
     bool source1_advanced_;
 

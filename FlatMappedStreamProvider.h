@@ -52,6 +52,13 @@ public:
         return false;
     }
 
+    std::pair<int, int> print(std::ostream& os, int indent) const override {
+        this->print_indent_arrow(os, indent);
+        os << "FlatMap:\n";
+        auto sub = source_->print(os, indent + 1);
+        return {sub.first + 1, sub.second};
+    }
+
 private:
     StreamProviderPtr<In> source_;
     Transform transform_;

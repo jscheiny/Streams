@@ -34,6 +34,10 @@ protected:
         return UpdateState::UpdateFinished;
     }
 
+    std::string get_operation_name() override {
+        return "Merge";
+    }
+
 };
 
 #endif

@@ -26,6 +26,14 @@ public:
         return perform_update();
     }
 
+    std::pair<int, int> print(std::ostream& os, int indent) const override {
+        this->print_indent_arrow(os, indent);
+        os << get_operation_name() << ":\n";
+        auto left =source1_->print(os, indent + 1); 
+        auto right = source2_->print(os, indent + 1);
+        return {left.first + right.first + 1, left.second + right.second};
+    }
+
 protected:
     enum class ToAdvance {
         First,
@@ -94,6 +102,8 @@ protected:
     virtual UpdateState if_both_depleted() {
         return UpdateState::StreamFinished;
     }
+
+    virtual std::string get_operation_name() = 0;
 
 private:
     ToAdvance advance_ = ToAdvance::Both;

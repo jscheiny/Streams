@@ -35,6 +35,9 @@ protected:
         }
     }
 
+    std::string get_operation_name() override {
+        return "SymmetricDifference";
+    }
 };
 
 #endif

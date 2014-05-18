@@ -29,6 +29,12 @@ public:
         return true;
     }
 
+    std::pair<int, int> print(std::ostream& os, int indent) const override {
+        this->print_indent_arrow(os, indent);
+        os << "[iterated stream]\n";
+        return {0, 1};
+    }
+
 private:
     bool first_ = true;
     Function function_;

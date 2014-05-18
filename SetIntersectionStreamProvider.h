@@ -42,6 +42,10 @@ protected:
         return UpdateState::StreamFinished;
     }
 
+    std::string get_operation_name() override {
+        return "Intersection";
+    }
+
 };
 
 #endif

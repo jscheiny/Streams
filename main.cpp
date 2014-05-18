@@ -46,49 +46,12 @@ std::vector<int> sorted_random() {
 
 int main(int argc, char const *argv[])
 {
-    auto vec = MakeStream::from(sorted_random())
-        .set_difference(MakeStream::from(sorted_random()))
-        .to_vector();
-    cout << "Sym diff: ";
-    for(auto i : vec) {
-        cout << i << " ";
-    }
-    cout << endl << endl;
 
-    vec = MakeStream::from(sorted_random())
-        .set_symmetric_difference(MakeStream::from(sorted_random()))
-        .to_vector();
-    cout << "Sym diff: ";
-    for(auto i : vec) {
-        cout << i << " ";
-    }
-    cout << endl << endl;
-
-    vec = MakeStream::from(sorted_random())
-        .set_union(MakeStream::from(sorted_random()))
-        .to_vector();
-    cout << "Union: ";
-    for(auto i : vec) {
-        cout << i << " ";
-    }
-    cout << endl << endl;
-
-    vec = MakeStream::from(sorted_random())
-        .merge_with(MakeStream::from(sorted_random()))
-        .to_vector();
-    cout << "Merge: ";
-    for(auto i : vec) {
-        cout << i << " ";
-    }
-    cout << endl << endl;
-
-    vec = MakeStream::from(sorted_random())
-        .set_intersection(MakeStream::from(sorted_random()))
-        .to_vector();
-    cout << "Intersection: ";
-    for(auto i : vec) {
-        cout << i << " ";
-    }
-    cout << endl << endl;
+    auto st = randints(0, 100, 1000)
+        .filter([](int x) { return x % 2 == 0; })
+        .limit(100)
+        .map([](int x) { return x * x; })
+        .zip_with(randints(0, 10, 100));
+    st.print_pipeline(cout);
     return 0;
 }

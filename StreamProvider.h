@@ -11,10 +11,23 @@ public:
     virtual std::shared_ptr<T> get() = 0;
     virtual bool advance() = 0;
 
+    virtual std::pair<int, int> print(std::ostream& os, int indent) const = 0;
+
     class Iterator;
 
     Iterator begin();
     Iterator end();
+
+protected:
+    static void print_indent_arrow(std::ostream& os, int indent) {
+        for(int i = 0; i < indent - 1; i++) {
+            os << "  ";
+        }
+        if(indent != 0) {
+            os << "> ";
+        }
+    }
+
 
 };
 
