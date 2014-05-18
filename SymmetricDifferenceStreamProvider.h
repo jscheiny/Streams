@@ -1,22 +1,20 @@
-#ifndef SET_UNION_STREAM_PROVIDER_H
-#define SET_UNION_STREAM_PROVIDER_H
-
-#include "StreamProvider.h"
-#include "Utility.h"
+#ifndef SYMMETRIC_DIFFERENCE_STREAM_PROVIDER_H
+#define SYMMETRIC_DIFFERENCE_STREAM_PROVIDER_H
 
 #include "SetOperationStreamProvider.h"
 
 template<typename T, typename Compare>
-class SetUnionStreamProvider : public SetOperationStreamProvider<T, Compare> {
+class SymmetricDifferenceStreamProvider 
+          : public SetOperationStreamProvider<T, Compare> {
     
     using Parent = SetOperationStreamProvider<T, Compare>;
     using UpdateState = typename Parent::UpdateState;
     using ToAdvance = typename Parent::ToAdvance;
 
 public:
-    SetUnionStreamProvider(StreamProviderPtr<T>&& source1,
-                           StreamProviderPtr<T>&& source2,
-                           Compare&& comparator)
+    SymmetricDifferenceStreamProvider(StreamProviderPtr<T>&& source1,
+                                      StreamProviderPtr<T>&& source2,
+                                      Compare&& comparator)
           : Parent(std::forward<StreamProviderPtr<T>>(source1),
                    std::forward<StreamProviderPtr<T>>(source2),
                    std::forward<Compare>(comparator)) {}
@@ -26,18 +24,19 @@ protected:
         if(this->current1_smaller()) {
             this->set_advance(ToAdvance::First);
             this->set_result(this->get_current1());
+            return UpdateState::UpdateFinished;
         } else if(this->current2_smaller()) {
             this->set_advance(ToAdvance::Second);
             this->set_result(this->get_current2());
+            return UpdateState::UpdateFinished;
         } else {
             this->set_advance(ToAdvance::Both);
-            this->set_result(this->get_current1());
+            return UpdateState::NotFinished;
         }
-        return UpdateState::UpdateFinished;
     }
 
     std::string get_operation_name() override {
-        return "Union";
+        return "SymmetricDifference";
     }
 };
 

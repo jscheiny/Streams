@@ -168,16 +168,16 @@ public:
     Stream<T> merge_with(Stream<T>&& other, Compare&& compare = Compare());
 
     template<typename Compare = std::less<T>>
-    Stream<T> set_union(Stream<T>&& other, Compare&& compare = Compare());
+    Stream<T> union_with(Stream<T>&& other, Compare&& compare = Compare());
 
     template<typename Compare = std::less<T>>
-    Stream<T> set_intersection(Stream<T>&& other, Compare&& compare = Compare());
+    Stream<T> intersection_with(Stream<T>&& other, Compare&& compare = Compare());
 
     template<typename Compare = std::less<T>>
-    Stream<T> set_difference(Stream<T>&& other, Compare&& compare = Compare());
+    Stream<T> difference_with(Stream<T>&& other, Compare&& compare = Compare());
 
     template<typename Compare = std::less<T>>
-    Stream<T> set_symmetric_difference(Stream<T>&& other, Compare&& compare = Compare());
+    Stream<T> symmetric_difference_with(Stream<T>&& other, Compare&& compare = Compare());
 
     /*** Terminal Stream operations ***/
 

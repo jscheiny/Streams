@@ -206,36 +206,36 @@ Stream<T> Stream<T>::merge_with(Stream<T>&& other, Compare&& compare) {
 
 template<typename T>
 template<typename Compare>
-Stream<T> Stream<T>::set_union(Stream<T>&& other, Compare&& compare) {
-    check_vacant("set_union");
-    return make_stream_provider<SetUnionStreamProvider, T, Compare>
+Stream<T> Stream<T>::union_with(Stream<T>&& other, Compare&& compare) {
+    check_vacant("union_with");
+    return make_stream_provider<UnionStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare));
 }
 
 template<typename T>
 template<typename Compare>
-Stream<T> Stream<T>::set_intersection(Stream<T>&& other, Compare&& compare) {
-    check_vacant("set_intersection");
-    return make_stream_provider<SetIntersectionStreamProvider, T, Compare>
+Stream<T> Stream<T>::intersection_with(Stream<T>&& other, Compare&& compare) {
+    check_vacant("intersection_with");
+    return make_stream_provider<IntersectionStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare));
 }
 
 template<typename T>
 template<typename Compare>
-Stream<T> Stream<T>::set_difference(Stream<T>&& other, Compare&& compare) {
-    check_vacant("set_difference");
-    return make_stream_provider<SetDifferenceStreamProvider, T, Compare>
+Stream<T> Stream<T>::difference_with(Stream<T>&& other, Compare&& compare) {
+    check_vacant("difference_with");
+    return make_stream_provider<DifferenceStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare));
 }
 
 template<typename T>
 template<typename Compare>
-Stream<T> Stream<T>::set_symmetric_difference(Stream<T>&& other, Compare&& compare) {
-    check_vacant("set_symmetric_difference");
-    return make_stream_provider<SetSymmetricDifferenceStreamProvider, T, Compare>
+Stream<T> Stream<T>::symmetric_difference_with(Stream<T>&& other, Compare&& compare) {
+    check_vacant("symmetric_difference_with");
+    return make_stream_provider<SymmetricDifferenceStreamProvider, T, Compare>
         (std::move(source_), std::move(other.source_),
          std::forward<Compare>(compare));
 }

@@ -4,17 +4,16 @@
 #include "SetOperationStreamProvider.h"
 
 template<typename T, typename Compare>
-class SetDifferenceStreamProvider
-          : public SetOperationStreamProvider<T, Compare> {
+class DifferenceStreamProvider : public SetOperationStreamProvider<T, Compare> {
 
     using Parent = SetOperationStreamProvider<T, Compare>;
     using UpdateState = typename Parent::UpdateState;
     using ToAdvance = typename Parent::ToAdvance;
 
 public:
-    SetDifferenceStreamProvider(StreamProviderPtr<T>&& source1,
-                                StreamProviderPtr<T>&& source2,
-                                Compare&& comparator)
+    DifferenceStreamProvider(StreamProviderPtr<T>&& source1,
+                             StreamProviderPtr<T>&& source2,
+                             Compare&& comparator)
           : Parent(std::forward<StreamProviderPtr<T>>(source1),
                    std::forward<StreamProviderPtr<T>>(source2),
                    std::forward<Compare>(comparator)) {}
