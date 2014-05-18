@@ -76,15 +76,13 @@ Stream<T>::flat_map(Transform&& transform) {
 template<typename T>
 Stream<T> Stream<T>::limit(std::size_t length) {
     check_vacant("limit");
-    return make_stream_provider<LimitedStreamProvider, T>
-        (std::move(source_), length);
+    return slice(0, length);
 }
 
 template<typename T>
 Stream<T> Stream<T>::skip(std::size_t amount) {
     check_vacant("skip");
-    return make_stream_provider<SkippedStreamProvider, T>
-        (std::move(source_), amount);
+    return slice_to_end(amount);
 }
 
 template<typename T>

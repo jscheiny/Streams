@@ -113,7 +113,7 @@ public:
 
     Stream<T> slice(size_t start, size_t end, size_t increment = 1);
 
-    Stream<T> slice_to_end(size_t start, size_t increment = 1);
+    Stream<T> slice_to_end(size_t start, size_t increment);
 
     template<typename Action>
     Stream<T> peek(Action&& action);

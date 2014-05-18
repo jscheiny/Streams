@@ -47,10 +47,11 @@ std::vector<int> sorted_random() {
 int main(int argc, char const *argv[])
 {
 
-    auto st = randints(0, 100, 1000)
+    auto st = (randints(0, 100, 1000)
         .filter([](int x) { return x % 2 == 0; })
         .limit(100)
         .map([](int x) { return x * x; })
+        * MakeStream::counter(1))
         .zip_with(randints(0, 10, 100));
     st.print_pipeline(cout);
     return 0;
