@@ -7,6 +7,17 @@
 #include <iterator>
 #include <tuple>
 
+template<typename T> struct Stream;
+
+template<typename T> struct StreamIdentifier {  using Type = void; };
+template<typename T> struct StreamIdentifier<Stream<T>> { using Type = T; };
+
+template<typename S> using StreamType = typename StreamIdentifier<S>::Type;
+
+template<typename T> struct IsStream { enum { value = false }; };
+template<typename T> struct IsStream<Stream<T>> { enum { value = true }; };
+
+
 template<typename Function>
 struct InvertedPredicate {
     InvertedPredicate(Function&& fn) : function(fn) {}
