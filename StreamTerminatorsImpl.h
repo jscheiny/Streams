@@ -49,6 +49,7 @@ template<typename Function>
 T Stream<T>::no_identity_reduction(const std::string& name,
                                    Function&& function) {
     try {
+        return reduce(std::forward<Function>(function));
     } catch(EmptyStreamException& e) {
         throw EmptyStreamException(name);
     }
@@ -208,6 +209,32 @@ std::list<T> Stream<T>::to_list() {
     check_vacant("to_list");
     std::list<T> result;
     copy_to(back_inserter(result));
+    return result;
+}
+
+template<typename T>
+std::deque<T> Stream<T>::to_deque() {
+    check_vacant("to_deque");
+    std::deque<T> result;
+    copy_to(back_inserter(result));
+    return result;
+}
+
+template<typename T>
+template<typename Compare>
+std::set<T, Compare> Stream<T>::to_set(Compare&& compare) {
+    check_vacant("to_set");
+    std::set<T, Compare> result;
+    copy_to(inserter(result, result.end()));
+    return result;
+}
+
+template<typename T>
+template<typename Compare>
+std::multiset<T, Compare> Stream<T>::to_multiset(Compare&& compare) {
+    check_vacant("to_multiset");
+    std::multiset<T, Compare> result;
+    copy_to(inserter(result, result.end()));
     return result;
 }
 

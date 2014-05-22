@@ -11,6 +11,8 @@
 #include <iterator>
 #include <vector>
 #include <list>
+#include <deque>
+#include <set>
 
 struct MakeStream {
     template<typename T>
@@ -233,6 +235,14 @@ public:
     std::vector<T> to_vector();
 
     std::list<T> to_list();
+
+    std::deque<T> to_deque();
+
+    template<typename Compare = std::less<T>>
+    std::set<T, Compare> to_set(Compare&& compare = Compare());
+
+    template<typename Compare = std::less<T>>
+    std::multiset<T, Compare> to_multiset(Compare&& compare = Compare());
 
     template<typename Function>
     void for_each(Function&& function);
