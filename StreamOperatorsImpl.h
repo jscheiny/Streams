@@ -139,7 +139,6 @@ Stream<T> Stream<T>::pad(T&& padding) {
     return concat(MakeStream::repeat(std::forward<T>(padding)));
 }
 
-
 template<typename T>
 Stream<GroupResult<T, 2>> Stream<T>::pairwise() {
     check_vacant("pairwise");
