@@ -467,6 +467,40 @@ Stream<int> right = MakeStream::from({2, 5, 12, 17, 18});
 left.symmetric_difference_with(right); // 1, 4, 5, 13, 18
 ```
 
+## Stream Algebra
+
+Most C++ overloadable operators are overloaded for streams. For binary operators,
+there are overloads of the following forms:
+
+1. `Stream<X> operator <op> (Stream<T>&& left, U&& right);`
+2. `Stream<X> operator <op> (U&& left, Stream<T>&& right);`
+3. `Stream<X> operator <op> (Stream<T>&& left, Stream<T>&& right);`
+
+The first two overloads are effectively mapping operations, providing the following
+functionality:
+
+```cpp
+stream.map([](const auto& x) {
+   return x <op> right; // or left <op> x;
+});
+```
+
+The third overload is a zipping operation, providing element-wise stream operation:
+
+```cpp
+stream.zip_with(right, [](auto& x, auto& y) {
+    return x <op> y;
+});
+```
+
+For example, the inner (or dot) product of two streams can be computed in the
+following way:
+
+```cpp
+Stream<double> v1 = //...
+Stream<double> v2 = //...
+double dot_product = (v1 * v2).sum();
+```
 
 # Intermediate stateful stream operations
 
