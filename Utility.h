@@ -1,24 +1,12 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+#include "StreamForward.h"
 #include "Utility-Impl.h"
 
 #include <iostream>
 #include <iterator>
 #include <tuple>
-
-template<typename T, bool IsClass> class StreamImpl;
-
-template<typename T>
-using Stream = StreamImpl<T, std::is_class<T>::value>;
-
-template<typename T> struct StreamIdentifier {  using Type = void; };
-template<typename T> struct StreamIdentifier<Stream<T>> { using Type = T; };
-
-template<typename S> using StreamType = typename StreamIdentifier<S>::Type;
-
-template<typename T> struct IsStream : public std::integral_constant<bool, false> {};
-template<typename T> struct IsStream<Stream<T>> : public std::integral_constant<bool, true> {};
 
 bool to_bool(bool x) {
     return x;

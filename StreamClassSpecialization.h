@@ -1,25 +1,25 @@
-#ifndef STREAM_CLASSES_SPECIALIZATION_H
-#define STREAM_CLASSES_SPECIALIZATION_H
+#ifndef STREAM_CLASS_SPECIALIZATION_H
+#define STREAM_CLASS_SPECIALIZATION_H
 
 #include <functional>
 
 #define OPERATOR_OVERRIDE(method) \
     template<typename F> \
     decltype(auto) method (F&& f) \
-        { return ParentStream:: method (std::forward<F>(f)); } \
+        { return ParentStream :: method (std::forward<F>(f)); } \
     template<typename R> \
     decltype(auto) method (R (T::*member)()) \
-        { return ParentStream:: method (std::mem_fn(member)); } \
+        { return ParentStream :: method (std::mem_fn(member)); } \
     template<typename R> \
     decltype(auto) method (R (T::*member)() const) \
-        { return ParentStream:: method (std::mem_fn(member)); }
-
+        { return ParentStream :: method (std::mem_fn(member)); }
 
 template<typename T>
-class StreamImpl<T, true> : public StreamImpl<T, false> {
+class StreamImpl<T, StreamTag::Class> 
+        : public StreamImpl<T, StreamTag::Common> {
 
 private:
-    using ParentStream = StreamImpl<T, false>;
+    using ParentStream = StreamImpl<T, StreamTag::Common>;
 
 public:
     using ElementType = T;
@@ -45,11 +45,18 @@ public:
     OPERATOR_OVERRIDE(none);
     OPERATOR_OVERRIDE(for_each);
 
-    template<typename, bool>
+    template<typename, StreamTag>
     friend class StreamImpl;
+
+    friend class MakeStream;
+
+    template<typename, typename, typename>
+    friend class FlatMappedStreamProvider;
 
 private:
     StreamImpl(StreamProviderPtr<T> source) : ParentStream(std::move(source)) {}
 };
+
+#undef OPERATOR_OVERRIDE
 
 #endif

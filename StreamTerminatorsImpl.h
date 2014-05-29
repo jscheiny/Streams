@@ -1,8 +1,8 @@
 #ifndef STREAM_TERMINATORS_IMPL_H
 #define STREAM_TERMINATORS_IMPL_H
 
-template<typename T, bool I>
-size_t StreamImpl<T, I>::count() {
+template<typename T>
+size_t StreamImpl<T, StreamTag::Common>::count() {
     check_vacant("count");
     size_t count = 0;
     while(source_->advance()) {
@@ -12,9 +12,9 @@ size_t StreamImpl<T, I>::count() {
     return count;
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename U, typename Accumulator>
-U StreamImpl<T, I>::reduce(const U& identity, Accumulator&& accumulator) {
+U StreamImpl<T, StreamTag::Common>::reduce(const U& identity, Accumulator&& accumulator) {
     check_vacant("reduce");
     U result = identity;
     while(source_->advance()) {
@@ -23,9 +23,9 @@ U StreamImpl<T, I>::reduce(const U& identity, Accumulator&& accumulator) {
     return result;
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Identity, typename Accumulator>
-ReturnType<Identity, T&> StreamImpl<T, I>::reduce(Identity&& identity,
+ReturnType<Identity, T&> StreamImpl<T, StreamTag::Common>::reduce(Identity&& identity,
                                                   Accumulator&& accumulator) {
     check_vacant("reduce");
     if(source_->advance()) {
@@ -36,9 +36,9 @@ ReturnType<Identity, T&> StreamImpl<T, I>::reduce(Identity&& identity,
     }
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Accumulator>
-T StreamImpl<T, I>::reduce(Accumulator&& accumulator) {
+T StreamImpl<T, StreamTag::Common>::reduce(Accumulator&& accumulator) {
     check_vacant("reduce");
     if(source_->advance()) {
         return reduce(*source_->get(), std::forward<Accumulator>(accumulator));
@@ -47,9 +47,9 @@ T StreamImpl<T, I>::reduce(Accumulator&& accumulator) {
     }
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename U>
-U StreamImpl<T, I>::reduce_by(const Reducer<T, U>& reducer) {
+U StreamImpl<T, StreamTag::Common>::reduce_by(const Reducer<T, U>& reducer) {
     check_vacant("reduce_by");
     if(source_->advance()) {
         U result = reducer.initial(*source_->get());
@@ -62,9 +62,9 @@ U StreamImpl<T, I>::reduce_by(const Reducer<T, U>& reducer) {
     }
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Function>
-T StreamImpl<T, I>::no_identity_reduction(const std::string& name,
+T StreamImpl<T, StreamTag::Common>::no_identity_reduction(const std::string& name,
                                           Function&& function) {
     check_vacant(name);
     try {
@@ -74,9 +74,9 @@ T StreamImpl<T, I>::no_identity_reduction(const std::string& name,
     }
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Identity, typename Function>
-ReturnType<Identity, T&> StreamImpl<T, I>::no_identity_reduction(
+ReturnType<Identity, T&> StreamImpl<T, StreamTag::Common>::no_identity_reduction(
             const std::string& name,
             Identity&& identity,
             Function&& function) {
@@ -89,47 +89,47 @@ ReturnType<Identity, T&> StreamImpl<T, I>::no_identity_reduction(
     }
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::sum() {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::sum() {
     return no_identity_reduction("sum", std::plus<T>());
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::sum(const T& identity) {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::sum(const T& identity) {
     return reduce(identity, std::plus<T>());
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::product() {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::product() {
     return no_identity_reduction("product", std::multiplies<T>());
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::product(const T& identity) {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::product(const T& identity) {
     return reduce(identity, std::multiplies<T>());
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Compare>
-T StreamImpl<T, I>::max(Compare&& compare) {
+T StreamImpl<T, StreamTag::Common>::max(Compare&& compare) {
     return no_identity_reduction("max", [less=std::forward<Compare>(compare)]
         (T& a, T& b) {
             return less(a, b) ? b : a;
         });
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Compare>
-T StreamImpl<T, I>::min(Compare&& compare) {
+T StreamImpl<T, StreamTag::Common>::min(Compare&& compare) {
     return no_identity_reduction("min", [less=std::forward<Compare>(compare)]
         (T& a, T& b) {
             return less(a, b) ? a : b;
         });
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Compare>
-std::pair<T, T> StreamImpl<T, I>::minmax(Compare&& compare) {
+std::pair<T, T> StreamImpl<T, StreamTag::Common>::minmax(Compare&& compare) {
     return no_identity_reduction("minmax",
         [](T& value) { return std::make_pair(value, value); },
         [less=std::forward<Compare>(compare)] (const auto& accumulated, T& value) {
@@ -143,8 +143,8 @@ std::pair<T, T> StreamImpl<T, I>::minmax(Compare&& compare) {
         });
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::first() {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::first() {
     check_vacant("first");
     if(source_->advance()) {
         return *source_->get();
@@ -153,14 +153,14 @@ T StreamImpl<T, I>::first() {
     }
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::last() {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::last() {
     return no_identity_reduction("last",
         [](T& first, T& second) { return second; });
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::nth(size_t index) {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::nth(size_t index) {
     check_vacant("nth");
     try {
         return skip(index).first();
@@ -169,8 +169,8 @@ T StreamImpl<T, I>::nth(size_t index) {
     }
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::operator[] (size_t index) {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::operator[] (size_t index) {
     check_vacant("operator[]");
     try {
         return nth(index);
@@ -179,8 +179,8 @@ T StreamImpl<T, I>::operator[] (size_t index) {
     }
 }
 
-template<typename T, bool I>
-std::vector<T> StreamImpl<T, I>::random_sample(size_t size) {
+template<typename T>
+std::vector<T> StreamImpl<T, StreamTag::Common>::random_sample(size_t size) {
     check_vacant("random_sample");
 
     std::vector<T> results;
@@ -212,8 +212,8 @@ std::vector<T> StreamImpl<T, I>::random_sample(size_t size) {
     return results;
 }
 
-template<typename T, bool I>
-T StreamImpl<T, I>::random_element() {
+template<typename T>
+T StreamImpl<T, StreamTag::Common>::random_element() {
     check_vacant("random_element");
     auto vec = random_sample(1);
     if(vec.empty()) {
@@ -222,9 +222,9 @@ T StreamImpl<T, I>::random_element() {
     return vec[0];
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Predicate>
-bool StreamImpl<T, I>::any(Predicate&& predicate) {
+bool StreamImpl<T, StreamTag::Common>::any(Predicate&& predicate) {
     check_vacant("any");
     while(source_->advance()) {
         if(predicate(*source_->get())) {
@@ -234,14 +234,9 @@ bool StreamImpl<T, I>::any(Predicate&& predicate) {
     return false;
 }
 
-template<typename T, bool I>
-std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::any() {
-    return any(to_bool);
-}
-
-template<typename T, bool I>
+template<typename T>
 template<typename Predicate>
-bool StreamImpl<T, I>::all(Predicate&& predicate) {
+bool StreamImpl<T, StreamTag::Common>::all(Predicate&& predicate) {
     check_vacant("all");
     while(source_->advance()) {
         if(!predicate(*source_->get())) {
@@ -251,33 +246,16 @@ bool StreamImpl<T, I>::all(Predicate&& predicate) {
     return true;
 }
 
-template<typename T, bool I>
-std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::all() {
-    return all(to_bool);
-}
-
-template<typename T, bool I>
+template<typename T>
 template<typename Predicate>
-bool StreamImpl<T, I>::none(Predicate&& predicate) {
+bool StreamImpl<T, StreamTag::Common>::none(Predicate&& predicate) {
     check_vacant("none");
     return !any(std::forward<Predicate>(predicate));
 }
 
-template<typename T, bool I>
-std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::none() {
-    return none(to_bool);
-}
-
-template<typename T, bool I>
-std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::not_all() {
-    check_vacant("not_all");
-    return !all(to_bool);
-}
-
-
-template<typename T, bool I>
+template<typename T>
 template<typename OutputIterator>
-void StreamImpl<T, I>::copy_to(OutputIterator out) {
+void StreamImpl<T, StreamTag::Common>::copy_to(OutputIterator out) {
     check_vacant("copy_to");
     while(source_->advance()) {
         *out = *source_->get();
@@ -285,9 +263,9 @@ void StreamImpl<T, I>::copy_to(OutputIterator out) {
     }
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename OutputIterator>
-void StreamImpl<T, I>::move_to(OutputIterator out) {
+void StreamImpl<T, StreamTag::Common>::move_to(OutputIterator out) {
     check_vacant("move_to");
     while(source_->advance()) {
         *out = std::move(*source_->get());
@@ -295,58 +273,58 @@ void StreamImpl<T, I>::move_to(OutputIterator out) {
     }
 }
 
-template<typename T, bool I>
-void StreamImpl<T, I>::print_to(std::ostream& os, const char* delimiter) {
+template<typename T>
+void StreamImpl<T, StreamTag::Common>::print_to(std::ostream& os, const char* delimiter) {
     check_vacant("print_to");
     copy_to(std::ostream_iterator<T>(os, delimiter));
 }
 
 
-template<typename T, bool I>
-std::vector<T> StreamImpl<T, I>::to_vector() {
+template<typename T>
+std::vector<T> StreamImpl<T, StreamTag::Common>::to_vector() {
     check_vacant("to_vector");
     std::vector<T> result;
     copy_to(back_inserter(result));
     return result;
 }
 
-template<typename T, bool I>
-std::list<T> StreamImpl<T, I>::to_list() {
+template<typename T>
+std::list<T> StreamImpl<T, StreamTag::Common>::to_list() {
     check_vacant("to_list");
     std::list<T> result;
     copy_to(back_inserter(result));
     return result;
 }
 
-template<typename T, bool I>
-std::deque<T> StreamImpl<T, I>::to_deque() {
+template<typename T>
+std::deque<T> StreamImpl<T, StreamTag::Common>::to_deque() {
     check_vacant("to_deque");
     std::deque<T> result;
     copy_to(back_inserter(result));
     return result;
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Compare>
-std::set<T, Compare> StreamImpl<T, I>::to_set(Compare&& compare) {
+std::set<T, Compare> StreamImpl<T, StreamTag::Common>::to_set(Compare&& compare) {
     check_vacant("to_set");
     std::set<T, Compare> result;
     copy_to(inserter(result, result.end()));
     return result;
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Compare>
-std::multiset<T, Compare> StreamImpl<T, I>::to_multiset(Compare&& compare) {
+std::multiset<T, Compare> StreamImpl<T, StreamTag::Common>::to_multiset(Compare&& compare) {
     check_vacant("to_multiset");
     std::multiset<T, Compare> result;
     copy_to(inserter(result, result.end()));
     return result;
 }
 
-template<typename T, bool I>
+template<typename T>
 template<typename Function>
-void StreamImpl<T, I>::for_each(Function&& function) {
+void StreamImpl<T, StreamTag::Common>::for_each(Function&& function) {
     check_vacant("for_each");
     while(source_->advance()) {
         function(*source_->get());

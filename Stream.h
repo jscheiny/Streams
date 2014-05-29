@@ -1,6 +1,7 @@
 #ifndef STREAM_H
 #define STREAM_H
 
+#include "StreamForward.h"
 #include "StreamError.h"
 #include "Providers.h"
 #include "Reducer.h"
@@ -123,8 +124,8 @@ private:
 
 };
 
-template<typename T, bool IsClass>
-class StreamImpl {
+template<typename T>
+class StreamImpl<T, StreamTag::Common> {
 
 private:
     static const bool is_boolable = std::is_convertible<T, bool>::value;
@@ -154,23 +155,11 @@ public:
     template<typename Predicate>
     Stream<T> filter(Predicate&& predicate);
 
-    template<typename = std::enable_if_t<is_boolable>>
-    Stream<T> filter();
-
-    template<typename = std::enable_if_t<is_boolable>>
-    Stream<T> filter_not();
-
     template<typename Predicate>
     Stream<T> take_while(Predicate&& predicate);
 
-    template<typename = std::enable_if_t<is_boolable>>
-    Stream<T> take_while();
-
     template<typename Predicate>
     Stream<T> drop_while(Predicate&& predicate);
-
-    template<typename = std::enable_if_t<is_boolable>>
-    Stream<T> drop_while();
 
     Stream<T> slice(size_t start, size_t end, size_t increment = 1);
 
@@ -288,19 +277,11 @@ public:
     template<typename Predicate>
     bool any(Predicate&& predicate);
 
-    std::enable_if_t<is_boolable, bool> any();
-
     template<typename Predicate>
     bool all(Predicate&& predicate);
 
-    std::enable_if_t<is_boolable, bool> all();
-
     template<typename Predicate>
     bool none(Predicate&& predicate);
-
-    std::enable_if_t<is_boolable, bool> none();
-
-    std::enable_if_t<is_boolable, bool> not_all();
 
     template<typename OutputIterator>
     void copy_to(OutputIterator out);
@@ -335,19 +316,20 @@ public:
 
     friend class MakeStream;
 
-    template<typename, bool>
+    template<typename, StreamTag>
     friend class StreamImpl;
 
     template<typename, typename, typename>
     friend class FlatMappedStreamProvider;
+
+protected:
+    inline void check_vacant(const std::string& method);
 
 private:
     StreamImpl(StreamProviderPtr<T> source)
         : source_(std::move(source)) {}
 
     StreamProviderPtr<T> source_;
-
-    inline void check_vacant(const std::string& method);
 
     template<typename Function>
     T no_identity_reduction(const std::string& name, Function&& function);
@@ -359,30 +341,30 @@ private:
         Function&& function);
 };
 
-template<typename T, bool I>
-StreamImpl<T, I>::StreamImpl()
+template<typename T>
+StreamImpl<T, StreamTag::Common>::StreamImpl()
     : source_(make_stream_provider<EmptyStreamProvider, T>()) {}
 
-template<typename T, bool I>
+template<typename T>
 template<typename Iterator>
-StreamImpl<T, I>::StreamImpl(Iterator begin, Iterator end)
+StreamImpl<T, StreamTag::Common>::StreamImpl(Iterator begin, Iterator end)
     : source_(make_stream_provider<IteratorStreamProvider, T, Iterator>(
         begin, end)) {}
 
-template<typename T, bool I>
-inline bool StreamImpl<T, I>::occupied() const {
+template<typename T>
+inline bool StreamImpl<T, StreamTag::Common>::occupied() const {
     return bool(source_);
 }
 
-template<typename T, bool I>
-inline void StreamImpl<T, I>::check_vacant(const std::string& method) {
+template<typename T>
+inline void StreamImpl<T, StreamTag::Common>::check_vacant(const std::string& method) {
     if(!occupied()) {
         throw VacantStreamException(method);
     }
 }
 
-template<typename T, bool I>
-std::ostream& StreamImpl<T, I>::print_pipeline(std::ostream& os) {
+template<typename T>
+std::ostream& StreamImpl<T, StreamTag::Common>::print_pipeline(std::ostream& os) {
     int stages, sources;
     std::tie(stages, sources) = source_->print(os, 1);
     os << "Stream pipeline with " 
@@ -395,6 +377,7 @@ std::ostream& StreamImpl<T, I>::print_pipeline(std::ostream& os) {
 #include "StreamOperatorsImpl.h"
 #include "StreamTerminatorsImpl.h"
 #include "StreamAlgebra.h"
-#include "StreamClassesSpecialization.h"
+#include "StreamClassSpecialization.h"
+#include "StreamBoolSpecialization.h"
 
 #endif
