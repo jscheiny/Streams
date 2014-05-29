@@ -82,7 +82,7 @@ Stream<T> Stream<T>::limit(std::size_t length) {
 template<typename T>
 Stream<T> Stream<T>::skip(std::size_t amount) {
     check_vacant("skip");
-    return slice_to_end(amount);
+    return slice_to_end(amount, 1);
 }
 
 template<typename T>

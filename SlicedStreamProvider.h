@@ -21,7 +21,7 @@ public:
 
     bool advance() override {
         if(index_ < start_) {
-            for(; index_ < start_; index_++) {
+            for(; index_ <= start_; index_++) {
                 if(source_->advance()) {
                     current_ = source_->get();
                 } else {
@@ -32,7 +32,7 @@ public:
             return true;
         }
 
-        if(no_end_ || index_ + increment_ < end_) {
+        if(no_end_ || index_ + increment_ <= end_) {
             for(size_t k = 0; k < increment_; k++) {
                 index_++;
                 if(source_->advance()) {
