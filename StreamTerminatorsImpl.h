@@ -45,6 +45,20 @@ T Stream<T>::reduce(Accumulator&& accumulator) {
 }
 
 template<typename T>
+template<typename U>
+U Stream<T>::reduce_by(const Reducer<T, U>& reducer) {
+    if(source_->advance()) {
+        U result = reducer.initial(*source_->get());
+        while(source_->advance()) {
+            result = reducer.accumulate(result, *source_->get());
+        }
+        return result;
+    } else {
+        throw EmptyStreamException("reduce");
+    }
+}
+
+template<typename T>
 template<typename Function>
 T Stream<T>::no_identity_reduction(const std::string& name,
                                    Function&& function) {

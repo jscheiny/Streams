@@ -1,5 +1,6 @@
 #include "Stream.h"
 
+#include "Reducers.h"
 #include "Utility.h"
 
 #include <vector>
@@ -8,6 +9,7 @@
 #include <tuple>
 #include <chrono>
 #include <random>
+#include <iomanip>
 
 using namespace std;
 
@@ -22,9 +24,8 @@ int experiment() {
 
 int main(int argc, char const *argv[])
 {
-    auto st = MakeStream::uniform_random_reals()
-        .limit(100);
-    st.print_pipeline(cout);
-    cout << st.count() << endl;
-    // st.print_to(cout, "\n");
+    Reducers::Stats<double> stats = MakeStream::normal_randoms()
+        .limit(1000)
+        .reduce_by(Reducers::SummaryStats<double>());
+    cout << stats << endl;
 }

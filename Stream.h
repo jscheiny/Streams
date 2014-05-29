@@ -3,6 +3,7 @@
 
 #include "StreamError.h"
 #include "Providers.h"
+#include "Reducer.h"
 #include "Utility.h"
 
 #include <functional>
@@ -83,13 +84,13 @@ struct MakeStream {
     template<typename T=double, typename Engine=std::default_random_engine, typename Seed>
     static Stream<T> uniform_random_reals(Seed&& seed);
 
-    template<typename T, typename Engine=std::default_random_engine>
+    template<typename T=double, typename Engine=std::default_random_engine>
     static Stream<T> normal_randoms(T mean=0.0, T stddev=1.0);
 
     template<typename T, typename Engine=std::default_random_engine, typename Seed>
     static Stream<T> normal_randoms(T mean, T stddev, Seed&& seed);
 
-    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    template<typename T=double, typename Engine=std::default_random_engine, typename Seed>
     static Stream<T> normal_randoms(Seed&& seed);
 
     template<typename T=bool, typename Engine=std::default_random_engine>
@@ -237,6 +238,9 @@ public:
 
     template<typename Accumulator>
     T reduce(Accumulator&& accumulator);
+
+    template<typename U>
+    U reduce_by(const Reducer<T, U>& reducer);
 
     T sum();
 
