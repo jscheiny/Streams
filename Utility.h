@@ -7,15 +7,18 @@
 #include <iterator>
 #include <tuple>
 
-template<typename T> struct Stream;
+template<typename T, bool IsClass> class StreamImpl;
+
+template<typename T>
+using Stream = StreamImpl<T, std::is_class<T>::value>;
 
 template<typename T> struct StreamIdentifier {  using Type = void; };
 template<typename T> struct StreamIdentifier<Stream<T>> { using Type = T; };
 
 template<typename S> using StreamType = typename StreamIdentifier<S>::Type;
 
-template<typename T> struct IsStream { enum { value = false }; };
-template<typename T> struct IsStream<Stream<T>> { enum { value = true }; };
+template<typename T> struct IsStream : public std::integral_constant<bool, false> {};
+template<typename T> struct IsStream<Stream<T>> : public std::integral_constant<bool, true> {};
 
 
 template<typename Function>

@@ -124,8 +124,8 @@ private:
 
 };
 
-template<typename T>
-class Stream {
+template<typename T, bool IsClass>
+class StreamImpl {
 
 public:
     using ElementType = T;
@@ -139,13 +139,13 @@ public:
         return source_->end();
     }
 
-    Stream();
+    StreamImpl();
 
     template<typename Iterator>
-    Stream(Iterator begin, Iterator end);
+    StreamImpl(Iterator begin, Iterator end);
 
     template<typename Container>
-    Stream(const Container& cont);
+    StreamImpl(const Container& cont);
 
     /*** Intermediate Stream Operations ***/
 
@@ -305,14 +305,14 @@ public:
 
     friend class MakeStream;
 
-    template<typename>
-    friend class Stream;
+    template<typename, bool>
+    friend class StreamImpl;
 
     template<typename, typename, typename>
     friend class FlatMappedStreamProvider;
 
 private:
-    Stream(StreamProviderPtr<T> source)
+    StreamImpl(StreamProviderPtr<T> source)
         : source_(std::move(source)) {}
 
     StreamProviderPtr<T> source_;
@@ -329,30 +329,30 @@ private:
         Function&& function);
 };
 
-template<typename T>
-Stream<T>::Stream()
+template<typename T, bool I>
+StreamImpl<T, I>::StreamImpl()
     : source_(make_stream_provider<EmptyStreamProvider, T>()) {}
 
-template<typename T>
+template<typename T, bool I>
 template<typename Iterator>
-Stream<T>::Stream(Iterator begin, Iterator end)
+StreamImpl<T, I>::StreamImpl(Iterator begin, Iterator end)
     : source_(make_stream_provider<IteratorStreamProvider, T, Iterator>(
         begin, end)) {}
 
-template<typename T>
-inline bool Stream<T>::occupied() const {
+template<typename T, bool I>
+inline bool StreamImpl<T, I>::occupied() const {
     return bool(source_);
 }
 
-template<typename T>
-inline void Stream<T>::check_vacant(const std::string& method) {
+template<typename T, bool I>
+inline void StreamImpl<T, I>::check_vacant(const std::string& method) {
     if(!occupied()) {
         throw VacantStreamException(method);
     }
 }
 
-template<typename T>
-std::ostream& Stream<T>::print_pipeline(std::ostream& os) {
+template<typename T, bool I>
+std::ostream& StreamImpl<T, I>::print_pipeline(std::ostream& os) {
     int stages, sources;
     std::tie(stages, sources) = source_->print(os, 1);
     os << "Stream pipeline with " 
@@ -365,5 +365,6 @@ std::ostream& Stream<T>::print_pipeline(std::ostream& os) {
 #include "StreamOperatorsImpl.h"
 #include "StreamTerminatorsImpl.h"
 #include "StreamAlgebra.h"
+#include "StreamClassesSpecialization.h"
 
 #endif
