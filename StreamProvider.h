@@ -27,8 +27,6 @@ protected:
             os << "> ";
         }
     }
-
-
 };
 
 #include "StreamProviderIteratorImpl.h"
