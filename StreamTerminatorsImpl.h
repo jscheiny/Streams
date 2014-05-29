@@ -15,6 +15,7 @@ size_t StreamImpl<T, I>::count() {
 template<typename T, bool I>
 template<typename U, typename Accumulator>
 U StreamImpl<T, I>::reduce(const U& identity, Accumulator&& accumulator) {
+    check_vacant("reduce");
     U result = identity;
     while(source_->advance()) {
         result = accumulator(result, *source_->get());
@@ -25,7 +26,8 @@ U StreamImpl<T, I>::reduce(const U& identity, Accumulator&& accumulator) {
 template<typename T, bool I>
 template<typename Identity, typename Accumulator>
 ReturnType<Identity, T&> StreamImpl<T, I>::reduce(Identity&& identity,
-                                           Accumulator&& accumulator) {
+                                                  Accumulator&& accumulator) {
+    check_vacant("reduce");
     if(source_->advance()) {
         return reduce(identity(*source_->get()),
                       std::forward<Accumulator>(accumulator));
@@ -37,6 +39,7 @@ ReturnType<Identity, T&> StreamImpl<T, I>::reduce(Identity&& identity,
 template<typename T, bool I>
 template<typename Accumulator>
 T StreamImpl<T, I>::reduce(Accumulator&& accumulator) {
+    check_vacant("reduce");
     if(source_->advance()) {
         return reduce(*source_->get(), std::forward<Accumulator>(accumulator));
     } else {
@@ -47,6 +50,7 @@ T StreamImpl<T, I>::reduce(Accumulator&& accumulator) {
 template<typename T, bool I>
 template<typename U>
 U StreamImpl<T, I>::reduce_by(const Reducer<T, U>& reducer) {
+    check_vacant("reduce_by");
     if(source_->advance()) {
         U result = reducer.initial(*source_->get());
         while(source_->advance()) {
@@ -54,14 +58,15 @@ U StreamImpl<T, I>::reduce_by(const Reducer<T, U>& reducer) {
         }
         return result;
     } else {
-        throw EmptyStreamException("reduce");
+        throw EmptyStreamException("reduce_by");
     }
 }
 
 template<typename T, bool I>
 template<typename Function>
 T StreamImpl<T, I>::no_identity_reduction(const std::string& name,
-                                   Function&& function) {
+                                          Function&& function) {
+    check_vacant(name);
     try {
         return reduce(std::forward<Function>(function));
     } catch(EmptyStreamException& e) {
@@ -75,6 +80,7 @@ ReturnType<Identity, T&> StreamImpl<T, I>::no_identity_reduction(
             const std::string& name,
             Identity&& identity,
             Function&& function) {
+    check_vacant(name);
     try {
         return reduce(std::forward<Identity>(identity),
                       std::forward<Function>(function));
