@@ -56,7 +56,7 @@ template<typename In, typename Out>
 std::ostream& operator<< (std::ostream& os, const Stats<In, Out>& stats) {
     return os << "N=" << stats.number()
               << ", u=" << stats.mean()
-              << ", s^2=" << stats.stddev()
+              << ", s=" << stats.stddev()
               << ", min=" << stats.min()
               << ", max=" << stats.max();
 }
