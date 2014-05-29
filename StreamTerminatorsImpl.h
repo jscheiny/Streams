@@ -153,6 +153,49 @@ T StreamImpl<T, I>::last() {
 }
 
 template<typename T, bool I>
+std::vector<T> StreamImpl<T, I>::random_sample(size_t size) {
+    check_vacant("random_sample");
+
+    std::vector<T> results;
+    for(int i = 0; i < size; i++) {
+        if(source_->advance()) {
+            results.push_back(std::move(*source_->get()));
+        } else {
+            return results;
+        }
+    }
+
+    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    auto random_index = [&generator](int upper) {
+        return std::uniform_int_distribution<int>(0, upper - 1)(generator);
+    };
+
+    size_t seen = size;
+    while(source_->advance()) {
+        seen++;
+        int index = random_index(seen);
+        if(index < size) {
+            results[index] = std::move(*source_->get());
+        } else {
+            source_->get();
+        }
+    }
+
+    return results;
+}
+
+template<typename T, bool I>
+T StreamImpl<T, I>::random_element() {
+    check_vacant("random_element");
+    auto vec = random_sample(1);
+    if(vec.empty()) {
+        throw EmptyStreamException("random_element");
+    }
+    return vec[0];
+}
+
+template<typename T, bool I>
 template<typename Predicate>
 bool StreamImpl<T, I>::any(Predicate&& predicate) {
     check_vacant("any");

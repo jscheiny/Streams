@@ -11,11 +11,11 @@
 #include <iostream>
 #include <iterator>
 #include <vector>
-#include <list>
-#include <deque>
-#include <set>
 #include <random>
 #include <chrono>
+#include <deque>
+#include <list>
+#include <set>
 
 struct MakeStream {
     template<typename T>
@@ -262,6 +262,10 @@ public:
     T first();
 
     T last();
+
+    std::vector<T> random_sample(size_t size);
+
+    T random_element();
 
     template<typename Predicate>
     bool any(Predicate&& predicate);
