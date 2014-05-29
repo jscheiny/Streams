@@ -5,13 +5,13 @@
 
 #define OPERATOR_OVERRIDE(method) \
     template<typename F> \
-    auto method (F&& f) \
+    decltype(auto) method (F&& f) \
         { return ParentStream:: method (std::forward<F>(f)); } \
     template<typename R> \
-    auto method (R (T::*member)()) \
+    decltype(auto) method (R (T::*member)()) \
         { return ParentStream:: method (std::mem_fn(member)); } \
     template<typename R> \
-    auto method (R (T::*member)() const) \
+    decltype(auto) method (R (T::*member)() const) \
         { return ParentStream:: method (std::mem_fn(member)); }
 
 
@@ -39,6 +39,11 @@ public:
     OPERATOR_OVERRIDE(peek);
     OPERATOR_OVERRIDE(map);
     OPERATOR_OVERRIDE(flat_map);
+
+    OPERATOR_OVERRIDE(any);
+    OPERATOR_OVERRIDE(all);
+    OPERATOR_OVERRIDE(none);
+    OPERATOR_OVERRIDE(for_each);
 
     template<typename, bool>
     friend class StreamImpl;
