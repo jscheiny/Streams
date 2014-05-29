@@ -17,7 +17,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(source_->advance()) {
             auto preimage = source_->get();
             current_ = std::make_shared<T>(transform_(*preimage));

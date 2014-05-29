@@ -14,7 +14,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(!dropped_) {
             dropped_ = true;
             while(source_->advance()) {

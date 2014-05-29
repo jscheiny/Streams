@@ -11,7 +11,7 @@ public:
         return nullptr;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         return false;
     }
 

@@ -73,7 +73,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(left_source_->advance() && right_source_->advance()) {
             current_ = std::make_shared<ValueType>(
                 zipper_(std::move(*left_source_->get()),

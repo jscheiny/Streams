@@ -20,7 +20,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(first_) {
             first_ = false;
             return true;

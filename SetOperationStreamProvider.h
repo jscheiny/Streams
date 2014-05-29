@@ -18,7 +18,7 @@ public:
         return result_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(depletion_ == DepleteState::Both) {
             return false;
         }

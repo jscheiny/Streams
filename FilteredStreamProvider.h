@@ -14,7 +14,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         while(source_->advance()) {
             current_ = source_->get();
             if(predicate_(*current_)) {

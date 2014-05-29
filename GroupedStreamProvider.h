@@ -79,7 +79,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         try {
             auto group = detail::Grouper<T, N>::group(source_);
             current_ = std::make_shared<GroupType>(std::move(group));

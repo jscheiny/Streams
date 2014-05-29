@@ -19,7 +19,7 @@ public:
         return result_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(first_advance_) {
             first_advance_ = false;
             if(source_->advance()) {

@@ -19,7 +19,7 @@ public:
         return value_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         return true;
     }
 

@@ -19,7 +19,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(index_ < start_) {
             for(; index_ <= start_; index_++) {
                 if(source_->advance()) {

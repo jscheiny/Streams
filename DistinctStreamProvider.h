@@ -19,7 +19,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(first_) {
             while(source_->advance()) {
                 sorted_.insert(source_->get());

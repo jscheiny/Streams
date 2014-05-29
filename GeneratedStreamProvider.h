@@ -16,7 +16,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         current_ = std::make_shared<T>(generator_());
         return true;
     }

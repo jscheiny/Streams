@@ -12,7 +12,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(source_->advance()) {
             current_ = source_->get();
             action_(*current_);

@@ -23,7 +23,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         while(!sources_.empty()) {
             auto& provider = sources_.front();
             if(provider->advance()) {

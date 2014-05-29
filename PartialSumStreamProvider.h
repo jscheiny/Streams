@@ -14,7 +14,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(first_) {
             first_ = false;
             if(source_->advance()) {

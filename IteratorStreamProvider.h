@@ -16,7 +16,7 @@ public:
         return std::make_shared<T>(std::move(*current_));
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(first_) {
             first_ = false;
             return current_ != end_;

@@ -17,7 +17,7 @@ public:
         return current_;
     }
 
-    bool advance() override {
+    bool advance_impl() override {
         if(!first_ && current_stream_.source_->advance()) {
             current_ = current_stream_.source_->get();
             return true;

@@ -59,4 +59,11 @@ private:
     }
 };
 
+class StopStream : public StreamException {
+
+public:
+    StopStream() : StreamException("[End of stream]") {}
+
+};
+
 #endif

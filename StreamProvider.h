@@ -7,16 +7,29 @@
 
 template<typename T>
 struct StreamProvider {
+
 public:
-    virtual std::shared_ptr<T> get() = 0;
-    virtual bool advance() = 0;
-
-    virtual std::pair<int, int> print(std::ostream& os, int indent) const = 0;
-
     class Iterator;
+
+    virtual std::shared_ptr<T> get() = 0;
+
+    bool advance() {
+        try {
+            return advance_impl();
+        } catch(StopStream& stop) {
+            return false;
+        } catch(...) {
+            throw;
+        }
+    }
 
     Iterator begin();
     Iterator end();
+
+    virtual std::pair<int, int> print(std::ostream& os, int indent) const = 0;
+
+protected:
+    virtual bool advance_impl() = 0;
 
 protected:
     static void print_indent_arrow(std::ostream& os, int indent) {
