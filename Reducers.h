@@ -23,8 +23,8 @@ public:
     Out stddev() const {
         return (number_ > 1) ? variance_ / (number_ - 1) : 0;
     }
-    In max() const { return min_; }
-    In min() const { return max_; }
+    In min() const { return min_; }
+    In max() const { return max_; }
 
     friend class SummaryStats<In, Out>;
 
@@ -39,8 +39,8 @@ private:
         variance_ += (value - prev_mean) * (value - mean_);
         if(value < min_)
             min_ = value;
-        if(value > min_)
-            min_ = value;
+        if(value > max_)
+            max_ = value;
         return *this;
     }
 
