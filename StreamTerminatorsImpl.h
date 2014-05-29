@@ -145,6 +145,7 @@ std::pair<T, T> StreamImpl<T, I>::minmax(Compare&& compare) {
 
 template<typename T, bool I>
 T StreamImpl<T, I>::first() {
+    check_vacant("first");
     if(source_->advance()) {
         return *source_->get();
     } else {
@@ -156,6 +157,26 @@ template<typename T, bool I>
 T StreamImpl<T, I>::last() {
     return no_identity_reduction("last",
         [](T& first, T& second) { return second; });
+}
+
+template<typename T, bool I>
+T StreamImpl<T, I>::nth(size_t index) {
+    check_vacant("nth");
+    try {
+        return skip(index).first();
+    } catch(EmptyStreamException& e) {
+        throw EmptyStreamException("nth");
+    }
+}
+
+template<typename T, bool I>
+T StreamImpl<T, I>::operator[] (size_t index) {
+    check_vacant("operator[]");
+    try {
+        return nth(index);
+    } catch(EmptyStreamException& e) {
+        throw EmptyStreamException("operator[]");
+    }
 }
 
 template<typename T, bool I>

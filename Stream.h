@@ -51,7 +51,6 @@ struct MakeStream {
     template<typename Generator>
     static Stream<ReturnType<Generator>> generate(Generator&& generator);
 
-
     template<typename T, typename Function>
     static Stream<RemoveRef<T>> iterate(T&& initial, Function&& function);
 
@@ -277,6 +276,10 @@ public:
     T first();
 
     T last();
+
+    T nth(size_t index);
+
+    T operator[] (size_t index);
 
     std::vector<T> random_sample(size_t size);
 
