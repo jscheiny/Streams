@@ -20,6 +20,9 @@ template<typename S> using StreamType = typename StreamIdentifier<S>::Type;
 template<typename T> struct IsStream : public std::integral_constant<bool, false> {};
 template<typename T> struct IsStream<Stream<T>> : public std::integral_constant<bool, true> {};
 
+bool to_bool(bool x) {
+    return x;
+}
 
 template<typename Function>
 struct InvertedPredicate {

@@ -127,6 +127,9 @@ private:
 template<typename T, bool IsClass>
 class StreamImpl {
 
+private:
+    static const bool is_boolable = std::is_convertible<T, bool>::value;
+
 public:
     using ElementType = T;
     using iterator = typename StreamProvider<T>::Iterator;
@@ -152,11 +155,23 @@ public:
     template<typename Predicate>
     Stream<T> filter(Predicate&& predicate);
 
+    template<typename = std::enable_if_t<is_boolable>>
+    Stream<T> filter();
+
+    template<typename = std::enable_if_t<is_boolable>>
+    Stream<T> filter_not();
+
     template<typename Predicate>
     Stream<T> take_while(Predicate&& predicate);
 
+    template<typename = std::enable_if_t<is_boolable>>
+    Stream<T> take_while();
+
     template<typename Predicate>
     Stream<T> drop_while(Predicate&& predicate);
+
+    template<typename = std::enable_if_t<is_boolable>>
+    Stream<T> drop_while();
 
     Stream<T> slice(size_t start, size_t end, size_t increment = 1);
 
@@ -270,11 +285,19 @@ public:
     template<typename Predicate>
     bool any(Predicate&& predicate);
 
+    std::enable_if_t<is_boolable, bool> any();
+
     template<typename Predicate>
     bool all(Predicate&& predicate);
 
+    std::enable_if_t<is_boolable, bool> all();
+
     template<typename Predicate>
     bool none(Predicate&& predicate);
+
+    std::enable_if_t<is_boolable, bool> none();
+
+    std::enable_if_t<is_boolable, bool> not_all();
 
     template<typename OutputIterator>
     void copy_to(OutputIterator out);

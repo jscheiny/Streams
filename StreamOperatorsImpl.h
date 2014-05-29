@@ -10,6 +10,18 @@ Stream<T> StreamImpl<T, I>::filter(Predicate&& predicate) {
 }
 
 template<typename T, bool I>
+template<typename>
+Stream<T> StreamImpl<T, I>::filter() {
+    return filter(to_bool);
+}
+
+template<typename T, bool I>
+template<typename>
+Stream<T> StreamImpl<T, I>::filter_not() {
+    return filter([](bool x) { return !x; });
+}
+
+template<typename T, bool I>
 template<typename Predicate>
 Stream<T> StreamImpl<T, I>::take_while(Predicate&& predicate) {
     check_vacant("take_while");
@@ -18,11 +30,23 @@ Stream<T> StreamImpl<T, I>::take_while(Predicate&& predicate) {
 }
 
 template<typename T, bool I>
+template<typename>
+Stream<T> StreamImpl<T, I>::take_while() {
+    return take_while(to_bool);
+}
+
+template<typename T, bool I>
 template<typename Predicate>
 Stream<T> StreamImpl<T, I>::drop_while(Predicate&& predicate) {
     check_vacant("drop_while");
     return make_stream_provider<DropWhileStreamProvider, T, Predicate>
         (std::move(source_), std::forward<Predicate>(predicate));
+}
+
+template<typename T, bool I>
+template<typename>
+Stream<T> StreamImpl<T, I>::drop_while() {
+    return drop_while(to_bool);
 }
 
 template<typename T, bool I>

@@ -208,6 +208,11 @@ bool StreamImpl<T, I>::any(Predicate&& predicate) {
 }
 
 template<typename T, bool I>
+std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::any() {
+    return any(to_bool);
+}
+
+template<typename T, bool I>
 template<typename Predicate>
 bool StreamImpl<T, I>::all(Predicate&& predicate) {
     check_vacant("all");
@@ -220,11 +225,28 @@ bool StreamImpl<T, I>::all(Predicate&& predicate) {
 }
 
 template<typename T, bool I>
+std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::all() {
+    return all(to_bool);
+}
+
+template<typename T, bool I>
 template<typename Predicate>
 bool StreamImpl<T, I>::none(Predicate&& predicate) {
     check_vacant("none");
     return !any(std::forward<Predicate>(predicate));
 }
+
+template<typename T, bool I>
+std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::none() {
+    return none(to_bool);
+}
+
+template<typename T, bool I>
+std::enable_if_t<StreamImpl<T, I>::is_boolable, bool> StreamImpl<T, I>::not_all() {
+    check_vacant("not_all");
+    return !all(to_bool);
+}
+
 
 template<typename T, bool I>
 template<typename OutputIterator>
