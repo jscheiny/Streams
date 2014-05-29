@@ -3,7 +3,6 @@
 
 #include <functional>
 
-
 #define OPERATOR_OVERRIDE(method) \
     template<typename F> \
     auto method (F&& f) \
