@@ -13,6 +13,8 @@
 #include <list>
 #include <deque>
 #include <set>
+#include <random>
+#include <chrono>
 
 struct MakeStream {
     template<typename T>
@@ -48,6 +50,7 @@ struct MakeStream {
     template<typename Generator>
     static Stream<ReturnType<Generator>> generate(Generator&& generator);
 
+
     template<typename T, typename Function>
     static Stream<RemoveRef<T>> iterate(T&& initial, Function&& function);
 
@@ -59,6 +62,41 @@ struct MakeStream {
 
     template<typename T>
     static Stream<RemoveRef<T>> counter(T&& start, const T& increment);
+
+    template<typename T, template<typename> class Distribution,
+             typename Engine=std::default_random_engine,
+             typename Seed, typename... GenArgs>
+    static Stream<T> randoms(Seed&& seed, GenArgs&&... args);
+
+    template<typename T, typename Engine=std::default_random_engine>
+    static Stream<T> uniform_random_ints(T lower, T upper);
+
+    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    static Stream<T> uniform_random_ints(T lower, T upper, Seed&& seed);
+
+    template<typename T=double, typename Engine=std::default_random_engine>
+    static Stream<T> uniform_random_reals(T lower=0.0, T upper=1.0);
+
+    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    static Stream<T> uniform_random_reals(T lower, T upper, Seed&& seed);
+
+    template<typename T=double, typename Engine=std::default_random_engine, typename Seed>
+    static Stream<T> uniform_random_reals(Seed&& seed);
+
+    template<typename T, typename Engine=std::default_random_engine>
+    static Stream<T> normal_randoms(T mean=0.0, T stddev=1.0);
+
+    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    static Stream<T> normal_randoms(T mean, T stddev, Seed&& seed);
+
+    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    static Stream<T> normal_randoms(Seed&& seed);
+
+    template<typename T=bool, typename Engine=std::default_random_engine>
+    static Stream<T> coin_flips();
+
+    template<typename T=bool, typename Engine=std::default_random_engine, typename Seed>
+    static Stream<T> coin_flips(Seed&& seed);
 
     template<typename T>
     static Stream<RemoveRef<T>> singleton(T&& value);
@@ -77,6 +115,12 @@ struct MakeStream {
 
     template<typename T>
     static Stream<T> from(std::initializer_list<T> init);
+
+private:
+    static auto default_seed() {
+        return std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    }
+
 };
 
 template<typename T>
