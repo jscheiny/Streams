@@ -39,10 +39,16 @@ int main(int argc, char const *argv[]) {
         .count();
     cout << heads << endl;
 
-    MakeStream::from<C>({ 1, 2, 3, 4, 5, 6, 7, 8 })
-        .filter(&C::even)
+    C a(1);
+    C b(2);
+    C c(3);
+    vector<C*> cs = {&a, &b, nullptr, &c};
+    MakeStream::from(cs)
+        .filter()
         .map(&C::value)
-        .print_to(cout, " ");
+        .print_to(cout);
+    cout << endl;
 
-
+    Stream<double> s;
+    cout << s.product() << endl;
 }

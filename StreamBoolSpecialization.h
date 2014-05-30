@@ -1,26 +1,19 @@
 #ifndef STREAM_BOOL_SPECIALIZATION_H
 #define STREAM_BOOL_SPECIALIZATION_H
 
+#include "SpecializationMacros.h"
+
 #include <functional>
 
 template<typename T>
-class StreamImpl<T, StreamTag::Bool> 
-        : public StreamImpl<T, StreamTag::Common> {
+class StreamImpl<T, Bool> : public virtual StreamImpl<T, Common> {
 
 private:
-    using Super = StreamImpl<T, StreamTag::Common>;
+    PRIVATE_USINGS;
 
 public:
-    using ElementType = T;
-    using iterator = typename StreamProvider<T>::Iterator;
-
-    StreamImpl() : Super() {}
-
-    template<typename Iterator>
-    StreamImpl(Iterator begin, Iterator end) : Super(begin, end) {}
-
-    template<typename Container>
-    StreamImpl(const Container& cont) : Super(cont) {}
+    PUBLIC_USINGS;
+    PUBLIC_CONSTRUCTORS;
 
     decltype(auto) filter()     { return Super::filter(to_bool); }
     decltype(auto) filter_not() { return Super::filter(not_(to_bool)); }
@@ -36,18 +29,12 @@ public:
         return !Super::all(to_bool);
     }
 
-    template<typename, StreamTag>
-    friend class StreamImpl;
-
-    friend class MakeStream;
-
-    template<typename, typename, typename>
-    friend class FlatMappedStreamProvider;
+    FRIENDS;
 
 private:
-    StreamImpl(StreamProviderPtr<T> source) : ParentStream(std::move(source)) {}
+    PRIVATE_CONSTRUCTORS;
 };
 
-#undef OPERATOR_OVERRIDE
+#include "UndefSpecializationMacros.h"
 
 #endif

@@ -125,10 +125,7 @@ private:
 };
 
 template<typename T>
-class StreamImpl<T, StreamTag::Common> {
-
-private:
-    static const bool is_boolable = std::is_convertible<T, bool>::value;
+class StreamImpl<T, Common> {
 
 public:
     using ElementType = T;
@@ -315,21 +312,17 @@ public:
     std::ostream& print_pipeline(std::ostream& os);
 
     friend class MakeStream;
-
-    template<typename, StreamTag>
-    friend class StreamImpl;
-
-    template<typename, typename, typename>
-    friend class FlatMappedStreamProvider;
+    template<typename, int> friend class StreamImpl;
+    template<typename, typename, typename> friend class FlatMappedStreamProvider;
 
 protected:
     inline void check_vacant(const std::string& method);
 
+    StreamProviderPtr<T> source_;
+
 private:
     StreamImpl(StreamProviderPtr<T> source)
         : source_(std::move(source)) {}
-
-    StreamProviderPtr<T> source_;
 
     template<typename Function>
     T no_identity_reduction(const std::string& name, Function&& function);
@@ -342,29 +335,29 @@ private:
 };
 
 template<typename T>
-StreamImpl<T, StreamTag::Common>::StreamImpl()
+StreamImpl<T, Common>::StreamImpl()
     : source_(make_stream_provider<EmptyStreamProvider, T>()) {}
 
 template<typename T>
 template<typename Iterator>
-StreamImpl<T, StreamTag::Common>::StreamImpl(Iterator begin, Iterator end)
+StreamImpl<T, Common>::StreamImpl(Iterator begin, Iterator end)
     : source_(make_stream_provider<IteratorStreamProvider, T, Iterator>(
         begin, end)) {}
 
 template<typename T>
-inline bool StreamImpl<T, StreamTag::Common>::occupied() const {
+inline bool StreamImpl<T, Common>::occupied() const {
     return bool(source_);
 }
 
 template<typename T>
-inline void StreamImpl<T, StreamTag::Common>::check_vacant(const std::string& method) {
+inline void StreamImpl<T, Common>::check_vacant(const std::string& method) {
     if(!occupied()) {
         throw VacantStreamException(method);
     }
 }
 
 template<typename T>
-std::ostream& StreamImpl<T, StreamTag::Common>::print_pipeline(std::ostream& os) {
+std::ostream& StreamImpl<T, Common>::print_pipeline(std::ostream& os) {
     int stages, sources;
     std::tie(stages, sources) = source_->print(os, 1);
     os << "Stream pipeline with " 
@@ -378,6 +371,9 @@ std::ostream& StreamImpl<T, StreamTag::Common>::print_pipeline(std::ostream& os)
 #include "StreamTerminatorsImpl.h"
 #include "StreamAlgebra.h"
 #include "StreamClassSpecialization.h"
+#include "StreamPointerSpecialization.h"
 #include "StreamBoolSpecialization.h"
+#include "StreamNumberSpecialization.h"
+#include "StreamAggregateSpecializations.h"
 
 #endif
