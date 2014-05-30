@@ -79,6 +79,33 @@ private:
 
 #undef OPERATOR_OVERRIDE
 
+template<typename T, int Tags>
+class StreamImpl {
+    static_assert(Tags != (Class | Pointer),
+        "Illegal Stream specialization for classes and pointers. "
+        "This is considered impossible, please report this.");
+    static_assert(Tags != (Pointer | Number),
+        "Illegal Stream specialization for pointers and numbers. "
+        "This is considered impossible, please report this.");
+    static_assert(Tags != (Class | Pointer | Bool),
+        "Illegal Stream specialization for classes, pointers, and bools. "
+        "This is considered impossible, please report this.");
+    static_assert(Tags != (Class | Pointer | Number),
+        "Illegal Stream specialization for classes, pointers, and numbers. "
+        "This is considered impossible, please report this.");
+    static_assert(Tags != (Class | Bool | Number),
+        "Illegal Stream specialization for classes, bools, and numbers. "
+        "This is considered impossible, please report this.");
+    static_assert(Tags != (Pointer | Bool | Number),
+        "Illegal Stream specialization for pointers, bools, and numbers. "
+        "This is considered impossible, please report this.");
+    static_assert(Tags != (Class | Pointer | Bool | Number),
+        "Illegal Stream specialization for classes, pointers, bools, and numbers. "
+        "This is considered impossible, please report this.");
+    static_assert(Tags > 0 && Tags < (Class | Pointer | Bool | Number),
+        "Illegal Stream with no specialization. "
+        "This is considered impossible, please report this.");
+};
 #include "UndefSpecializationMacros.h"
 
 #endif
