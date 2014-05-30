@@ -6,32 +6,32 @@
 #define OPERATOR_OVERRIDE(method) \
     template<typename F> \
     decltype(auto) method (F&& f) \
-        { return ParentStream :: method (std::forward<F>(f)); } \
+        { return Super :: method (std::forward<F>(f)); } \
     template<typename R> \
     decltype(auto) method (R (T::*member)()) \
-        { return ParentStream :: method (std::mem_fn(member)); } \
+        { return Super :: method (std::mem_fn(member)); } \
     template<typename R> \
     decltype(auto) method (R (T::*member)() const) \
-        { return ParentStream :: method (std::mem_fn(member)); }
+        { return Super :: method (std::mem_fn(member)); }
 
 template<typename T>
 class StreamImpl<T, StreamTag::Class> 
         : public StreamImpl<T, StreamTag::Common> {
 
 private:
-    using ParentStream = StreamImpl<T, StreamTag::Common>;
+    using Super = StreamImpl<T, StreamTag::Common>;
 
 public:
     using ElementType = T;
     using iterator = typename StreamProvider<T>::Iterator;
 
-    StreamImpl() : ParentStream() {}
+    StreamImpl() : Super() {}
 
     template<typename Iterator>
-    StreamImpl(Iterator begin, Iterator end) : ParentStream(begin, end) {}
+    StreamImpl(Iterator begin, Iterator end) : Super(begin, end) {}
 
     template<typename Container>
-    StreamImpl(const Container& cont) : ParentStream(cont) {}
+    StreamImpl(const Container& cont) : Super(cont) {}
 
     OPERATOR_OVERRIDE(filter);
     OPERATOR_OVERRIDE(take_while);
@@ -54,7 +54,7 @@ public:
     friend class FlatMappedStreamProvider;
 
 private:
-    StreamImpl(StreamProviderPtr<T> source) : ParentStream(std::move(source)) {}
+    StreamImpl(StreamProviderPtr<T> source) : Super(std::move(source)) {}
 };
 
 #undef OPERATOR_OVERRIDE

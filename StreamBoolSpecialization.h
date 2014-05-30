@@ -3,57 +3,37 @@
 
 #include <functional>
 
-
 template<typename T>
 class StreamImpl<T, StreamTag::Bool> 
         : public StreamImpl<T, StreamTag::Common> {
 
 private:
-    using ParentStream = StreamImpl<T, StreamTag::Common>;
+    using Super = StreamImpl<T, StreamTag::Common>;
 
 public:
     using ElementType = T;
     using iterator = typename StreamProvider<T>::Iterator;
 
-    StreamImpl() : ParentStream() {}
+    StreamImpl() : Super() {}
 
     template<typename Iterator>
-    StreamImpl(Iterator begin, Iterator end) : ParentStream(begin, end) {}
+    StreamImpl(Iterator begin, Iterator end) : Super(begin, end) {}
 
     template<typename Container>
-    StreamImpl(const Container& cont) : ParentStream(cont) {}
+    StreamImpl(const Container& cont) : Super(cont) {}
 
-    decltype(auto) filter() {
-        return ParentStream::filter(to_bool);
-    }
-    
-    decltype(auto) filter_not() {
-        return ParentStream::filter(not_(to_bool));
-    }
+    decltype(auto) filter()     { return Super::filter(to_bool); }
+    decltype(auto) filter_not() { return Super::filter(not_(to_bool)); }
+    decltype(auto) take_while() { return Super::take_while(to_bool); }
+    decltype(auto) drop_while() { return Super::drop_while(to_bool); }
 
-    decltype(auto) take_while() {
-        return ParentStream::take_while(to_bool);
-    }
-
-    decltype(auto) drop_while() {
-        return ParentStream::drop_while(to_bool);
-    }
-
-    decltype(auto) any() {
-        return ParentStream::any(to_bool);
-    }
-
-    decltype(auto) all() {
-        return ParentStream::all(to_bool);
-    }
-
-    decltype(auto) none() {
-        return ParentStream::none(to_bool);
-    }
+    decltype(auto) any()  { return Super::any(to_bool); }
+    decltype(auto) all()  { return Super::all(to_bool); }
+    decltype(auto) none() { return Super::none(to_bool); }
 
     decltype(auto) not_all() {
         this->check_vacant("not_all");
-        return !ParentStream::all(to_bool);
+        return !Super::all(to_bool);
     }
 
     template<typename, StreamTag>
