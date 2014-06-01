@@ -29,6 +29,13 @@ Stream<decltype(~std::declval<T&>())> operator~ (Stream<T>&& stream) {
     });
 }
 
+template<typename T>
+Stream<decltype(*std::declval<T&>())> operator* (Stream<T>&& stream) {
+    return stream.map([](T& x) {
+        return *x;
+    });
+}
+
 template<typename T1, typename T2>
 Stream<ReturnType<std::plus<void>, T1&, T2&>>
 operator+ (Stream<T1>&& left, Stream<T2>&& right) {
