@@ -255,22 +255,24 @@ bool StreamImpl<T, Common>::none(Predicate&& predicate) {
 
 template<typename T>
 template<typename OutputIterator>
-void StreamImpl<T, Common>::copy_to(OutputIterator out) {
+OutputIterator StreamImpl<T, Common>::copy_to(OutputIterator out) {
     check_vacant("copy_to");
     while(source_->advance()) {
         *out = *source_->get();
         out++;
     }
+    return out;
 }
 
 template<typename T>
 template<typename OutputIterator>
-void StreamImpl<T, Common>::move_to(OutputIterator out) {
+OutputIterator StreamImpl<T, Common>::move_to(OutputIterator out) {
     check_vacant("move_to");
     while(source_->advance()) {
         *out = std::move(*source_->get());
         out++;
     }
+    return out;
 }
 
 template<typename T>

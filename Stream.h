@@ -69,6 +69,11 @@ struct MakeStream {
              typename Seed, typename... GenArgs>
     static Stream<T> randoms(Seed&& seed, GenArgs&&... args);
 
+    template<typename T, template<typename> class Distribution,
+             typename Engine=std::default_random_engine,
+             typename... GenArgs>
+    static Stream<T> randoms(GenArgs&&... args);
+
     template<typename T, typename Engine=std::default_random_engine>
     static Stream<T> uniform_random_ints(T lower, T upper);
 
@@ -81,17 +86,11 @@ struct MakeStream {
     template<typename T, typename Engine=std::default_random_engine, typename Seed>
     static Stream<T> uniform_random_reals(T lower, T upper, Seed&& seed);
 
-    template<typename T=double, typename Engine=std::default_random_engine, typename Seed>
-    static Stream<T> uniform_random_reals(Seed&& seed);
-
     template<typename T=double, typename Engine=std::default_random_engine>
     static Stream<T> normal_randoms(T mean=0.0, T stddev=1.0);
 
     template<typename T, typename Engine=std::default_random_engine, typename Seed>
     static Stream<T> normal_randoms(T mean, T stddev, Seed&& seed);
-
-    template<typename T=double, typename Engine=std::default_random_engine, typename Seed>
-    static Stream<T> normal_randoms(Seed&& seed);
 
     template<typename T=bool, typename Engine=std::default_random_engine>
     static Stream<T> coin_flips();
@@ -281,10 +280,10 @@ public:
     bool none(Predicate&& predicate);
 
     template<typename OutputIterator>
-    void copy_to(OutputIterator out);
+    OutputIterator copy_to(OutputIterator out);
 
     template<typename OutputIterator>
-    void move_to(OutputIterator out);
+    OutputIterator move_to(OutputIterator out);
 
     void print_to(std::ostream& os, const char* delimiter = " ");
 

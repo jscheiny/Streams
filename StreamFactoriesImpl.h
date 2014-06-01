@@ -111,6 +111,12 @@ Stream<T> MakeStream::randoms(Seed&& seed, GenArgs&&... args) {
         (seed, std::forward<GenArgs>(args)...));
 }
 
+template<typename T, template<typename> class Distribution, typename Engine, typename... GenArgs>
+Stream<T> MakeStream::randoms(GenArgs&&... args) {
+    return generate(detail::RandomGenerator<T, Distribution, Engine>
+        (default_seed(), std::forward<GenArgs>(args)...));
+}
+
 template<typename T, typename Engine>
 Stream<T> MakeStream::uniform_random_ints(T lower, T upper) {
     return uniform_random_ints<T, Engine>(lower, upper, default_seed());
@@ -133,11 +139,6 @@ Stream<T> MakeStream::uniform_random_reals(T lower, T upper, Seed&& seed) {
         (std::forward<Seed>(seed), lower, upper);
 }
 
-template<typename T, typename Engine, typename Seed>
-Stream<T> MakeStream::uniform_random_reals(Seed&& seed) {
-    return uniform_random_reals<T, Engine>(0.0, 1.0, std::forward<Seed>(seed));
-}
-
 template<typename T, typename Engine>
 Stream<T> MakeStream::normal_randoms(T mean, T stddev) {
     return normal_randoms<T, Engine>(mean, stddev, default_seed());
@@ -147,11 +148,6 @@ template<typename T, typename Engine, typename Seed>
 Stream<T> MakeStream::normal_randoms(T mean, T stddev, Seed&& seed) {
     return randoms<T, std::normal_distribution, Engine, Seed>
         (std::forward<Seed>(seed), mean, stddev);
-}
-
-template<typename T, typename Engine, typename Seed>
-Stream<T> MakeStream::normal_randoms(Seed&& seed) {
-    return normal_randoms<T, Engine>(0.0, 1.0, std::forward<Seed>(seed));
 }
 
 template<typename T, typename Engine>
