@@ -5,6 +5,13 @@
 
 #include <functional>
 
+#define OPERATOR_OVERRIDE(method) \
+    template<typename F> \
+    decltype(auto) method (F&& f) \
+        { return Super :: method (std::forward<F>(f)); } \
+    decltype(auto) method () \
+        { return Super :: method (to_bool); }
+
 template<typename T>
 class StreamImpl<T, Bool> : public virtual StreamImpl<T, Common> {
 
@@ -15,14 +22,19 @@ public:
     PUBLIC_USINGS;
     PUBLIC_CONSTRUCTORS;
 
-    decltype(auto) filter()     { return Super::filter(to_bool); }
-    decltype(auto) filter_not() { return Super::filter(not_(to_bool)); }
-    decltype(auto) take_while() { return Super::take_while(to_bool); }
-    decltype(auto) drop_while() { return Super::drop_while(to_bool); }
+    OPERATOR_OVERRIDE(filter);
+    OPERATOR_OVERRIDE(take_while);
+    OPERATOR_OVERRIDE(drop_while);
 
-    decltype(auto) any()  { return Super::any(to_bool); }
-    decltype(auto) all()  { return Super::all(to_bool); }
-    decltype(auto) none() { return Super::none(to_bool); }
+    OPERATOR_OVERRIDE(any);
+    OPERATOR_OVERRIDE(all);
+    OPERATOR_OVERRIDE(none);
+
+    /* Bool specific specializations */
+
+    decltype(auto) filter_not() { return Super::filter(not_(to_bool));     }
+    decltype(auto) take_until() { return Super::take_while(not_(to_bool)); }
+    decltype(auto) drop_until() { return Super::drop_until(not_(to_bool)); }
 
     decltype(auto) not_all() {
         this->check_vacant("not_all");
@@ -34,6 +46,8 @@ public:
 private:
     PRIVATE_CONSTRUCTORS;
 };
+
+#undef OPERATOR_OVERRIDE
 
 #include "UndefSpecializationMacros.h"
 
