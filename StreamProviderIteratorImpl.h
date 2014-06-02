@@ -141,7 +141,7 @@ void StreamProvider<T>::Iterator::update_initial() {
 template<typename T>
 void StreamProvider<T>::Iterator::check_consumed(const std::string& op) const {
     if(state_ == State::Consumed) {
-        throw ConsumsedIteratorException(op);
+        throw ConsumedIteratorException(op);
     }
 }
 

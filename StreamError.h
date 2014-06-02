@@ -45,10 +45,10 @@ private:
     }
 };
 
-class ConsumsedIteratorException : public StreamException {
+class ConsumedIteratorException : public StreamException {
 
 public:
-    explicit ConsumsedIteratorException(const std::string& op)
+    explicit ConsumedIteratorException(const std::string& op)
         : StreamException(build_message(op)) {}
 
 private:
