@@ -632,7 +632,7 @@ matches the predicate is found.
 ## All
 
 `stream.all(predicate)` returns true if all the elements of the stream match a
-given predicate. If the stream is empty, the result is vacuously false. If the
+given predicate. If the stream is empty, the result is vacuously true. If the
 stream is infinite, this operation will shortcut in the case that an element that
 doesnt match the predicate is found.
 
