@@ -90,36 +90,37 @@ struct MakeStream {
 
     template<typename T, template<typename> class Distribution,
              typename Engine=std::default_random_engine,
-             typename Seed, typename... GenArgs>
-    static Stream<T> randoms(Seed&& seed, GenArgs&&... args);
+             typename Seed,
+             typename ... GenArgs>
+    static Stream<T> randoms_seeded(Seed&& seed, GenArgs&&... args);
 
     template<typename T, template<typename> class Distribution,
              typename Engine=std::default_random_engine,
-             typename... GenArgs>
+             typename ... GenArgs>
     static Stream<T> randoms(GenArgs&&... args);
 
-    template<typename T, typename Engine=std::default_random_engine>
+    template<typename Engine=std::default_random_engine, typename T>
     static Stream<T> uniform_random_ints(T lower, T upper);
 
-    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    template<typename Engine=std::default_random_engine, typename T, typename Seed>
     static Stream<T> uniform_random_ints(T lower, T upper, Seed&& seed);
 
-    template<typename T=double, typename Engine=std::default_random_engine>
+    template<typename Engine=std::default_random_engine, typename T=double>
     static Stream<T> uniform_random_reals(T lower=0.0, T upper=1.0);
 
-    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    template<typename Engine=std::default_random_engine, typename T, typename Seed>
     static Stream<T> uniform_random_reals(T lower, T upper, Seed&& seed);
 
-    template<typename T=double, typename Engine=std::default_random_engine>
+    template<typename Engine=std::default_random_engine, typename T=double>
     static Stream<T> normal_randoms(T mean=0.0, T stddev=1.0);
 
-    template<typename T, typename Engine=std::default_random_engine, typename Seed>
+    template<typename Engine=std::default_random_engine, typename T, typename Seed>
     static Stream<T> normal_randoms(T mean, T stddev, Seed&& seed);
 
-    template<typename T=bool, typename Engine=std::default_random_engine>
+    template<typename Engine=std::default_random_engine, typename T=bool>
     static Stream<T> coin_flips();
 
-    template<typename T=bool, typename Engine=std::default_random_engine, typename Seed>
+    template<typename Engine=std::default_random_engine, typename T=bool, typename Seed>
     static Stream<T> coin_flips(Seed&& seed);
 
     template<typename T>

@@ -2,7 +2,7 @@
 #define STREAM_FACTORIES_IMPL_H
 
 namespace detail {
-template<typename T, template<typename> class Distribution, typename Engine>
+template<template<typename> class Distribution, typename Engine, typename T>
 struct RandomGenerator;
 }
 
@@ -195,58 +195,61 @@ template<typename T,
          typename Engine,
          typename Seed,
          typename... GenArgs>
-Stream<T> MakeStream::randoms(Seed&& seed, GenArgs&&... args) {
-    return generate(detail::RandomGenerator<T, Distribution, Engine>
+Stream<T> MakeStream::randoms_seeded(Seed&& seed, GenArgs&&... args) {
+    return generate(detail::RandomGenerator<Distribution, Engine, T>
         (seed, std::forward<GenArgs>(args)...));
 }
 
-template<typename T, template<typename> class Distribution, typename Engine, typename... GenArgs>
+template<typename T,
+         template<typename> class Distribution,
+         typename Engine,
+         typename... GenArgs>
 Stream<T> MakeStream::randoms(GenArgs&&... args) {
-    return generate(detail::RandomGenerator<T, Distribution, Engine>
-        (default_seed(), std::forward<GenArgs>(args)...));
+    return randoms_seeded<T, Distribution, Engine>
+        (default_seed(), std::forward<GenArgs>(args)...);
 }
 
-template<typename T, typename Engine>
+template<typename Engine, typename T>
 Stream<T> MakeStream::uniform_random_ints(T lower, T upper) {
-    return uniform_random_ints<T, Engine>(lower, upper, default_seed());
+    return uniform_random_ints<Engine, T>(lower, upper, default_seed());
 }
 
-template<typename T, typename Engine, typename Seed>
+template<typename Engine, typename T, typename Seed>
 Stream<T> MakeStream::uniform_random_ints(T lower, T upper, Seed&& seed) {
-    return randoms<T, std::uniform_int_distribution, Engine, Seed>
+    return randoms_seeded<T, std::uniform_int_distribution, Engine, Seed>
         (std::forward<Seed>(seed), lower, upper);
 }
 
-template<typename T, typename Engine>
+template<typename Engine, typename T>
 Stream<T> MakeStream::uniform_random_reals(T lower, T upper) {
-    return uniform_random_reals<T, Engine>(lower, upper, default_seed());
+    return uniform_random_reals<Engine, T>(lower, upper, default_seed());
 }
 
-template<typename T, typename Engine, typename Seed>
+template<typename Engine, typename T, typename Seed>
 Stream<T> MakeStream::uniform_random_reals(T lower, T upper, Seed&& seed) {
-    return randoms<T, std::uniform_real_distribution, Engine, Seed>
+    return randoms_seeded<T, std::uniform_real_distribution, Engine, Seed>
         (std::forward<Seed>(seed), lower, upper);
 }
 
-template<typename T, typename Engine>
+template<typename Engine, typename T>
 Stream<T> MakeStream::normal_randoms(T mean, T stddev) {
-    return normal_randoms<T, Engine>(mean, stddev, default_seed());
+    return normal_randoms<Engine, T>(mean, stddev, default_seed());
 }
 
-template<typename T, typename Engine, typename Seed>
+template<typename Engine, typename T, typename Seed>
 Stream<T> MakeStream::normal_randoms(T mean, T stddev, Seed&& seed) {
-    return randoms<T, std::normal_distribution, Engine, Seed>
+    return randoms_seeded<T, std::normal_distribution, Engine, Seed>
         (std::forward<Seed>(seed), mean, stddev);
 }
 
-template<typename T, typename Engine>
+template<typename Engine, typename T>
 Stream<T> MakeStream::coin_flips() {
-    return uniform_random_ints<T, Engine>(0, 1);
+    return uniform_random_ints<Engine, T>(0, 1);
 }
 
-template<typename T, typename Engine, typename Seed>
+template<typename Engine, typename T, typename Seed>
 Stream<T> MakeStream::coin_flips(Seed&& seed) {
-    return uniform_random_ints<T, Engine>(0, 1, std::forward<Seed>(seed));
+    return uniform_random_ints<Engine, T>(0, 1, std::forward<Seed>(seed));
 }
 
 template<typename T>
@@ -286,7 +289,7 @@ Stream<T> MakeStream::from(std::initializer_list<T> init) {
 
 namespace detail {
 
-template<typename T, template<typename> class Distribution, typename Engine>
+template<template<typename> class Distribution, typename Engine, typename T>
 struct RandomGenerator {
     template<typename Seed, typename... GenArgs>
     RandomGenerator(Seed seed, GenArgs&&... args)
