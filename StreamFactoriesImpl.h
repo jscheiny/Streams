@@ -32,17 +32,6 @@ Stream<IteratorType<Iterator>> MakeStream::cycle(Iterator begin, Iterator end) {
         }));
 }
 
-template<typename Container>
-Stream<ContainerType<Container>> MakeStream::cycle(const Container& cont) {
-    return MakeStream::cycle(std::begin(cont), std::end(cont));
-}
-
-
-template<typename Container>
-Stream<ContainerType<Container>> MakeStream::cycle(Container&& cont) {
-    return MakeStream::cycle(std::begin(cont), std::end(cont));
-}
-
 template<typename Iterator>
 Stream<IteratorType<Iterator>> MakeStream::cycle(Iterator begin, Iterator end,
                                                  size_t times) {
@@ -60,9 +49,49 @@ Stream<ContainerType<Container>> MakeStream::cycle(const Container& cont,
 }
 
 template<typename Container>
-Stream<ContainerType<Container>> MakeStream::cycle(Container&& cont,
-                                                   size_t times) {
-    return MakeStream::cycle(std::begin(cont), std::end(cont), times);
+Stream<ContainerType<Container>> MakeStream::cycle(const Container& cont) {
+    return MakeStream::cycle(std::begin(cont), std::end(cont));
+}
+
+template<typename T>
+Stream<T> MakeStream::cycle(std::initializer_list<T> init) {
+    using Container = std::deque<T>;
+    return make_stream_provider<CycledContainerStreamProvider, T, Container>
+        (Container(init), 0);
+}
+
+template<typename T>
+Stream<T> MakeStream::cycle(std::initializer_list<T> init, size_t times) {
+    using Container = std::deque<T>;
+    return make_stream_provider<CycledContainerStreamProvider, T, Container>
+        (Container(init), times);
+}
+
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::cycle_move(Container&& cont) {
+    return MakeStream::generate(
+        [container = std::move(cont)] () {
+            return container;
+        })
+        .flat_map([](const Container& cont) {
+            return MakeStream::from(cont);
+        });
+}
+
+template<typename Container>
+Stream<ContainerType<Container>> MakeStream::cycle_move(Container&& cont,
+                                                        size_t times) {
+    using T = ContainerType<Container>;
+    if(times == 0)
+        return MakeStream::empty<T>();
+    return MakeStream::generate(
+        [container = std::move(cont)] () {
+            return container;
+        })
+        .limit(times)
+        .flat_map([](const Container& cont) {
+            return MakeStream::from(cont);
+        });
 }
 
 template<typename Generator>
@@ -87,17 +116,17 @@ Stream<RemoveRef<T>> MakeStream::counter(T&& start) {
         });
 }
 
-template<typename T>
-Stream<RemoveRef<T>> MakeStream::counter(T&& start, T&& increment) {
+template<typename T, typename U>
+Stream<RemoveRef<T>> MakeStream::counter(T&& start, U&& increment) {
     using R = RemoveRef<T>;
     return MakeStream::iterate(std::forward<T>(start),
-        [inc = std::forward<T>(increment)](R& value) {
+        [inc = std::forward<U>(increment)](R& value) {
             return value + inc;
         });
 }
 
-template<typename T>
-Stream<RemoveRef<T>> MakeStream::counter(T&& start, const T& increment) {
+template<typename T, typename U>
+Stream<RemoveRef<T>> MakeStream::counter(T&& start, const U& increment) {
     using R = RemoveRef<T>;
     return MakeStream::iterate(std::forward<T>(start),
         [&inc = increment](R& value) {
@@ -105,7 +134,67 @@ Stream<RemoveRef<T>> MakeStream::counter(T&& start, const T& increment) {
         });
 }
 
-template<typename T, template<typename> class Distribution, typename Engine, typename Seed, typename... GenArgs>
+template<typename T>
+Stream<RemoveRef<T>> MakeStream::range(T&& lower, T&& upper) {
+    using R = RemoveRef<T>;
+    return MakeStream::counter(lower)
+        .take_while([upper = std::forward<T>(upper)](R& value) {
+            return value != upper;
+        });
+}
+
+template<typename T, typename U>
+Stream<RemoveRef<T>> range(T&& lower, T&& upper, U&& increment) {
+    using R = RemoveRef<T>;
+    return MakeStream::counter(lower, std::forward<U>(increment))
+        .take_while([upper = std::forward<T>(upper)](R& value) {
+            return value < upper;
+        });
+}
+
+template<typename T, typename U>
+Stream<RemoveRef<T>> MakeStream::range(T&& lower, T&& upper, const U& increment) {
+    using R = RemoveRef<T>;
+    return MakeStream::counter(lower, increment)
+        .take_while([upper = std::forward<T>(upper)](R& value) {
+            return value < upper;
+        });
+}
+
+template<typename T>
+Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper) {
+    using R = RemoveRef<T>;
+    return MakeStream::counter(lower)
+        .take_while([upper = std::forward<T>(upper)](R& value) {
+            return value <= upper;
+        });
+}
+
+template<typename T, typename U>
+Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper, U&& increment) {
+    using R = RemoveRef<T>;
+    using R = RemoveRef<T>;
+    return MakeStream::counter(lower, std::forward<U>(increment))
+        .take_while([upper = std::forward<T>(upper)](R& value) {
+            return value <= upper;
+        });
+}
+
+template<typename T, typename U>
+Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper, const U& increment) {
+    using R = RemoveRef<T>;
+    using R = RemoveRef<T>;
+    return MakeStream::counter(lower, increment)
+        .take_while([upper = std::forward<T>(upper)](R& value) {
+            return value <= upper;
+        });
+}
+
+template<typename T,
+         template<typename> class Distribution,
+         typename Engine,
+         typename Seed,
+         typename... GenArgs>
 Stream<T> MakeStream::randoms(Seed&& seed, GenArgs&&... args) {
     return generate(detail::RandomGenerator<T, Distribution, Engine>
         (seed, std::forward<GenArgs>(args)...));
@@ -183,13 +272,16 @@ Stream<ContainerType<Container>> MakeStream::from(const Container& cont) {
 }
 
 template<typename Container>
-Stream<ContainerType<Container>> MakeStream::from(Container&& cont) {
-    return {std::begin(cont), std::end(cont)};
+Stream<ContainerType<Container>> MakeStream::from_move(Container&& cont) {
+    using T = ContainerType<Container>;
+    return MakeStream::cycle_move(std::forward<Container>(cont), 1);  
 }
 
 template<typename T>
 Stream<T> MakeStream::from(std::initializer_list<T> init) {
-    return Stream<T>(init.begin(), init.end());
+    using Container = std::deque<T>;
+    return make_stream_provider<CycledContainerStreamProvider, T, Container>
+        (Container(init), 1);
 }
 
 namespace detail {

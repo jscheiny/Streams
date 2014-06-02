@@ -6,6 +6,7 @@
 #include "AdjacentDifferenceStreamProvider.h"
 #include "AdjacentDistinctStreamProvider.h"
 #include "ConcatenatedStreamProvider.h"
+#include "CycledContainerStreamProvider.h"
 #include "DifferenceStreamProvider.h"
 #include "DistinctStreamProvider.h"
 #include "DropWhileStreamProvider.h"

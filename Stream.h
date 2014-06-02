@@ -31,23 +31,29 @@ struct MakeStream {
     template<typename Iterator>
     static Stream<IteratorType<Iterator>> cycle(Iterator begin, Iterator end);
 
-    template<typename Container>
-    static Stream<ContainerType<Container>> cycle(const Container& cont);
-
-    template<typename Container>
-    static Stream<ContainerType<Container>> cycle(Container&& cont);
-
     template<typename Iterator>
     static Stream<IteratorType<Iterator>> cycle(Iterator begin, Iterator end,
                                                 size_t times);
 
     template<typename Container>
+    static Stream<ContainerType<Container>> cycle(const Container& cont);
+
+    template<typename Container>
     static Stream<ContainerType<Container>> cycle(const Container& cont,
                                                   size_t times);
 
+    template<typename T>
+    static Stream<T> cycle(std::initializer_list<T> init);
+
+    template<typename T>
+    static Stream<T> cycle(std::initializer_list<T> init, size_t times);
+
     template<typename Container>
-    static Stream<ContainerType<Container>> cycle(Container&& cont,
-                                                  size_t times);
+    static Stream<ContainerType<Container>> cycle_move(Container&& cont);
+
+    template<typename Container>
+    static Stream<ContainerType<Container>> cycle_move(Container&& cont,
+                                                       size_t times);
 
     template<typename Generator>
     static Stream<ReturnType<Generator>> generate(Generator&& generator);
@@ -58,11 +64,29 @@ struct MakeStream {
     template<typename T>
     static Stream<RemoveRef<T>> counter(T&& start);
 
-    template<typename T>
-    static Stream<RemoveRef<T>> counter(T&& start, T&& increment);
+    template<typename T, typename U>
+    static Stream<RemoveRef<T>> counter(T&& start, U&& increment);
+
+    template<typename T, typename U>
+    static Stream<RemoveRef<T>> counter(T&& start, const U& increment);
 
     template<typename T>
-    static Stream<RemoveRef<T>> counter(T&& start, const T& increment);
+    static Stream<RemoveRef<T>> range(T&& lower, T&& upper);
+
+    template<typename T, typename U>
+    static Stream<RemoveRef<T>> range(T&& lower, T&& upper, U&& increment);
+
+    template<typename T, typename U>
+    static Stream<RemoveRef<T>> range(T&& lower, T&& upper, const U& increment);
+
+    template<typename T>
+    static Stream<RemoveRef<T>> closed_range(T&& lower, T&& upper);
+
+    template<typename T, typename U>
+    static Stream<RemoveRef<T>> closed_range(T&& lower, T&& upper, U&& increment);
+
+    template<typename T, typename U>
+    static Stream<RemoveRef<T>> closed_range(T&& lower, T&& upper, const U& increment);
 
     template<typename T, template<typename> class Distribution,
              typename Engine=std::default_random_engine,
@@ -107,14 +131,14 @@ struct MakeStream {
     template<typename Container>
     static Stream<ContainerType<Container>> from(const Container& cont);
 
-    template<typename Container>
-    static Stream<ContainerType<Container>> from(Container&& cont);
-
     template<typename T>
     static Stream<T> from(T* array, std::size_t length);
 
     template<typename T>
     static Stream<T> from(std::initializer_list<T> init);
+
+    template<typename Container>
+    static Stream<ContainerType<Container>> from_move(Container&& cont);
 
 private:
     static auto default_seed() {
@@ -142,9 +166,6 @@ public:
 
     template<typename Iterator>
     StreamImpl(Iterator begin, Iterator end);
-
-    template<typename Container>
-    StreamImpl(const Container& cont);
 
     /*** Intermediate Stream Operations ***/
 
