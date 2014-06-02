@@ -22,6 +22,8 @@ public:
     PUBLIC_USINGS;
     PUBLIC_CONSTRUCTORS;
 
+    MOVE_SEMANTICS(Bool);
+
     OPERATOR_OVERRIDE(filter);
     OPERATOR_OVERRIDE(take_while);
     OPERATOR_OVERRIDE(drop_while);

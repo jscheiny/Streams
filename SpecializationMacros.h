@@ -8,9 +8,13 @@
 #define PUBLIC_CONSTRUCTORS \
     StreamImpl() : Super() {} \
     template<typename Iterator> \
-    StreamImpl(Iterator begin, Iterator end) : Super(begin, end) {} \
-    template<typename Container> \
-    StreamImpl(const Container& cont) : Super(cont) {} \
+    StreamImpl(Iterator begin, Iterator end) : Super(begin, end) {}
+
+#define MOVE_SEMANTICS(Tags) \
+    StreamImpl(StreamImpl< T, Tags >&& other) \
+        : Super(std::move(other.source_)) {} \
+    StreamImpl< T, Tags >& operator= (StreamImpl< T, Tags >&& other) \
+        { this->source_ = std::move(other.source_); return *this; }
 
 #define PRIVATE_CONSTRUCTORS \
     StreamImpl(StreamProviderPtr<T> source) : Super(std::move(source)) {}

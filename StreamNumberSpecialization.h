@@ -13,6 +13,7 @@ private:
 public:
     PUBLIC_USINGS;
     PUBLIC_CONSTRUCTORS;
+    MOVE_SEMANTICS(Number);
     FRIENDS;
 
     T sum() {

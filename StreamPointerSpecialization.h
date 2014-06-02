@@ -26,6 +26,7 @@ private:
 public:
     PUBLIC_USINGS;
     PUBLIC_CONSTRUCTORS;
+    MOVE_SEMANTICS(Pointer);
 
     OPERATOR_OVERRIDE(filter);
     OPERATOR_OVERRIDE(take_while);

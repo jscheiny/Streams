@@ -12,6 +12,7 @@ private:
 public:
     PUBLIC_USINGS;
     PUBLIC_CONSTRUCTORS;
+    MOVE_SEMANTICS(Bool | Number);
     FRIENDS;
 private:
     PRIVATE_CONSTRUCTORS;
@@ -36,6 +37,7 @@ private:
 public:
     PUBLIC_USINGS;
     PUBLIC_CONSTRUCTORS;
+    MOVE_SEMANTICS(Bool | Pointer);
     FRIENDS;
 
     OPERATOR_OVERRIDE(filter);
@@ -66,6 +68,7 @@ private:
 public:
     PUBLIC_USINGS;
     PUBLIC_CONSTRUCTORS;
+    MOVE_SEMANTICS(Bool | Class);
     FRIENDS;
 
     OPERATOR_OVERRIDE(filter);
