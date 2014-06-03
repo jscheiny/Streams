@@ -255,7 +255,7 @@ public:
     U reduce(const U& identity, Accumulator&& accumulator);
 
     template<typename Identity, typename Accumulator>
-    ReturnType<Identity, T&> reduce(Identity&& identity, Accumulator&& accum);
+    ReturnType<Identity, T&&> reduce(Identity&& identity, Accumulator&& accum);
 
     template<typename Accumulator>
     T reduce(Accumulator&& accumulator);

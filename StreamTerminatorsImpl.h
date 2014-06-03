@@ -25,7 +25,7 @@ U StreamImpl<T, Common>::reduce(const U& identity, Accumulator&& accumulator) {
 
 template<typename T>
 template<typename Identity, typename Accumulator>
-ReturnType<Identity, T&> StreamImpl<T, Common>::reduce(Identity&& identity,
+ReturnType<Identity, T&&> StreamImpl<T, Common>::reduce(Identity&& identity,
                                                   Accumulator&& accumulator) {
     check_vacant("reduce");
     if(source_->advance()) {
