@@ -25,7 +25,9 @@ public:
         }
 
         if(source_->advance()) {
-            current_ = std::make_shared<T>(add_(*current_, *source_->get()));
+            current_ = std::make_shared<T>(add_(
+                std::move(*current_),
+                std::move(*source_->get())));
             return true;
         }
         current_.reset();

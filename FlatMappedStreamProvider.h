@@ -27,7 +27,7 @@ public:
             first_ = false;
 
         while(source_->advance()) {
-            current_stream_ = std::move(transform_(*source_->get()));
+            current_stream_ = std::move(transform_(std::move(*source_->get())));
             if(current_stream_.source_->advance()) {
                 current_ = current_stream_.source_->get();
                 return true;

@@ -187,10 +187,10 @@ public:
     Stream<T> peek(Action&& action);
 
     template<typename Transform>
-    Stream<ReturnType<Transform, T&>> map(Transform&& transform);
+    Stream<ReturnType<Transform, T&&>> map(Transform&& transform);
 
     template<typename Transform>
-    Stream<StreamType<ReturnType<Transform, T&>>>
+    Stream<StreamType<ReturnType<Transform, T&&>>>
     flat_map(Transform&& transform);
 
     Stream<T> limit(std::size_t length);
@@ -229,7 +229,7 @@ public:
     Stream<GroupResult<T, N>> grouped();
 
     template<typename Other, typename Function = Zipper>
-    Stream<ReturnType<Function, T&, Other&>> zip_with(Stream<Other>&& other,
+    Stream<ReturnType<Function, T&&, Other&&>> zip_with(Stream<Other>&& other,
         Function&& zipper = Function());
 
     template<typename Compare = std::less<T>>

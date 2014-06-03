@@ -57,7 +57,7 @@ struct Zipper {
 };
 
 template<typename L, typename R, typename Function>
-class ZippedStreamProvider : public StreamProvider<ReturnType<Function, L&, R&>> {
+class ZippedStreamProvider : public StreamProvider<ReturnType<Function, L&&, R&&>> {
 
 public:
     using ValueType = ReturnType<Function, L&, R&>;

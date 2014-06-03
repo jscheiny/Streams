@@ -49,8 +49,8 @@ Stream<T> StreamImpl<T, Common>::peek(Action&& action) {
 
 template<typename T>
 template<typename Transform>
-Stream<ReturnType<Transform, T&>> StreamImpl<T, Common>::map(Transform&& transform) {
-    using Result = ReturnType<Transform, T&>;
+Stream<ReturnType<Transform, T&&>> StreamImpl<T, Common>::map(Transform&& transform) {
+    using Result = ReturnType<Transform, T&&>;
     static_assert(!std::is_void<Result>::value,
         "Return type of the mapping function cannot be void.");
 
@@ -61,9 +61,9 @@ Stream<ReturnType<Transform, T&>> StreamImpl<T, Common>::map(Transform&& transfo
 
 template<typename T>
 template<typename Transform>
-Stream<StreamType<ReturnType<Transform, T&>>>
+Stream<StreamType<ReturnType<Transform, T&&>>>
 StreamImpl<T, Common>::flat_map(Transform&& transform) {
-    using Result = ReturnType<Transform, T&>;
+    using Result = ReturnType<Transform, T&&>;
     static_assert(IsStream<Result>::value,
         "Flat map must be passed a function which returns a stream");
     using S = StreamType<Result>;
@@ -179,9 +179,9 @@ Stream<T> StreamImpl<T, Common>::partial_sum(Adder&& add) {
 
 template<typename T>
 template<typename Other, typename Function>
-Stream<ReturnType<Function, T&, Other&>> StreamImpl<T, Common>::zip_with(
+Stream<ReturnType<Function, T&&, Other&&>> StreamImpl<T, Common>::zip_with(
         Stream<Other>&& other, Function&& zipper) {
-    using Result = ReturnType<Function, T&, Other&>;
+    using Result = ReturnType<Function, T&&, Other&&>;
     static_assert(!std::is_void<Result>::value,
         "Return type of the zipping function cannot be void.");
 
