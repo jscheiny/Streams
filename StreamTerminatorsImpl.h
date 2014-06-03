@@ -18,7 +18,7 @@ U StreamImpl<T, Common>::reduce(const U& identity, Accumulator&& accumulator) {
     check_vacant("reduce");
     U result = identity;
     while(source_->advance()) {
-        result = accumulator(result, *source_->get());
+        result = accumulator(std::move(result), std::move(*source_->get()));
     }
     return result;
 }
@@ -29,7 +29,7 @@ ReturnType<Identity, T&> StreamImpl<T, Common>::reduce(Identity&& identity,
                                                   Accumulator&& accumulator) {
     check_vacant("reduce");
     if(source_->advance()) {
-        return reduce(identity(*source_->get()),
+        return reduce(identity(std::move(*source_->get())),
                       std::forward<Accumulator>(accumulator));
     } else {
         throw EmptyStreamException("reduce");
@@ -41,7 +41,7 @@ template<typename Accumulator>
 T StreamImpl<T, Common>::reduce(Accumulator&& accumulator) {
     check_vacant("reduce");
     if(source_->advance()) {
-        return reduce(*source_->get(), std::forward<Accumulator>(accumulator));
+        return reduce(std::move(*source_->get()), std::forward<Accumulator>(accumulator));
     } else {
         throw EmptyStreamException("reduce");
     }
@@ -52,9 +52,9 @@ template<typename U>
 U StreamImpl<T, Common>::reduce_by(const Reducer<T, U>& reducer) {
     check_vacant("reduce_by");
     if(source_->advance()) {
-        U result = reducer.initial(*source_->get());
+        U result = reducer.initial(std::move(*source_->get()));
         while(source_->advance()) {
-            result = reducer.accumulate(result, *source_->get());
+            result = reducer.accumulate(std::move(result), std::move(*source_->get()));
         }
         return result;
     } else {
@@ -65,7 +65,7 @@ U StreamImpl<T, Common>::reduce_by(const Reducer<T, U>& reducer) {
 template<typename T>
 template<typename Function>
 T StreamImpl<T, Common>::no_identity_reduction(const std::string& name,
-                                          Function&& function) {
+                                               Function&& function) {
     check_vacant(name);
     try {
         return reduce(std::forward<Function>(function));
@@ -131,13 +131,13 @@ template<typename T>
 template<typename Compare>
 std::pair<T, T> StreamImpl<T, Common>::minmax(Compare&& compare) {
     return no_identity_reduction("minmax",
-        [](T& value) { return std::make_pair(value, value); },
-        [less=std::forward<Compare>(compare)] (const auto& accumulated, T& value) {
+        [](T value) { return std::make_pair(value, value); },
+        [less=std::forward<Compare>(compare)] (auto&& accumulated, T&& value) {
             if(less(value, accumulated.first)) {
-                return std::make_pair(value, accumulated.second);
+                return std::pair<T,T>(std::forward<T>(value), accumulated.second);
             }
             if(less(accumulated.second, value)) {
-                return std::make_pair(accumulated.first, value);
+                return std::pair<T,T>(accumulated.first, std::forward<T>(value));
             }
             return accumulated;
         });
@@ -147,7 +147,7 @@ template<typename T>
 T StreamImpl<T, Common>::first() {
     check_vacant("first");
     if(source_->advance()) {
-        return *source_->get();
+        return std::move(*source_->get());
     } else {
         throw EmptyStreamException("first");
     }
@@ -258,7 +258,7 @@ template<typename OutputIterator>
 OutputIterator StreamImpl<T, Common>::copy_to(OutputIterator out) {
     check_vacant("copy_to");
     while(source_->advance()) {
-        *out = *source_->get();
+        *out = std::move(*source_->get());
         out++;
     }
     return out;
@@ -329,7 +329,7 @@ template<typename Function>
 void StreamImpl<T, Common>::for_each(Function&& function) {
     check_vacant("for_each");
     while(source_->advance()) {
-        function(*source_->get());
+        function(std::move(*source_->get()));
     }
 }
 
