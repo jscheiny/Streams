@@ -32,7 +32,7 @@ private:
     Stats(In value)
         : number_(1), mean_(value), variance_(0), min_(value), max_(value) {}
 
-    Stats<In, Out> accept(In value) {
+    Stats<In, Out> accept(In&& value) {
         number_++;
         double prev_mean = mean_;
         mean_ += (value - mean_) / number_;
@@ -68,12 +68,12 @@ class SummaryStats : public Reducer<In, Stats<In, Result>> {
 public:
     using Out = Stats<In, Result>;
 
-    Out initial(In& in) const override {
-        return Out(in);
+    Out initial(In&& in) const override {
+        return Out(std::forward<In>(in));
     }
 
-    Out accumulate(Out& out, In& in) const override {
-        return out.accept(in);
+    Out accumulate(Out&& out, In&& in) const override {
+        return out.accept(std::forward<In>(in));
     }
 };
 
