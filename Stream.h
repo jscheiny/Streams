@@ -353,6 +353,13 @@ private:
         const std::string& name,
         Identity&& identity,
         Function&& function);
+
+    struct StreamTerminator {
+        StreamTerminator(StreamProviderPtr<T>& source) : source_(source) {}
+        ~StreamTerminator() { source_.reset(); }
+
+        StreamProviderPtr<T>& source_;
+    };
 };
 
 template<typename T>
@@ -392,7 +399,6 @@ std::ostream& StreamImpl<T, Common>::print_pipeline(std::ostream& os) {
 #include "StreamTerminatorsImpl.h"
 #include "StreamAlgebra.h"
 #include "StreamClassSpecialization.h"
-#include "StreamPointerSpecialization.h"
 #include "StreamBoolSpecialization.h"
 #include "StreamNumberSpecialization.h"
 #include "StreamAggregateSpecializations.h"

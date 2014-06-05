@@ -3,6 +3,7 @@
 
 template<typename T>
 size_t StreamImpl<T, Common>::count() {
+    StreamTerminator terminator(source_);
     check_vacant("count");
     size_t count = 0;
     while(source_->advance()) {
@@ -15,6 +16,7 @@ size_t StreamImpl<T, Common>::count() {
 template<typename T>
 template<typename U, typename Accumulator>
 U StreamImpl<T, Common>::reduce(const U& identity, Accumulator&& accumulator) {
+    StreamTerminator terminator(source_);
     check_vacant("reduce");
     U result = identity;
     while(source_->advance()) {
@@ -27,6 +29,7 @@ template<typename T>
 template<typename Identity, typename Accumulator>
 ReturnType<Identity, T&&> StreamImpl<T, Common>::reduce(Identity&& identity,
                                                   Accumulator&& accumulator) {
+    StreamTerminator terminator(source_);
     check_vacant("reduce");
     if(source_->advance()) {
         return reduce(identity(std::move(*source_->get())),
@@ -39,6 +42,7 @@ ReturnType<Identity, T&&> StreamImpl<T, Common>::reduce(Identity&& identity,
 template<typename T>
 template<typename Accumulator>
 T StreamImpl<T, Common>::reduce(Accumulator&& accumulator) {
+    StreamTerminator terminator(source_);
     check_vacant("reduce");
     if(source_->advance()) {
         return reduce(std::move(*source_->get()), std::forward<Accumulator>(accumulator));
@@ -50,6 +54,7 @@ T StreamImpl<T, Common>::reduce(Accumulator&& accumulator) {
 template<typename T>
 template<typename U>
 U StreamImpl<T, Common>::reduce_by(const Reducer<T, U>& reducer) {
+    StreamTerminator terminator(source_);
     check_vacant("reduce_by");
     if(source_->advance()) {
         U result = reducer.initial(std::move(*source_->get()));
@@ -66,6 +71,7 @@ template<typename T>
 template<typename Function>
 T StreamImpl<T, Common>::no_identity_reduction(const std::string& name,
                                                Function&& function) {
+    StreamTerminator terminator(source_);
     check_vacant(name);
     try {
         return reduce(std::forward<Function>(function));
@@ -146,6 +152,7 @@ std::pair<T, T> StreamImpl<T, Common>::minmax(Compare&& compare) {
 template<typename T>
 T StreamImpl<T, Common>::first() {
     check_vacant("first");
+    StreamTerminator terminator(source_);
     if(source_->advance()) {
         return std::move(*source_->get());
     } else {
@@ -172,6 +179,7 @@ T StreamImpl<T, Common>::nth(size_t index) {
 template<typename T>
 T StreamImpl<T, Common>::operator[] (size_t index) {
     check_vacant("operator[]");
+    StreamTerminator terminator(source_);
     try {
         return nth(index);
     } catch(EmptyStreamException& e) {
@@ -182,6 +190,7 @@ T StreamImpl<T, Common>::operator[] (size_t index) {
 template<typename T>
 std::vector<T> StreamImpl<T, Common>::random_sample(size_t size) {
     check_vacant("random_sample");
+    StreamTerminator terminator(source_);
 
     std::vector<T> results;
     for(int i = 0; i < size; i++) {
@@ -215,6 +224,8 @@ std::vector<T> StreamImpl<T, Common>::random_sample(size_t size) {
 template<typename T>
 T StreamImpl<T, Common>::random_element() {
     check_vacant("random_element");
+    StreamTerminator terminator(source_);
+
     auto vec = random_sample(1);
     if(vec.empty()) {
         throw EmptyStreamException("random_element");
@@ -226,6 +237,8 @@ template<typename T>
 template<typename Predicate>
 bool StreamImpl<T, Common>::any(Predicate&& predicate) {
     check_vacant("any");
+    StreamTerminator terminator(source_);
+
     while(source_->advance()) {
         if(predicate(*source_->get())) {
             return true;
@@ -238,6 +251,8 @@ template<typename T>
 template<typename Predicate>
 bool StreamImpl<T, Common>::all(Predicate&& predicate) {
     check_vacant("all");
+    StreamTerminator terminator(source_);
+
     while(source_->advance()) {
         if(!predicate(*source_->get())) {
             return false;
@@ -257,6 +272,7 @@ template<typename T>
 template<typename OutputIterator>
 OutputIterator StreamImpl<T, Common>::copy_to(OutputIterator out) {
     check_vacant("copy_to");
+    StreamTerminator terminator(source_);
     while(source_->advance()) {
         *out = std::move(*source_->get());
         out++;
@@ -268,6 +284,7 @@ template<typename T>
 template<typename OutputIterator>
 OutputIterator StreamImpl<T, Common>::move_to(OutputIterator out) {
     check_vacant("move_to");
+    StreamTerminator terminator(source_);
     while(source_->advance()) {
         *out = std::move(*source_->get());
         out++;
@@ -328,6 +345,7 @@ template<typename T>
 template<typename Function>
 void StreamImpl<T, Common>::for_each(Function&& function) {
     check_vacant("for_each");
+    StreamTerminator terminator(source_);
     while(source_->advance()) {
         function(std::move(*source_->get()));
     }
