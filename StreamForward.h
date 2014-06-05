@@ -6,14 +6,14 @@
 enum StreamTag {
     Common  = 0,
     Class   = 1,
-    Pointer = 2,
-    Bool    = 4,
-    Number  = 8
+    Bool    = 2,
+    Number  = 4
 };
 
 template<typename T, int Tags> class StreamImpl;
 
-template<typename T> struct is_class_pointer : public std::false_type {};
+template<typename T> struct is_class_pointer
+    : public std::integral_constant<bool, std::is_class<T>::value> {};
 template<typename T> struct is_class_pointer<T*>
     : public std::integral_constant<bool, std::is_class<T>::value> {};
 
@@ -23,9 +23,7 @@ template<typename Value, StreamTag Tag> struct Predicate
 };
 
 template<typename T> struct ClassTag
-    : public Predicate<std::is_class<T>,             Class>   {};
-template<typename T> struct PointerTag
-    : public Predicate<is_class_pointer<T>,          Pointer> {};
+    : public Predicate<is_class_pointer<T>,          Class>   {};
 template<typename T> struct BoolTag
     : public Predicate<std::is_convertible<T, bool>, Bool>    {};
 template<typename T> struct NumberTag
@@ -38,7 +36,6 @@ struct EvaluateTag : public std::integral_constant<StreamTag,
 template<typename T>
 struct ResolveTag : public std::integral_constant<int,
     EvaluateTag<ClassTag,   T> ::value |
-    EvaluateTag<PointerTag, T> ::value |
     EvaluateTag<BoolTag,    T> ::value |
     EvaluateTag<NumberTag,  T> ::value > {};
 

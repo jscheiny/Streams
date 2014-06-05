@@ -10,10 +10,10 @@
     decltype(auto) method (F&& f) \
         { return Super :: method (std::forward<F>(f)); } \
     template<typename R> \
-    decltype(auto) method (R (T::*member)()) \
+    decltype(auto) method (R (Type::*member)()) \
         { return Super :: method (std::mem_fn(member)); } \
     template<typename R> \
-    decltype(auto) method (R (T::*member)() const) \
+    decltype(auto) method (R (Type::*member)() const) \
         { return Super :: method (std::mem_fn(member)); }
 
 template<typename T>
@@ -21,6 +21,7 @@ class StreamImpl<T, Class> : public virtual StreamImpl<T, Common> {
 
 private:
     PRIVATE_USINGS;
+    using Type = std::remove_pointer_t<T>;
 
 public:
     PUBLIC_USINGS;
