@@ -1,0 +1,2734 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>C++ Streams</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:700' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="styles/monokai_sublime.css">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="scripts/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script type="text/javascript" src="scripts/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="scripts/docs.js"></script>
+</head>
+<body>
+<div id="sidebar">
+    <a href="#" class="sidebar-title">C++ Streams</a>
+    <a href="#intro" class="sidebar-title">Introduction</a>
+    <span class="sidebar-title"><input type="text" id="search"/></span>
+</div>
+<div id="content">
+    <div id="title">C++ Streams</div>
+
+    <p>Streams is a C++ library that provides lazy evaluation and functional-style
+    transformations on the data, to ease the use of C++ standard library containers
+    and algorithms. Streams support many common functiona operations such as
+    map, filter, and reduce, as well as various other useful operations such as
+    various set operations (union, intersection, difference), partial sum, and
+    adjacent difference, as well as many others.
+    Please visit the <a target="blank" href="https://github.com/jscheiny/Streams">Github</a>
+    page to download and try it yourself.</p> 
+
+    <p>Streams is developed by <a target="blank" href="http://scheinerman.net/jonah">Jonah Scheinerman</a>,
+    and is always looking to improve. Please get in touch if you find bugs or have ideas on
+    how to make Streams even better.</p>
+
+    <p>To use streams <a target="blank" href="https://github.com/jscheiny/Streams">download</a>
+    them from Github. To use, simply <span class="inline">#include "Stream.h"</span>.
+    Streams require C++14 to compile. Streams consist only of header files, so you
+    shouldn't have to modify your build process to use them. </p>
+
+    <h2 id="intro">Introduction</h2>
+
+    <p>Streams are an abstraction on a set of data that has a specific order (be it
+    a strict ordering or just some encounter order). Various operations can
+    be applied to streams such that data passes through the stream pipeline in
+    a lazy manner, only getting passed to then next operation when it is requested.
+    There are 3 main kinds of stream operations: generators, intermediate operators,
+    and terminal operators.
+    </p>
+
+    <ul>
+        <li><a href="#generators">Generators</a> are methods that create streams, and are
+        thus considered stream sources. Stream generators will not be evaluated at all until
+        some terminal operation on a stream has been called.</li>
+        <li>Intermediate operators take in streams and return streams, applying some additional
+        operation to the end of the stream pipeline. Intermediate operations will not be evaluated
+        until some terminal operation on the stream has been called. There are two kinds of
+        intermediate operators: <a href="#stateless">stateless</a> and 
+        <a href="#stateful">stateful</a>. Stateless operators require <i>O(1)</i> memory, whereas
+        stateful operators may accumulate up to <i>O(n)</i> memory where <i>n</i> is the stream length.</li>
+        <li><a href="#terminals">Terminal operators</a> close a stream and finally cause all of the
+        stream operations to evaluate up the stream pipeline, until some final non-stream value
+        gets returned by the terminal operation.</li>
+    </ul>
+
+    <p>A stream is a single source of data, and thus will uniquely own its data source.
+    There is no way of copying streams without accruing a lot of state and thus
+    streams are not copiable. However, streams are movable. Moving a stream will
+    result in the source stream being "vacant." One can check the vacancy of
+    a stream using the <span class="inline"><a href="#occupied">occupied()</a></span>
+    method. Attempting to apply <b>any</b> stream operation to a vacant stream
+    will result in a <span class="inline">VacantStreamException</span> being
+    thrown. Additionally, all intermediate operations will create new streams
+    which now own the original data source of the calling stream. Thus calling
+    and intermediate operation on a stream will result in the original stream
+    being vacant. See the example for <span class="inline">
+    <a href="#occupied">occupied()</a></span>.</p>
+
+    <p>Streams can be iterated through in the standard C++ way using the
+    <span class="inline"><a href="#begin">begin()</a></span> and
+    <span class="inline"><a href="#begin">end()</a></span> methods. However,
+    one should be careful when using these (as they don't work exactly like
+    standard library iterators), and using these may not be as efficient. For
+    example, even though it may be nicer to iterate through a stream via
+    a range-for loop, it may be more efficient to use the <span class="inline">
+    <a href="#for_each">for_each()</a></span> method, as it does not have to
+    incur the overhead cost of making stream iterators safe to use.
+    </p>
+
+
+    <h2 id="methods">Methods</h2>
+
+    <p>These are methods on the stream class that do not directly effect the data in
+    the stream, and thus are not considered stream operators.</p>
+
+    <div class="function method" id="begin">
+        <div class="fheader">
+            <span class="fname">::begin()</span>
+            <span class="fdescriptor">Stream method<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">iterator Stream&lt;T&gt;::begin();</code>
+            </pre>
+ 
+            Returns an iterator to the beginning of the stream.
+            Iterators for streams have all of the standard iterator operator overloads,
+            and act for the most part just like normal forward iterators. However,
+            there are some caveats to their use.<br/><br/>
+
+            First of all, when getting a starting iterator from <span class="inline">
+            begin()</span>, you have not yet consumed anything in the stream. But,
+            as soon as you perform some operation (dereference, increment, test equality
+            or inequality) on this. iterator, the first element of the stream (if there
+            is one) will be consumed and this iterator will resolve itself to its actual
+            value. Example:
+
+            <pre>
+                <code lang="C++">auto stream = MakeStream::counter(1)
+    .peek([](int x) { std::cout << "Peek = " << x << "\n" });
+auto iter = stream.begin();
+int value = *iter;
+std::cout << "Iter = " << value << "\n";</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">Peek = 1
+Iter = 1</code>
+            </pre>
+
+            Second, be very careful when using the return value of the postfix increment
+            operator. The return value of the postfix increment of an iterator is an iterator
+            that is consider to be "consumed," meaning you can dereference it, but you
+            can't do anything else with it, you can't increment it or check its equality.
+            <br/><br/>
+
+            Why is this? Well the idea is that we don't want to split the stream or
+            copy it. If you had two independent iterators that were both attempting to
+            iterate through the same stream, very strange behavior could occur, because
+            a stream isn't a true container, its simply an wrapper around a next method.
+            This isn't to say getting two iterators is impossible (simply call
+            <span class="inline">begin()</span> twice). However, we want to safeguard
+            against this type of behavior. Attempting to perform unauthorized actions on
+            a consumed iterator results in a <span class="inline"><a href="#consumedexception">
+            ConsumedIteratorException</a></span>. Example:
+
+            <pre>
+                <code lang="C++">auto stream = MakeStream::closed_range(1,10);
+auto iter = stream.begin();
+cout << *iter << endl;
+auto temp_iter = iter++;
+cout << *temp_iter << endl;
+try {
+    ++temp_iter;
+} catch(ConsumedIteratorException& e) {
+    cout << e.what() << endl;
+}</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">1
+2
+Cannot perform prefix increment on consumed stream iterator.</code>
+            </pre>
+
+            That being said, using stream iterators should be fine with most if not
+            all standard library algorithms. However, be cognizant of the fact that
+            you are paying a slight overhead cost for using an iterator, so if
+            speed is your concern, use a reduction method instead of something
+            that uses iterators. For example, even though this is prettier:
+
+            <pre>
+                <code lang="C++">for(auto element : stream) {
+    /* do something */
+}</code>
+            </pre>
+
+            This is more efficient:
+
+            <pre>
+                <code lang="C++">stream.for_each([](auto element) {
+    /* do something */
+});</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function method" id="end">
+        <div class="fheader">
+            <span class="fname">::end()</span>
+            <span class="fdescriptor">Stream method<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">iterator Stream&lt;T&gt;::end();</code>
+            </pre>
+ 
+            Returns an iterator to something one past the end of the stream. Since
+            the end of the stream is unknown, this is simply a sentinel iterator.
+            For a discussion of the intricacies of using iterators see the
+            <span class="inline"><a href="#begin">begin()</a></span> method.
+        </div>
+    </div>
+
+    <div class="function method" id="occupied">
+        <div class="fheader">
+            <span class="fname">::occupied()</span>
+            <span class="fdescriptor">Stream method<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">bool Stream&lt;T&gt;::occupied();</code>
+            </pre>
+ 
+            Returns true if the stream object owns stream data. Streams are only
+            movable (not copiable), and moving a stream results in a "vacant"
+            stream (calling this method will return false). Attempting to
+            perform any stream operation on a vacant stream will result in a
+            <span class="inline">VacantStreamException</span>. Similarly, every
+            stream operation returns a new stream that owns the data of the stream(s)
+            it was called on. Thus attempting to do two operations on the same
+            stream will result in an exception being thrown.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">Stream&lt;int&gt; stream1 = MakeStream::counter(1);
+std::cout << std::boolalpha;
+std::cout << "Stream 1 occupied: " << stream1.occupied() << std::endl;
+Stream&lt;int&gt; stream2 = stream1.limit(10);
+std::cout << "Stream 1 occupied: " << stream1.occupied() << std::endl;
+std::cout << "Stream 2 occupied: " << stream2.occupied() << std::endl;
+try {
+    stream1.filter([] (int x) { return x % 2 == 0; })
+} catch(VacantStreamException& e) {
+    std::cout << e.what() << std::endl;
+}</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">Stream 1 occupied: true
+Stream 1 occupied: false
+Stream 2 occupied: true
+Cannot call Stream::filter on a vacant stream</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function method" id="print_pipeline">
+        <div class="fheader">
+            <span class="fname">::print_pipeline()</span>
+            <span class="fdescriptor">Stream method<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">void Stream&lt;T&gt;::print_pipeline(std::ostream& os);</code>
+            </pre>
+ 
+            Prints a representation of the stream pipeline, including all of the basic
+            transformations on the stream and all sources, printing the number
+            of pipelines and the number of stream sources.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">std::vector&lt;std::string&gt; v = /* ... */
+MakeStream::from(v)
+    .limit(100)
+    .filter([](std::string& s) {
+        return !s.empty();
+    })
+    .map([](std::string& s) {
+        return s[0];
+    })
+    .zip_with(MakeStream::counter(1) * 5)
+    .zip_with(MakeStream::repeat(10))
+    .print_pipeline(std::cout);</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">&gt; Zip:
+  &gt; Zip:
+    &gt; Map:
+      &gt; Filter:
+        &gt; Slice[0, 100, 1]:
+          &gt; [iterator stream]
+    &gt; Map:
+      &gt; [iterated stream]
+  &gt; [repeated value stream]
+Stream pipeline with 6 stages and 3 sources.</code>
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="generators">Stream Generators</h2>
+
+    <p>The stream generator factory methods can all be found as static methods
+    in the <span class="inline">MakeStream</span> class. These are not wrapped in
+    the stream, so that they can perform type deduction for you.</p>
+    
+    <p>
+    Be careful when using factory methods that draw from referenced data sources (for example,
+    <span class="inline"><a href="#from">MakeStream::from(const Container&)</a></span>). These
+    are perfectly safe to use if the usage of the stream is entirely contained
+    with in the current scope. However, if the scope is left, and the stream is referencing
+    a container within that scope, bad stuff can happen. In this case, prefer
+    the <span class="inline"><a href="#from_move">MakeStream::from_move()</a></span> generator.</p>
+
+    <div class="function generator" id="empty">
+        <div class="fheader">
+            <span class="fname">::empty()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T&gt;
+Stream&lt;T&gt; MakeStream::empty();</code>
+            </pre>
+
+            Creates an empty stream of the given type. Calling
+            <span class="inline">MakeStream::empty&lt;T&gt;()</span> is equivalent
+            to default constructing a stream.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::empty<int>().count(); // 0</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="singleton">
+        <div class="fheader">
+            <span class="fname">::singleton()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T&gt;
+Stream&lt;T&gt; MakeStream::singleton(T&& value);</code>
+            </pre>
+
+            Creates a stream with a single given value.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::singleton(5).to_vector(); // {5}</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="from">
+        <div class="fheader">
+            <span class="fname">::from()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures (template definitions 
+            excluded for brevity):</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; MakeStream::from(Iterator begin, Iterator end);
+Stream&lt;T&gt; MakeStream::from(const Container& cont);
+Stream&lt;T&gt; MakeStream::from(T* arr, size_t length);
+Stream&lt;T&gt; MakeStream::from(std::initializer_list<T> init);</code>
+            </pre>
+
+            Creates a stream from some existing set of data, a container for which
+            <span class="inline">std::begin()</span>, and <span class="inline">std::end()</span> are defined, a C-style array or an initializer list.<br/><br/>
+
+            <b>Warning!</b> Beware using most of these methods if your Stream is going to
+            be used outside of the current scope. The exception to this is the 
+            <span class="inline">initializer_list</span> generator, which will capture
+            the list, and therefore is safe to use outside of the current scope. To
+            safely capture a container in a cycle, use the
+            <span class="inline"><a href="#from_move">from_move()</a></span> generator method.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">std::vector&lt;int&gt; x = {1, 3, 4, 2};
+MakeStream::from(x);
+MakeStream::from(x.begin(), x.end())
+int arr[4] = {1, 3, 4, 2};
+MakeStream::from(arr, 4);
+MakeStream::from({1, 3, 4, 2});</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="from_move">
+        <div class="fheader">
+            <span class="fname">::from_move()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Container&gt;
+Stream&lt;T&gt; MakeStream::from_move(Container&& cont);</code>
+            </pre>
+
+            Creates a stream from a container of data, moving that container into
+            itself, so that the stream maybe used safely outside of the current scope.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">#include "Stream.h"
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+std::vector&lt;int&gt; make_vector() {
+    return {1, 2, 3};
+}
+
+Stream&lt;int&gt; make_stream_safe1() {
+    return MakeStream::from_move(make_vector());
+}
+
+Stream&lt;int&gt; make_stream_safe2() {
+    std::vector&lt;int&gt; vec = {4, 5, 6};
+    return MakeStream::from_move(vec);
+}
+
+Stream&lt;int&gt; make_stream_unsafe() {
+    std::vector&lt;int&gt; vec = {7, 8, 9};
+    return MakeStream::from(vec); // BAD!
+}
+
+int main(int argc, char const *argv[]) {
+    make_stream_safe1().print_to(std::cout);   std::cout << std::endl;
+    make_stream_safe2().print_to(std::cout);   std::cout << std::endl;
+    make_stream_unsafe().print_to(std::cout);  std::cout << std::endl;
+}</code>
+            </pre>
+
+            Produces the following output (on one run on my computer):
+
+            <pre>
+                <code lang="C++">1 2 3
+4 5 6
+7 -536870912 -2026110050</code>
+            </pre>
+
+            Rule of thumb: If you're only going to be accessing data through the
+            stream, probably just use <span class="inline">from_move()</span>.
+        </div>
+    </div>
+
+    <div class="function generator" id="repeat">
+        <div class="fheader">
+            <span class="fname">::repeat()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T&gt;
+Stream&lt;T&gt; MakeStream::repeat(T&& value);
+template&lt;typename T&gt;
+Stream&lt;T&gt; MakeStream::repeat(T&& value, size_t times);</code>
+            </pre>
+
+            Creates a stream consisting of the same value repeated over and
+            over again. The first method creates an infinite stream of the repeated
+            value. The second method only repeats the value a fixed number of 
+            times. Calling <span class="inline">stream.repeat(x, n)</span> is
+            equivalent to calling <span class="inline">stream.repeat(x).limit(n)</span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::repeat(1)
+    .partial_sum(); // Stream contains 1, 2, 3, 4, ...</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="cycle">
+        <div class="fheader">
+            <span class="fname">::cycle()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures (template definitions 
+            excluded for brevity):</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; MakeStream::cycle(Iterator begin, Iterator end);
+Stream&lt;T&gt; MakeStream::cycle(Iterator begin, Iterator end, size_t times);
+Stream&lt;T&gt; MakeStream::cycle(const Container& cont);
+Stream&lt;T&gt; MakeStream::cycle(const Container& cont, size_t times);
+Stream&lt;T&gt; MakeStream::cycle(std::initializer_list&lt;T&gt; init);
+Stream&lt;T&gt; MakeStream::cycle(std::initializer_list&lt;T&gt; init, size_t times); </code>
+            </pre>
+
+            Creates a stream of a sequence of elements repeated over and over again.
+            The signatures without a <span class="inline">times</span> parameter
+            will loop over a range indefinitely, whereas the ones with the parameter
+            will only loop over the sequence that many times. <br/><br/>
+
+
+            <b>Warning!</b> Beware using most of these methods if your Stream is going to
+            be used outside of the current scope. The exception to this is the 
+            <span class="inline">initializer_list</span> generator, which will capture
+            the list, and therefore is safe to use outside of the current scope. To
+            safely capture a container in a cycle, use the
+            <span class="inline"><a href="#cycle_move">cycle_move()</a></span>
+            generator method.
+
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">vector<int> x{1, 3, 8};
+MakeStream::cycle(x.begin(), x.end) // Contains 1, 3, 8, 1, 3, 8, 1, ...
+MakeStream::cycle(x, 2) // Contains 1, 3, 8, 1, 3, 8.</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="cycle_move">
+        <div class="fheader">
+            <span class="fname">::cycle_move()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Container&gt;
+Stream&lt;T&gt; MakeStream::cycle_move(Container&& cont);
+template&lt;typename Container&gt;
+Stream&lt;T&gt; MakeStream::cycle_move(Container&& cont, size_t times)</code>
+            </pre>
+
+            Creates a stream of a sequence of elements repeated over and over again.
+            The signatures without a <span class="inline">times</span> parameter
+            will loop over a range indefinitely, whereas the ones with the parameter
+            will only loop over the sequence that many times. <br/><br/>
+
+
+            <b>Warning!</b> Beware using most of these methods if your Stream is going to
+            be used outside of the current scope. The exception to this is the 
+            <span class="inline">initializer_list</span> generator, which will capture
+            the list, and therefore is safe to use outside of the current scope. To
+            safely capture a container in a cycle, use the
+            <span class="inline"><a href="#cycle_move">cycle_move()</a></span>
+            generator method.
+
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">#include "Stream.h"
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+std::vector&lt;int&gt; make_vector() {
+    return {1, 2, 3};
+}
+
+Stream&lt;int&gt; make_stream_safe1() {
+    return MakeStream::cycle_move(make_vector(), 2);
+}
+
+Stream&lt;int&gt; make_stream_safe2() {
+    std::vector&lt;int&gt; vec = {4, 5, 6};
+    return MakeStream::cycle_move(vec, 2);
+}
+
+Stream&lt;int&gt; make_stream_unsafe() {
+    std::vector&lt;int&gt; vec = {7, 8, 9};
+    return MakeStream::from(vec); // BAD!
+}
+
+int main(int argc, char const *argv[]) {
+    make_stream_safe1().print_to(std::cout);   std::cout << std::endl;
+    make_stream_safe2().print_to(std::cout);   std::cout << std::endl;
+    make_stream_unsafe().print_to(std::cout);  std::cout << std::endl;
+}</code>
+            </pre>
+
+            Produces the following output (on one run on my computer):
+
+            <pre>
+                <code lang="C++">1 2 3 1 2 3
+4 5 6 4 5 6
+0 -1879048192 0 0 -1879048192 0</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="generate">
+        <div class="fheader">
+            <span class="fname">::generate()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Generator&gt;
+Stream&lt;T&gt; MakeStream::generate(Generator&& generator);</code>
+            </pre>
+
+            Creates a stream whose values the return values of repeated calls to
+            the generate function with no arguments.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::generate(rand); // Stream of random integers</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="iterate">
+        <div class="fheader">
+            <span class="fname">::iterate()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T, typename Function&gt;
+Stream&lt;T&gt; MakeStream::iterate(T&& value, Function&& function);</code>
+            </pre>
+
+            Creates a stream that, given a value <span class="inline">x</span> and
+            a function <span class="inline">f</span> returns the stream produced by
+            <span class="inline">x</span>, <span class="inline">f(x)</span>,
+            <span class="inline">f(f(x))</span> and so on. In the below example
+            we produce a stream which investigates the
+            <a href="http://en.wikipedia.org/wiki/Collatz_conjecture" target="blank">Collatz conjecture</a>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">auto stream = MakeStream::iterate(1245, [](int x) {
+    if(x % 2 == 0) {
+        return x / 2;
+    } else {
+        return 3 * x + 1;
+    }
+});</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="counter">
+        <div class="fheader">
+            <span class="fname">::counter()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T&gt;
+Stream&lt;T&gt; MakeStream::counter(T&& start);
+template&lt;typename T, typename U&gt;
+Stream&lt;T&gt; MakeStream::counter(T&& start, U&& increment);
+template&lt;typename T, typename U&gt;
+Stream&lt;T&gt; MakeStream::counter(T&& start, const U& increment);</code>
+            </pre>
+
+            Creates a stream of elements produced by incrementing a given element
+            indefinitely. Incrementing in the case of the first method is done
+            via a prefix increment operator. The last two methods increment by a
+            fixed value each time, by adding the increment to the current value 
+            (on the right side of the operator).
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1); // 1, 2, 3, 4, ...
+MakeStream::counter('A', 2) // A, C, E, G, ...</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="range">
+        <div class="fheader">
+            <span class="fname">::range()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T&gt;
+Stream&lt;T&gt; MakeStream::range(T&& lower, T&& upper);
+template&lt;typename T, typename U&gt;
+Stream&lt;T&gt; MakeStream::range(T&& lower, T&& upper, U&& increment);
+template&lt;typename T, typename U&gt;
+Stream&lt;T&gt; MakeStream::range(T&& lower, T&& upper, const U& increment);</code>
+            </pre>
+
+            Creates a stream of elements that iterate through a range starting at
+            <span class="inline">lower</span>, up to but not including
+            <span class="inline">upper</span>. Testing against the upper bound
+            is done via the built in <span class="inline">!=</span> operator.
+            The rules of incrementation for this method are identical to those of
+            <span class="inline"><a href="#counter">counter()</a></span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::range(0, 5); // 0, 1, 2, 3, 4
+MakeStream::range(0, 8, 2); // 0, 2, 4, 6 </code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="closed_range">
+        <div class="fheader">
+            <span class="fname">::closed_range()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T&gt;
+Stream&lt;T&gt; MakeStream::closed_range(T&& lower, T&& upper);
+template&lt;typename T, typename U&gt;
+Stream&lt;T&gt; MakeStream::closed_range(T&& lower, T&& upper, U&& increment);
+template&lt;typename T, typename U&gt;
+Stream&lt;T&gt; MakeStream::closed_range(T&& lower, T&& upper, const U& increment);</code>
+            </pre>
+
+            Creates a stream of elements that iterate through a range starting at
+            <span class="inline">lower</span>, up <i>and</i> including
+            <span class="inline">upper</span>. Testing against the upper bound
+            is done via the built in <span class="inline">&lt;=</span> operator.
+            The rules of incrementation for this method are identical to those of
+            <span class="inline"><a href="#counter">counter()</a></span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::closed_range(1, 5); // 1, 2, 3, 4, 5
+MakeStream::closed_range(0, 8, 2); // 0, 2, 4, 6, 8</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="coin_flips">
+        <div class="fheader">
+            <span class="fname">::coin_flips()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T = bool,
+         typename Engine = std::default_random_engine&gt;
+Stream&lt;T&gt; MakeStream::coin_flips();
+template&lt;typename T = bool,
+         typename Engine = std::default_random_engine,
+         typename Seed&gt;
+Stream&lt;T&gt; MakeStream::coin_flips(Seed&& seed);</code>
+            </pre>
+
+            Creates an infinite stream of random integers whose values are uniformly 0 or 1. 
+            The user can specify the underlying random engine which defaults to
+            <span class="inline">std::default_random_engine</span> and the initial
+            seed of the random number generator. If not given, the seed will be
+            initialized to the current time. By default, this returns a stream of
+            <span class="inline">bool</span>s, though the type can be specified
+            as any time which makes sense.
+
+            <br/><br/>
+            <i>Example:</i>
+            <br/><br/>
+
+            The following runs a test to see how many coin flips come up heads
+            after 1000 flips.
+
+            <pre>
+                <code lang="C++">int heads = MakeStream::coin_flips()
+    .limit(1000)
+    .filter()
+    .count();</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="uniform_random_ints">
+        <div class="fheader">
+            <span class="fname">::uniform_random_ints()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T,
+         typename Engine = std::default_random_engine&gt;
+Stream&lt;T&gt; MakeStream::uniform_random_ints(T lower, T upper);
+template&lt;typename T,
+         typename Engine = std::default_random_engine,
+         typename Seed&gt;
+Stream&lt;T&gt; MakeStream::uniform_random_ints(T lower, T upper, Seed&& seed);</code>
+            </pre>
+
+            Creates an infinite stream of random integers whose values are distributed uniformly
+            between the upper and lower bounds. The user can specify the underlying
+            random engine which defaults to <span class="inline">std::default_random_engine</span>
+            and the initial seed of the random number generator. If not given, the seed will be
+            initialized to the current time.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::uniform_random_ints(0, 10);</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="uniform_random_reals">
+        <div class="fheader">
+            <span class="fname">::uniform_random_reals()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T = double,
+         typename Engine = std::default_random_engine&gt;
+Stream&lt;T&gt; MakeStream::uniform_random_reals(T lower = 0.0, T upper = 1.0);
+template&lt;typename T = double,
+         typename Engine = std::default_random_engine,
+         typename Seed&gt;
+Stream&lt;T&gt; MakeStream::uniform_random_reals(T lower, T upper, Seed&& seed);</code>
+            </pre>
+
+            Creates an infinite stream of random real numbers whose values are
+            distributed uniformly between the upper and lower bounds. The first
+            signature defaults the lower and upper bounds to 0 and 1 respectively.
+            The user can specify the underlying random engine which defaults to
+            <span class="inline">std::default_random_engine</span> and the initial
+            seed of the random number generator. If not given, the seed will be
+            initialized to the current time.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::uniform_random_reals(); // Doubles between 0 and 1
+MakeStream::uniform_random_reals&lt;float>(.3, .7); // Floats between .3 and .7</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="normal_randoms">
+        <div class="fheader">
+            <span class="fname">::normal_randoms()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T = double,
+         typename Engine = std::default_random_engine&gt;
+Stream&lt;T&gt; MakeStream::normal_randoms(T mean = 0.0, T stddev = 1.0);
+template&lt;typename T = double,
+         typename Engine = std::default_random_engine,
+         typename Seed&gt;
+Stream&lt;T&gt; MakeStream::normal_randoms(T mean, T stddev, Seed&& seed);</code>
+            </pre>
+
+            Creates an infinite stream of random real numbers whose values are normally
+            distributed with a given mean and stand deviation. The first signature
+            defaults the parameters to the standard normal distribution, <i>&mu;</i> = 0
+            and <i>s</i> = 1.
+            The user can specify the underlying random engine which defaults to
+            <span class="inline">std::default_random_engine</span> and the initial
+            seed of the random number generator. If not given, the seed will be
+            initialized to the current time.
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::normal_randoms(); // Doubles distributed normally
+MakeStream::normal_randoms&lt;float>(5.3, 1.8); // Floats distributed normally.</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function generator" id="randoms">
+        <div class="fheader">
+            <span class="fname">::randoms()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">template&lt;typename T,
+         template&lt;typename&gt; class Distribution,
+         typename Engine = std::default_random_engine,
+         typename Seed,
+         typename... GenArgs&gt;
+Stream&lt;T&gt; MakeStream::randoms(Seed&& seed, GenArgs&&... args);
+template&lt;typename T,
+         template&lt;typename&gt; class Distribution,
+         typename Engine = std::default_random_engine,
+         typename... GenArgs&gt;
+Stream&lt;T&gt; MakeStream::randoms(GenArgs&&... args);</code>
+            </pre>
+
+            Creates an infinite stream of random values as generically as possible.
+            In this function, <span class="inline">T</span> is the type of the resulting
+            stream, <span class="inline">Distribution</span> is an unqualified number
+            distribution (e.g. <span class="inline">std::uniform_int_distribution</span>),
+            <span class="inline">Engine</span> is the underlying random number generator
+            and the <span class="inline">args...</span> are the parameters passed into
+            the constructor of the number generator. If the seed is not provided,
+            the current time will be used.
+
+            If there is no factory method that supports your specific distribution, this
+            is the method for you. 
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::randoms&lt;double, std::poisson_distribution&gt;(5.0);
+// Stream of doubles coming from a poisson process with mean 5.</code>
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="stateless">Stateless Intermediate Stream Operators</h2>
+
+    <p>These operators insert another stage of a stream pipeline or combine
+    two streams in some way forming a new stream, which contains the data of
+    the old streams. Intermediate operators do not get evaluated until some
+    terminal operation is called on the stream. These operators are all methods 
+    on the <span class="inline">Stream</span> class.</p>
+
+    <div class="function stateless operator" id="filter">
+        <div class="fheader">
+            <span class="fname">::filter()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Predicate&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::filter(Predicate&& predicate);</code>
+            </pre>
+
+            Only allows elements of the stream that pass the given predicate.
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .filter([](int x) {
+        return x % 2 == 0;
+    }); // Stream now contains only even positive integers </code>
+            </pre>
+
+            <b>Specializations:</b><br/><br/>
+
+            Specializations of <span class="inline">filter()</span> exist for types
+            that have an implicit conversion to <span class="inline">bool</span>.
+            For these types, two specializations exist:
+
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::filter();
+Stream&lt;T&gt; Stream&lt;T&gt;::filter_not();</code>
+            </pre>
+
+            The first of these filters for elements whose <span class="inline">bool</span>
+            values are <span class="inline">true</span>. The second filters for
+            elements that evaluate to <span class="inline">false</span>.
+
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="map">
+        <div class="fheader">
+            <span class="fname">::map()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Transform&gt;
+Stream&lt;Result&gt; Stream&lt;T&gt;::map(Transform&& transform);</code>
+            </pre>
+
+            Transforms each element of the stream using the given transformation
+            function. The resulting stream is the produced by applying the
+            transformation to each element of the input stream.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .map([](int x) {
+        return x * x;
+    }); // Stream of perfect squares</code>
+            </pre>
+
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="flat_map">
+        <div class="fheader">
+            <span class="fname">::flat_map()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Transform&gt;
+Stream&lt;Result&gt; Stream&lt;T&gt;::flat_map(Transform&& transform);</code>
+            </pre>
+
+            Applies a transformation to every element of the stream, that is
+            expected to return a stream as a result. The resulting stream is the
+            concatenation of these output streams.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .flat_map([](int x) {
+        return MakeStream::counter(1)
+            .limit(x);
+    }); // Stream contains 1, 1, 2, 1, 2, 3, 1, 2, 3, 4, ...</code>
+            </pre>
+
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="limit">
+        <div class="fheader">
+            <span class="fname">::limit()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::limit(size_t bound);</code>
+            </pre>
+
+            Ensures that the stream contains a maximum number of elements.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .limit(5); // Stream contains 1, 2, 3, 4, 5</code>
+            </pre>
+
+            Note that <span class="inline">stream.limit(n)</span> is equivalent to
+            <span class="inline">stream.slice(0, n, 1);</span>.
+
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="skip">
+        <div class="fheader">
+            <span class="fname">::skip()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::skip(size_t amount);</code>
+            </pre>
+
+            Skips the first k elements of a stream.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .skip(10); // Stream contains 11, 12, 13, ...</code>
+            </pre>
+
+            Note that <span class="inline">stream.skip(n)</span> is equivalent to
+            <span class="inline">stream.slice_to_end(n, 1);</span>.
+
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="slice">
+        <div class="fheader">
+            <span class="fname">::slice()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::slice(size_t startIndex,
+                           size_t endIndex,
+                           size_t increment = 1);</code>
+            </pre>
+
+            Retrieves elements of the stream starting at <span class="inline">startIndex</span>,
+            up to, but not including, <span class="inline">endIndex</span>, iterating
+            by <span class="inline">increment</span>. By default, <span class="inline">increment</span>
+            is 1.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">auto stream1 = MakeStream::counter(0).slice(5, 10); // 5 6 7 8 9
+auto stream2 = MakeStream::counter(0).slice(1, 8, 2); // 1 3 5 7</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="slice_to_end">
+        <div class="fheader">
+            <span class="fname">::slice_to_end()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::slice_to_end(size_t startIndex,
+                                  size_t increment);</code>
+            </pre>
+
+            A version of the slice operation which allows an unbounded slice.
+            Slices are taken starting at <span class="inline">startIndex</span>
+            and go by <span class="inline">increment</span>.
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">auto stream1 = MakeStream::counter(0).slice_to_end(0, 5) // 0 5 10 15 ...
+auto stream2 = MakeStream::counter(0).slice_to_end(3, 2) // 3 5 7 9 ...</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="take_while">
+        <div class="fheader">
+            <span class="fname">::take_while()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Predicate&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::take_while(Predicate&& predicate);</code>
+            </pre>
+
+            Takes elements from the stream until the given predicate becomes false.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .take_while([](int x) {
+        return x < 5;
+    }); // Stream contains 1, 2, 3, 4</code>
+            </pre>
+
+            <b>Specializations:</b><br/><br/>
+
+            Specializations of <span class="inline">take_while()</span> exist for types
+            that have an implicit conversion to <span class="inline">bool</span>.
+            For these types, the following specializations exist:
+
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::take_while();
+Stream&lt;T&gt; Stream&lt;T&gt;::take_until();</code>
+            </pre>
+
+            The first takes elements of the stream while their <span class="inline">bool</span>
+            value is <span class="inline">true</span>, the second drops values while
+            their <span class="inline">bool</span> value is <span class="inline">false</span>.
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="drop_while">
+        <div class="fheader">
+            <span class="fname">::drop_while()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Predicate&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::drop_while(Predicate&& predicate);</code>
+            </pre>
+
+            Drops the first elements of the stream until the given predicate becomes
+            false, after which the stream is returned intact.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .drop_while([](int x) {
+        return x < 5;
+    }); // Stream contains 5, 6, 7, ...</code>
+            </pre>
+
+            <b>Specializations:</b><br/><br/>
+
+            Specializations of <span class="inline">drop_while()</span> exist for types
+            that have an implicit conversion to <span class="inline">bool</span>.
+            For these types, the following specializations exist:
+
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::drop_while();
+Stream&lt;T&gt; Stream&lt;T&gt;::drop_until();</code>
+            </pre>
+
+            The first drops elements of the stream while their <span class="inline">bool</span>
+            value is <span class="inline">true</span>, the second drops values while
+            their <span class="inline">bool</span> value is <span class="inline">false</span>.
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="peek">
+        <div class="fheader">
+            <span class="fname">::peek()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Function&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::peek(Function&& function);</code>
+            </pre>
+
+            Allows a lazy peek into the stream. When a value passes through the
+            pipeline, and hits a peek, the function will be called on that value,
+            the functions return value is ignored and the original value is passed
+            onto the next pipeline. Like all stateless operations, this will not
+            be executed until some stateful or terminal operation is called on
+            the stream.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">std::vector&lt;int&gt; result = MakeStream::counter(1)
+    .filter([](int x) { x % 3 == 0; })
+    .limit(3)
+    .peek([](int x) {
+        std::cout << "Value = " << x << std::endl;
+    })
+    .to_vector();</code>
+            </pre>
+
+            Output:
+
+            <pre>
+                <code class="output">Value = 3
+Value = 6
+Value = 9</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="adjacent_distinct">
+        <div class="fheader">
+            <span class="fname">::adjacent_distinct()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Equal = std::equal&lt;T&gt;&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::adjacent_distinct(Equal&& equal = Equal());</code>
+            </pre>
+
+            Removes adjacent duplicates from the stream. By default, duplicates
+            are determined using the standard <span class="inline">==</span>
+            operator. However, a different equality operation can be given.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::from({1, 1, 3, 2, 2, 5, 5, 5, 5, 2, 3, 3})
+    .adjacent_distinct(); // Stream contains 1, 3, 2, 5, 2, 3;</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="adjacent_difference">
+        <div class="fheader">
+            <span class="fname">::adjacent_difference()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Subtract = std::minus&lt;void&gt;&gt;
+Stream&lt;DiffType&gt; Stream&lt;T&gt;::adjacent_difference(Subtract&& subtract = Subtract());</code>
+            </pre>
+
+            Returns a stream of the pairwise differences of the elements.
+            By default, subtraction is performed using the standard <span class="inline">-</span>
+            operator. However, a different subtraction operation can be given. Type
+            of the resulting stream is the difference type returned by the subtraction
+            function.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .map([](int x) { return x * x; })
+    .adjacent_difference(); // Stream contains 3, 5, 7, 9, ...</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="partial_sum">
+        <div class="fheader">
+            <span class="fname">::partial_sum()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Add = std::plus&lt;T&gt;&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::partial_sum(Add&& add = Add());</code>
+            </pre>
+
+            Computes the partial sum of the elements in the stream. By default,
+            addition is performed using the standard <span class="inline">+</span>
+            operator. However, a different addition operation can be given. This
+            addition operation must take elements of type <span class="inline">T</span>
+            and return an element of type <span class="inline">T</span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::from({1, 5, 3, 7, -2, 6})
+    .partial_sum(); // Stream contains 1, 6, 9, 16, 14, 20</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="concat">
+        <div class="fheader">
+            <span class="fname">::concat()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Iterator&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::concat(Iterator begin, Iterator end);
+Stream&lt;T&gt; Stream&lt;T&gt;::concat(Stream&lt;T&gt;&& other);</code>
+            </pre>
+
+            Concatenates the given stream to the end of the current stream,
+            to be processed when the current stream reaches its end. The first
+            form of <span class="inline">concat</span> is a convenience for
+            concatenating with 
+            <span class="inline">MakeStream::from(begin, end)</span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">std::vector&lt;int&gt; x = {4, 5, 6};
+std::vector&lt;int&gt; y = {1, 2, 3};
+MakeStream::from(x)
+    .concat(Makestream::from(y)); // Stream contains 4, 5, 6, 1, 2, 3</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="pad">
+        <div class="fheader">
+            <span class="fname">::pad()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::pad(T&& padding);</code>
+            </pre>
+
+            Concatenates and infinite stream of value of repeated values to the
+            end of the currents stream. Note that <span class="inline">stream.pad(x)</span>
+            is equivalent to <span class="inline">stream.concat(MakeStream::repeat(x))</span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::from({1, 2, 3})
+    .pad(0); // Stream contains 1, 2, 3, 0, 0, 0, ...</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="zip_with">
+        <div class="fheader">
+            <span class="fname">::zip_with()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Right, typename Function = Zipper&gt;
+Stream&lt;Result&gt; Stream&lt;Left&gt;::zip_with(Stream&lt;Right&gt;&& other,
+                                      Function&& zipper = Function());</code>
+            </pre>
+
+            Zips two streams together using the provided function, stopping when
+            either of the streams finishes. By default, the zipping function takes
+            the two elements of the streams and returns a tuple of the two elements.
+            This function is specialized so that if either stream is a stream of
+            tuples, the resulting of the zipping function is the concatenation of
+            the tuples (rather than nested tuples).
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">std::vector&lt;std::string&gt; input = {"Hello", "this", "is", "a", "stream"};
+MakeStream::from(input)
+    .zip_with(MakeStream::counter(1))// Stream of std::tuple&lt;std::string, int&gt;
+    .for_each([](std::tuple&lt;std::string, int&gt;& tup) {
+        std::cout << tup << std::endl;
+    });</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">(Hello, 1)
+(this, 2)
+(is, 3)
+(a, 4)
+(stream, 5)</code>
+            </pre>
+
+            <i>Note:</i> As can be seen above, we've included an overload for
+            <span class="inline">operator&lt;&lt;</span> for inserting tuples
+            into I/O streams.<br/><br/>
+
+            Zipping multiple times produces a concatenated tuple rather than nested tuples:
+
+            <pre>
+                <code lang="C++">MakeStream::counter(0)
+    .zip_with(MakeStream::counter(10))
+    .zip_with(MakeStream::counter(20))
+// Stream is now a stream of std::tuple&lt;int, int, int&gt; which contains:
+// (0, 10, 20), (1, 11, 21), (2, 12, 22), ...</code>
+            </pre>
+
+            One particularly nice tuple operation we've included is a function
+            called <span class="inline">splat</span> which takes a function and
+            returns a function that takes a tuple and splats that tuples elements
+            in as the arguments to the function. For example:
+
+            <pre>
+                <code lang="C++">auto splatted = splat([](std::string x, int y) {
+    return x.length() + y;
+});
+splatted(std::make_tuple("Hello", 5)); // returns 10</code>
+            </pre>
+
+            This is useful, because it makes working with zipped streams particularly easy.
+            So instead of having to do the ugly and unreadable:
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1))
+    .zip_with(MakeStream::counter(11))
+    .map([](const std::tuple&lt;int, int&gt;& tup) {
+        return std::get&lt;0&gt;(tup) * std::get&lt;1&gt;(1);
+    });</code>
+            </pre>
+
+            You can now have the following:
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .zip_with(MakeStream::counter(11))
+    .map(splat([](int first, int second) {
+        return first * second;
+    }));</code>
+            </pre>
+
+            A different function can be used for zipping, as an excellent way of
+            performing element-wise operations to combine streams. All of the
+            binary operators have stream overloads that are effectively zips.
+            For example, consider the multiplication operator, which can be
+            implemented on two streams in the following way (its not quite this,
+            but close):
+
+            <pre>
+                <code lang="C++">template&lt;typename L, typename R&gt;
+auto operator* (Stream&lt;L&gt;&& left, Stream&lt;R&gt;&& right) {
+    return left.zip_with(right, [](const L& lvalue, const R& rvalue) {
+        return lvalue * rvalue;
+    });
+}</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="merge_with">
+        <div class="fheader">
+            <span class="fname">::merge_with()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <i><b>Note:</b> This operator only applies to streams that are guaranteed
+            to be sorted. Use on any other streams produces undefined results.</i>
+            <br/><br/>
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;>
+Stream&lt;T&gt; Stream&lt;T&gt;::merge_with(Stream&lt;T&gt;&& other,
+                                Less less = Less());</code>
+            </pre>
+
+            Computes the merging of two streams (the merge step in mergesort).
+            By default, elements are compared using their built in
+            <span class="inline">&lt;</span> operator. However, a different less
+            than operator can be provided.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">Stream<int> left = MakeStream::from({1, 2, 4, 4, 12, 13, 17});
+Stream<int> right = MakeStream::from({2, 5, 12, 17, 18});
+left.merge_with(right); // 1, 2, 2, 4, 4, 5, 12, 12, 13, 17, 17, 18</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="union_with">
+        <div class="fheader">
+            <span class="fname">::union_with()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <i><b>Note:</b> This operator only applies to streams that are guaranteed
+            to be sorted and distinct. Use on any other streams produces undefined
+            results.</i>
+            <br/><br/>
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;>
+Stream&lt;T&gt; Stream&lt;T&gt;::union_with(Stream&lt;T&gt;&& other,
+                                Less less = Less());</code>
+            </pre>
+
+            Computes the set union of two streams.
+            By default, elements are compared using their built in
+            <span class="inline">&lt;</span> operator. However, a different less
+            than operator can be provided.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">Stream<int> left = MakeStream::from({1, 2, 4, 12, 13, 17});
+Stream<int> right = MakeStream::from({2, 5, 12, 17, 18});
+left.union_with(right); // 1, 2, 4, 12, 13, 17, 18</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="intersection_with">
+        <div class="fheader">
+            <span class="fname">::intersection_with()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <i><b>Note:</b> This operator only applies to streams that are guaranteed
+            to be sorted and distinct. Use on any other streams produces undefined
+            results.</i>
+            <br/><br/>
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;>
+Stream&lt;T&gt; Stream&lt;T&gt;::intersection_with(Stream&lt;T&gt;&& other,
+                                       Less less = Less());</code>
+            </pre>
+
+            Computes the set intersection of two streams.
+            By default, elements are compared using their built in
+            <span class="inline">&lt;</span> operator. However, a different less
+            than operator can be provided.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">Stream<int> left = MakeStream::from({1, 2, 4, 12, 13, 17});
+Stream<int> right = MakeStream::from({2, 5, 12, 17, 18});
+left.intersection_with(right); // 2, 12, 17</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="difference_with">
+        <div class="fheader">
+            <span class="fname">::difference_with()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <i><b>Note:</b> This operator only applies to streams that are guaranteed
+            to be sorted and distinct. Use on any other streams produces undefined
+            results.</i>
+            <br/><br/>
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;>
+Stream&lt;T&gt; Stream&lt;T&gt;::difference_with(Stream&lt;T&gt;&& other,
+                                     Less less = Less());</code>
+            </pre>
+
+            Computes the set difference of two streams, with the base stream as
+            the left argument, and the argument stream as the right argument to
+            the difference.
+            By default, elements are compared using their built in
+            <span class="inline">&lt;</span> operator. However, a different less
+            than operator can be provided.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">Stream<int> left = MakeStream::from({1, 2, 4, 12, 13, 17});
+Stream<int> right = MakeStream::from({2, 5, 12, 17, 18});
+left.difference_with(right); // 1, 4, 13</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="symmetric_difference_with">
+        <div class="fheader">
+            <span class="fname">::symmetric_difference_with()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <i><b>Note:</b> This operator only applies to streams that are guaranteed
+            to be sorted and distinct. Use on any other streams produces undefined
+            results.</i>
+            <br/><br/>
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::symmetric_difference_with(Stream&lt;T&gt;&& other,
+                                               Less less = Less());</code>
+            </pre>
+
+            Computes the set symmetric difference of two streams.
+            By default, elements are compared using their built in
+            <span class="inline">&lt;</span> operator. However, a different less
+            than operator can be provided.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">Stream<int> left = MakeStream::from({1, 2, 4, 12, 13, 17});
+Stream<int> right = MakeStream::from({2, 5, 12, 17, 18});
+left.symmetric_difference_with(right); // 1, 4, 5, 13, 18</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="pairwise">
+        <div class="fheader">
+            <span class="fname">::pairwise()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;std::pair&lt;T, T&gt;&gt; Stream&lt;T&gt;::pairwise();</code>
+            </pre>
+
+            Returns a stream with adjacent elements grouped into pairs.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .pairwise() // Stream contains (1, 2), (3, 4), (5, 6), ...</code>
+            </pre>
+
+            Note that this is a convenience for <span class="inline">stream.grouped&lt;2&gt;()</span>.
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="grouped">
+        <div class="fheader">
+            <span class="fname">::grouped()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;size_t N&gt;
+Stream&lt;std::tuple&lt;T...&gt;&gt; Stream&lt;T&gt;::grouped();</code>
+            </pre>
+
+            Returns a stream with adjacent elements grouped into groups of size
+            <span class="inline">N</span>, where <span class="inline">N</span>
+            is a compile time constant. The resulting stream is a stream of
+            <span class="inline">N</span>-tuples, all of whose elements are of
+            the original stream type, <span class="inline">T</span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .grouped&lt;3&gt;() // Stream contains (1, 2, 3), (4, 5, 6), ...</code>
+            </pre>
+
+            This is specialied for <span class="inline">N = 2</span>, so that
+            the resulting stream is a stream of pairs rather than tuple. Calling
+            <span class="inline">stream.grouped<2>()</span> is the same as calling
+            <span class="inline">stream.pairwise()</span>.
+        </div>
+    </div>
+
+    <div class="function stateless operator" id="operator">
+        <div class="fheader">
+            <span class="fname">::operator_()</span>
+            <span class="fdescriptor">Stateless intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            
+            Almost all C++ overloadable operators are overloaded to provide an
+            algebra for streams, allowing easy element-wise operations on streams
+            with both other streams and a given value. For some binary operator which
+            we will denote as <span class="inline">$</span>, the following overloads
+            are available:<br/><br/>
+
+            <span class="signature">Method signatures (template definitions excluded for brevity):</span>
+            <pre>
+                <code lang="C++">Stream&lt;X&gt; operator$ (Stream&lt;L&gt;&& left, R&& right);
+Stream&lt;X&gt; operator$ (L&& left, Stream&lt;R&gt;&& right);
+Stream&lt;X&gt; operator$ (Stream&lt;L&gt;&& left, Stream&lt;R&gt;&& right);</code>
+            </pre>
+
+            The first two of these signatures provide mapping operations, applying the
+            <span class="inline">$</span> operator to every element of the stream with
+            the given value on the left or the right. For example:
+
+            <pre>
+                <code lang="C++">auto stream1 = MakeStream::counter(1.0) / 3.0; // 1/3, 2/3, 1, 4/3, ....
+auto stream2 = 5 * MakeStream::counter(0); // 0, 5, 10, 15, ...</code>
+            </pre>
+
+            The third signature provides an zipping operation of the elements in
+            both streams, using the <span class="inline">$</span> operator as 
+            the zipping function. For example, one can compute the dot product
+            of two streams as follows:
+
+            <pre>
+                <code lang="C++">Stream&lt;double&gt; v1 = /* ... */, v2 = /* ... */;
+double dot_product = (v1 * v2).sum();</code>
+            </pre>
+
+            Unsupported overloadable binary operators:
+
+            <ul>
+                <li>Assignment operators, <span class="inline">=</span>,
+                    <span class="inline">+=</span>,
+                    <span class="inline">*=</span>, etc.</li>
+                <li>Subscript operator, <span class="inline">[]</span> <i>(In consideration)</i></li>
+                <li>Member pointer operator, <span class="inline">-&gt;*</span></li>
+                <li>Comma operator, <span class="inline">,</span></li>
+            </ul>
+
+            Various unary operators are also supported on streams, providing mapping
+            operations. For some unary operator <span class="inline">$</span>, the
+            signature for the operator is as follows:<br/><br/>
+
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;X&gt; operator$ (Stream&lt;T&gt;&& stream);</code>
+            </pre>
+
+            This provides a mapping operation, applying the <span class="inline">$</span>
+            operator to every element of the stream. For example, to deference a stream
+            of pointers, we simply call <span class="inline">*stream</span>.<br/><br/>
+
+            Unsupported overloadable unary operators:
+
+            <ul>
+                <li>Postfix/prefix increment/decrement operators,
+                    <span class="inline">++</span>, <span class="inline">--</span></li>
+                <li>Reference operator, <span class="inline">&</span></li>
+                <li>Structure dereference operator, <span class="inline">-></span></li>
+                <li>Conversion operator operator, <span class="inline">(type)</span></li>
+            </ul>
+
+            Other overloadable but unsupported operators:
+
+            <ul>
+                <li>Allocation operators, <span class="inline">new</span>, <span class="inline">new[]</span></li>
+                <li>Deallocation operators, <span class="inline">delete</span>, <span class="inline">delete[]</span></li>
+                <li>Function application, <span class="inline">(args...)</span> <i>(Coming soon!)</i></li>
+            </ul>
+
+        </div>
+    </div>
+
+    <!-- Intermediate stateful operations -->
+
+    <h2 id="stateful">Stateful Intermediate Stream Operators</h2>
+
+    <div class="function stateful operator" id="state_point">
+        <div class="fheader">
+            <span class="fname">::state_point()</span>
+            <span class="fdescriptor">Stateful intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::state_point();</code>
+            </pre>
+
+            Forces the stream to collect its state before continuing with operations. This
+            is a good way to allow a complete peek into the data at a certain point in the
+            stream pipeline.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1)
+    .peek([](int x) {
+        std::cout << "x = " << x << std::endl;
+    })
+    .limit(3)
+    .state_point()
+    .map([](int x) { return 2 * x; })
+    .for_each([](int x) {
+        std::cout << "2x = " << x << std::endl;
+    });</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">x = 1
+x = 2
+x = 3
+2x = 2
+2x = 4
+2x = 6</code>
+            </pre>
+
+            Without the call to <span class="inline">sate_point()</span>,
+            the following would have been the output:
+
+            <pre>
+                <code class="output">x = 1
+2x = 2
+x = 2
+2x = 4
+x = 3
+2x = 6</code>
+            </pre>
+
+            Note that calling <span class="inline">stream.state_point()</span> is
+            functionally equivalent to calling 
+            <span class="inline">MakeStream::from(stream.to_deque())</span>.
+
+        </div>
+    </div>
+
+    <div class="function stateful operator" id="sort">
+        <div class="fheader">
+            <span class="fname">::sort()</span>
+            <span class="fdescriptor">Stateful intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::sort(Less&& less = Less());</code>
+            </pre>
+
+            Sorts the elements of the streams, using the given less than. By default,
+            uses the built in <span class="inline">&lt;</span> operator.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::from({3, 1, 5, 3, 2, 8})
+    .sort(); // Stream contains 1, 2, 3, 3, 5, 8</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function stateful operator" id="distinct">
+        <div class="fheader">
+            <span class="fname">::distinct()</span>
+            <span class="fdescriptor">Stateful intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;&gt;
+Stream&lt;T&gt; Stream&lt;T&gt;::distinct(Less&& less = Less());</code>
+            </pre>
+
+            Removes duplicate elements from the stream and returns the results 
+            in sorted order.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::from({3, 1, 3, 5, 2, 5, 8, 8})
+    .distinct(); // Stream contains 1 2 3 5 8</code>
+            </pre>
+        </div>
+    </div>
+
+
+    <!-- Terminal operations -->
+
+    <h2 id="terminals">Terminal Stream Operators</h2>
+
+    <div class="function terminator" id="count">
+        <div class="fheader">
+            <span class="fname">::count()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">size_t Stream&lt;T&gt;::count();</code>
+            </pre>
+
+            Returns the number of elements in the stream.
+        </div>
+    </div>
+
+    <div class="function terminator" id="sum">
+        <div class="fheader">
+            <span class="fname">::sum()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">T Stream&lt;T&gt;::sum(const T& identity);
+T Stream&lt;T&gt;::sum();</code>
+            </pre>
+
+            Sums the elements of the stream, returning the total. If no additive
+            identity is provided and the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. If an identity is
+            provided and the stream is empty, the identity is returned.<br/><br/>
+
+            <b>Specializations:</b><br/><br/>
+
+            Specializations of <span class="inline">sum()</span> exist for types
+            that have are arithmetic (given by <span class="inline">std::is_arithmetic&lt;T&gt;</span>).
+            In this case, the no argument version of <span class="inline">sum()</span>
+            assumes that the additive identity is 1.
+        </div>
+    </div>
+
+    <div class="function terminator" id="product">
+        <div class="fheader">
+            <span class="fname">::product()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">T Stream&lt;T&gt;::product(const T& identity);
+T Stream&lt;T&gt;::product();</code>
+            </pre>
+
+            Sums the elements of the stream, returning the total. If no multiplicative
+            identity is provided and the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. If an identity is
+            provided and the stream is empty, the identity is returned.<br/><br/>
+
+            <b>Specializations:</b><br/><br/>
+
+            Specializations of <span class="inline">sum()</span> exist for types
+            that have are arithmetic (given by <span class="inline">std::is_arithmetic&lt;T&gt;</span>).
+            In this case, the no argument version of <span class="inline">sum()</span>
+            assumes that the multiplicative identity is 1.
+        </div>
+    </div>
+
+    <div class="function terminator" id="min">
+        <div class="fheader">
+            <span class="fname">::min()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;&gt;
+T Stream&lt;T&gt;::min(Less&& less = Less());</code>
+            </pre>
+
+            Returns the smallest element of the stream as given by the provided
+            less than operator (by default, the built in <span class="inline">&lt;</span>
+            operator); If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. 
+        </div>
+    </div>
+
+    <div class="function terminator" id="max">
+        <div class="fheader">
+            <span class="fname">::max()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;&gt;
+T Stream&lt;T&gt;::max(Less&& less = Less());</code>
+            </pre>
+
+            Returns the largest element of the stream as given by the provided
+            less than operator (by default, the built in <span class="inline">&lt;</span>
+            operator); If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. 
+        </div>
+    </div>
+
+    <div class="function terminator" id="minmax">
+        <div class="fheader">
+            <span class="fname">::minmax()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Less = std::less&lt;T&gt;&gt;
+std::pair&lt;T, T&gt; Stream&lt;T&gt;::minmax(Less&& less = Less());</code>
+            </pre>
+
+            Returns the smallest and largests of the stream as given by the provided
+            less than operator (by default, the built in <span class="inline">&lt;</span>
+            operator); The first field of the resulting pair is the minimum,
+            the second field is the maximum element. If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. 
+        </div>
+    </div>
+
+    <div class="function terminator" id="first">
+        <div class="fheader">
+            <span class="fname">::first()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">T Stream&lt;T&gt;::first();</code>
+            </pre>
+
+            Returns the first element of the stream. If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. 
+        </div>
+    </div>
+
+    <div class="function terminator" id="last">
+        <div class="fheader">
+            <span class="fname">::last()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">T Stream&lt;T&gt;::last();</code>
+            </pre>
+
+            Returns the last element of the stream. If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. 
+        </div>
+    </div>
+
+    <div class="function terminator" id="nth">
+        <div class="fheader">
+            <span class="fname">::nth()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">T Stream&lt;T&gt;::nth(size_t index);</code>
+            </pre>
+
+            Returns the n<sup>th</sup> of the stream, indexed starting at 0. If the
+            stream does not contain that many elements, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>. 
+            Calling <span class="inline">stream.nth(n)</span> is functionally
+            equivalent to calling <span class="inline">stream.skip(n).first()</span>.
+        </div>
+    </div>
+
+    <div class="function terminator" id="reduce">
+        <div class="fheader">
+            <span class="fname">::reduce()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures (template definitions 
+            excluded for brevity):</span>
+            <pre>
+                <code lang="C++">U Stream&lt;T&gt;::reduce(const U& identity, Accumulator&& accum);
+U Stream&lt;T&gt;::reduce(IdentityFn&& identity, Accumulator&& accum);
+T Stream&lt;T&gt;::reduce(Accumulator&& accum);</code>
+            </pre>
+
+            Performs a reduction (or a fold) of the elements in the stream. There are three
+            forms of the reduce operation, given by the signatures above.<br/><br/>
+
+            The first reduce operation takes some identity element of type
+            <span class="inline">U</span> and an accumulator function that should take
+            two arguments, the first of type <span class="inline">U</span>, the 
+            second of type <span class="inline">T</span> and return an element of type
+            <span class="inline">U</span>. If the stream is empty, the identity
+            value will be returned. The functionality is equivalent to:
+
+            <pre>
+                <code lang="C++">U result = identity
+for(T element : stream) {
+    result = accum(result, element);
+}
+return result;</code>
+            </pre>
+
+            An example of this type of reduction is computing a sum with identity.
+            For example, computing the sum of a stream of integers could be computed by:
+
+            <pre>
+                <code lang="C++">int sum = stream.reduce(0, [](int left, int right) {
+    return left + right;
+});</code>
+            </pre>
+
+            The last two reduce operations don't handle cases where the stream is
+            empty. In other words, there is no identity element. In these cases,
+            if the stream is empty, an <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>
+            is thrown. <br/><br/>
+
+            The second reduce operation takes and identity function which converts
+            elements of the stream into elements of the result type, and an accumulator
+            which should behave just as before. The functionality is equivalent to (in
+            pseudocode):
+            <pre>
+                <code lang="C++">U result = identity(stream[0]);
+for(T element : stream[1 ...]) {
+    result = accum(result, element);   
+}
+return result;</code>
+            </pre>
+
+            This is the type of reduction that is used to compute
+            <span class="inline">minmax()</span>, which can be implemented as
+            follows:
+
+            <pre>
+                <code lang="C++">auto to_pair = [](auto x) {
+    return std::make_pair(x, x);
+};
+
+auto next_minmax = [](const auto& prev_minmax, auto& value) {
+    if(value &lt; prev_minmax.first) {
+        return std::make_pair(value, prev_minmax.second);
+    } else if (value &gt; prev_minmax.second) {
+        return std::make_pair(prev_minmax.first, value);
+    } else {
+        return prev_minmax;
+    }
+};
+
+auto minmax = stream.reduce(to_pair, next_minmax);</code>
+            </pre>
+
+            The final reduce operation is a convenience for the second reduce wherein
+            the identity function is just a function that returns its argument and
+            the accumulator takes both arguments of type <span class="inline">T</span>
+            and returns a value of type <span class="inline">T</span>. The functionality
+            is equivalent to (in pseudocode):
+
+            <pre>
+                <code lang="C++">T result = stream[0];
+for(T element : stream[1 ...]) {
+    result = accum(result, element);
+}
+return result;</code>
+            </pre>
+
+            This reduce operation can be used to compute a sum without identity:
+
+            <pre>
+                <code lang="C++">stream.reduce(std::add&lt;void&gt;());</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function terminator" id="reduce_by">
+        <div class="fheader">
+            <span class="fname">::reduce_by()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename U&gt;
+U Stream&lt;T&gt;::reduce_by(const Reducer&lt;T, U&gt;& reducer);</code>
+            </pre>
+
+            Reduces the stream using a <span class="inline">Reducer</span> object.
+            This is really a convenience for packaging up reductions to pass into
+            <span class="inline">reduce(IdentityFn&&, Accumulator&&)</span>. The
+            <span class="inline">Reducer</span> class has the following definition:
+
+            <pre>
+                <code lang="C++">template&lt;typename In, typename Out&gt;
+struct Reducer {
+    virtual Out initial(In& in) const = 0;
+    virtual Out accumulate(Out& out, In& in) const = 0;
+};</code>
+            </pre>
+
+            Provided subclasses reside in the <span class="inline">Reducers</span>
+            namespace. One such implementation is the <span class="inline">SummaryStats</span>
+            reducer:
+
+            <pre>
+                <code lang="C++">auto stats = MakeStream::normal_randoms()
+    .limit(1000)
+    .reduce_by(Reducers::SummaryStats<double>());
+std::cout << stats << std::endl;
+                </code>
+            </pre>
+
+            Would produce output that looks like:
+
+            <pre>
+                <code class="output">N=1000, u=0.00986662, s=0.980492, min=-3.7676, max=3.52161</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function terminator" id="random_element">
+        <div class="fheader">
+            <span class="fname">::random_element()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">T Stream&lt;T&gt;::random_element();</code>
+            </pre>
+
+            Returns a random element drawn uniformly from the elements of the stream.
+            If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>.
+            If the stream is infinite, this will never terminate.
+        </div>
+    </div>
+
+    <div class="function terminator" id="random_sample">
+        <div class="fheader">
+            <span class="fname">::random_sample()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">std::vector&lt;T&gt; Stream&lt;T&gt;::random_sample(size_t size);</code>
+            </pre>
+
+            Returns a random sample of elements of the given size drawn randomly
+            from the stream. If the stream has less elements than the requested size,
+            the sample will consist of all of the elements of the stream. If the
+            stream is infinite, this will never terminate.</span>
+        </div>
+    </div>
+
+    <div class="function terminator" id="any">
+        <div class="fheader">
+            <span class="fname">::any()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Predicate&gt;
+bool Stream&lt;T&gt;::any(Predicate&& predicate);</code>
+            </pre>
+
+            Returns true if some element of the stream matches the given predicate.
+            If the stream is empty, the result is vacuously false. If the stream is
+            infinite, this operation will shortcut in the case that an element that
+            matches the predicate is found.<br/><br/>
+
+            <b>Specializations:</b><br/><br/>
+
+            A specialization of <span class="inline">any()</span> exists for types
+            that have an implicit conversion to <span class="inline">bool</span>.
+            For these types, the following specialization exists:
+
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::any();</code>
+            </pre>
+
+            This returns true if any element of the stream has a conversion to a
+            <span class="inline">bool</span> with value true.
+        </div>
+    </div>
+
+    <div class="function terminator" id="all">
+        <div class="fheader">
+            <span class="fname">::all()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Predicate&gt;
+bool Stream&lt;T&gt;::all(Predicate&& predicate);</code>
+            </pre>
+
+            Returns true if all of the elements of the stream matches the given predicate.
+            If the stream is empty, the result is vacuously true. If the stream is
+            infinite, this operation will shortcut in the case that an element that
+            doesn't match the predicate is found.<br/><br/>
+
+            <b>Specializations:</b><br/><br/>
+
+            Specializations of <span class="inline">any()</span> exist for types
+            that have an implicit conversion to <span class="inline">bool</span>.
+            For these types, the following specializations exist:
+
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::all();
+Stream&lt;T&gt; Stream&lt;T&gt;::not_all();</code>
+            </pre>
+
+            The first returns true if all of the elements of the stream have a conversion to a
+            <span class="inline">bool</span> with value true. The second is a convenience for
+            the logical not of the first.
+        </div>
+    </div>
+
+    <div class="function terminator" id="none">
+        <div class="fheader">
+            <span class="fname">::none()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Predicate&gt;
+bool Stream&lt;T&gt;::none(Predicate&& predicate);</code>
+            </pre>
+
+            Returns true if none of the elements of the stream matches the given predicate.
+            If the stream is empty, the result is vacuously true. If the stream is
+            infinite, this operation will shortcut in the case that an element that
+            doesn't match the predicate is found.<br/><br/>
+
+            <b>Specializations:</b><br/><br/>
+
+            A specialization of <span class="inline">none()</span> exists for types
+            that have an implicit conversion to <span class="inline">bool</span>.
+            For these types, the following specialization exists:
+
+            <pre>
+                <code lang="C++">Stream&lt;T&gt; Stream&lt;T&gt;::none();</code>
+            </pre>
+
+            This returns true if none of the elements of the stream have a conversion to a
+            <span class="inline">bool</span> with value true.
+        </div>
+    </div>
+
+    <div class="function terminator" id="for_each">
+        <div class="fheader">
+            <span class="fname">::for_each()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Function&gt;
+void Stream&lt;T&gt;::for_each(Function&& function);</code>
+            </pre>
+
+            Calls the given function on each element of the stream.
+        </div>
+    </div>
+
+    <div class="function terminator" id="to_container">
+        <div class="fheader">
+            <span class="fname">::to_<i>container</i>()</span>
+            <span class="fdescriptor">Stateful terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signatures:</span>
+            <pre>
+                <code lang="C++">  std::vector&lt;T&gt; Stream&lt;T&gt;::to_vector();
+    std::list&lt;T&gt; Stream&lt;T&gt;::to_list();
+   std::deque&lt;T&gt; Stream&lt;T&gt;::to_deque();
+     std::set&lt;T&gt; Stream&lt;T&gt;::to_set();
+std::multiset&lt;T&gt; Stream&lt;T&gt;::to_multiset();</code>
+            </pre>
+
+            Creates a container of the given type and inserts the elements of the
+            stream into that container thereafter returning the contianer.
+        </div>
+    </div>
+
+    <div class="function terminator" id="copy_to">
+        <div class="fheader">
+            <span class="fname">::copy_to()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename OutputIterator&gt;
+OutputIterator Stream&lt;T&gt;::copy_to(OutputIterator iterator);</code>
+            </pre>
+
+            Copies the elements of the stream into the given iterator, returning
+            the iterator one past the end of the sequence, much like
+            <span class="inline">std::copy</span>.
+        </div>
+    </div>
+
+    <div class="function terminator" id="move_to">
+        <div class="fheader">
+            <span class="fname">::move_to()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename OutputIterator&gt;
+OutputIterator Stream&lt;T&gt;::move_to(OutputIterator iterator);</code>
+            </pre>
+
+            Moves the elements of the stream into the given iterator, returning
+            the iterator one past the end of the sequence, much like
+            <span class="inline">std::move</span>.
+        </div>
+    </div>
+
+    <div class="function terminator" id="print_to">
+        <div class="fheader">
+            <span class="fname">::print_to()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">void Stream&lt;T&gt;::print_to(std::ostream& os,
+                         const char* delimiter = ' ');</code>
+            </pre>
+
+            Prints the elements of the stream to the given
+            <span class="inline">ostream</span>, with a delimiter after every element.
+            Calling <span class="inline">stream.print_to(os, delimiter)</span> is a convenience method for:
+
+            <pre>
+                <code lang="C++">stream.copy_to(std::ostream_iterator&lt;T&gt;(os), delimiter);</code>
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="exceptions">Stream Exceptions</h2>
+
+    <div class="function exception" id="streamexception">
+        <div class="fheader">
+            <span class="fname">StreamException</span>
+            <span class="fdescriptor">Stream exception</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">class StreamException {
+public:
+    explicit StreamException(const std::string& msg);
+    explicit StreamException(const char* msg);
+
+    std::string what() const;
+}</code>
+            </pre>
+
+            The root class of all stream based exceptions.
+        </div>
+    </div>
+
+    <div class="function exception" id="emptyexception">
+        <div class="fheader">
+            <span class="fname">EmptyStreamException</span>
+            <span class="fdescriptor">Stream exception</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">class EmptyStreamException : public StreamException {
+public:
+    explicit EmptyStreamException(const std::string& method);
+}</code>
+            </pre>
+
+            The exception that gets thrown when attempting to call some terminal
+            stream operation that has no identity element for that operation on
+            a stream that is empty.
+            <br/><br/>
+
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">try {
+    MakeStream::empty<int>().min()
+} catch(EmptyStreamException& e) {
+    std::cout << e.what() << std::endl;
+}</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">No terminal result for operation Stream::min</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function exception" id="vacantexception">
+        <div class="fheader">
+            <span class="fname">VacantStreamException</span>
+            <span class="fdescriptor">Stream exception</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">class VacantStreamException : public StreamException {
+public:
+    explicit EmptyStreamException(const std::string& method);
+}</code>
+            </pre>
+
+            The exception that gets thrown when attempting to call any stream operation
+            on some stream that no longer holds data. A stream is considered vacant when
+            it has been moved from some other stream, or some stream operation has been
+            called on the stream. To check vacancy, use the <span class="inline">
+            <a href="#occupied">occupied()</a></span> method.
+            <br/><br/>
+
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">auto stream1 = MakeStream::range(0, 5);
+auto stream2 = std::move(stream1); // Copying disallowed
+try {
+    stream1.skip(2);
+} catch(VacantStreamException& e) {
+    std::cout << e.what() << std::endl;
+}
+stream2.skip(2); // Didn't save it so stream2's data is lost!
+try {
+    stream2.first();
+} catch(VacantStreamException& e) {
+    cout << e.whate() << endl;
+}</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">Cannot call Stream::skip on a vacant stream
+Cannot call Stream::first on a vacant stream</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function exception" id="consumedexception">
+        <div class="fheader">
+            <span class="fname">ConsumedIteratorException</span>
+            <span class="fdescriptor">Stream exception</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">class ConsumedIteratorException : public StreamException {
+public:
+    explicit ConsumedIteratorException(const std::string& op);
+}</code>
+            </pre>
+
+            The exception that gets thrown when attempting to call some non dereferencing
+            operation on a stream iterator after that iterator is declared to be
+            in a "consumed" state. For a discussion of this, see the comments for
+            the <span class="inline"><a href="#begin">begin()</a></span> method.
+            <br/><br/>
+
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">auto stream = MakeStream::closed_range(1,10);
+auto iter = stream.begin();
+cout << *iter << endl;
+auto temp_iter = iter++;
+cout << *temp_iter << endl;
+try {
+    ++temp_iter;
+} catch(ConsumedIteratorException& e) {
+    cout << e.what() << endl;
+}</code>
+            </pre>
+
+            Produces the following output:
+
+            <pre>
+                <code class="output">1
+2
+Cannot perform prefix increment on consumed stream iterator.</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function exception" id="stopstream">
+        <div class="fheader">
+            <span class="fname">StopStream</span>
+            <span class="fdescriptor">Stream exception</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">class StopStream : public StreamException {
+public:
+    explicit StopStream();
+}</code>
+            </pre>
+
+            An exception to be thrown by the user in any intermediary or generating
+            (but not terminating) stream operation, if they want the stream to stop
+            iterating at that point. This is most often helpful with the
+            <span class="inline"><a href="#generate">generate()</a></span>
+            method.
+            <br/><br/>
+
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">std::ifstream fin = /* ... */
+auto stream = MakeStream::generate([&fin]() {
+    std::string line;
+    if(!std::getline(fin, line))
+        throw StopStream(); // Stop iterating when we reach EOF
+    return line;
+});</code>
+            </pre>
+
+            <pre>
+                <code lang="C++">// Silly version of take while
+stream.peek([](auto& value) {
+    if(!pred(value))
+        throw StopStream();
+});</code>
+            </pre>
+        </div>
+    </div>
+
+    <h2 id="recipes">Stream Recipes</h2>
+
+    These will go here eventually.
+
+    <hr/>
+
+    <p> 
+    C++ Streams are developed by <a href="http://scheinerman.net/jonah">Jonah Scheinerman</a>.
+    Please reach out to me if you have question or concerns.</p>
+
+    <p class="license">C++ Streams are distributed under the MIT open source license.</p>
+
+    <p class="license">Copyright &copy; 2014 by Jonah Scheinerman</p>
+</div>
+
+</body>
+</html>

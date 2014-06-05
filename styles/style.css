@@ -1,0 +1,187 @@
+body {
+    font-family: 'Helvetica Neue', HelveticaNeue, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    background: #EEE;
+    line-height: 120%;
+}
+
+a {
+    color: #9C1143;
+    text-decoration: none;
+}
+
+p {
+    width: 800px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+li {
+    max-width: 700px;
+}
+
+#title {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 64px;
+    font-weight: bold;
+    color: #999;
+    text-shadow: 1px 1px 0 white, -1px -1px 0 rgba(0,0,0,.5);
+    margin: 40px 0px 50px 0px;
+}
+
+#sidebar {
+    position: fixed;
+    font-size: 14px;
+    background: white;
+    box-shadow: 5px 0 10px -5px rgba(0,0,0,.5);
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-title {
+    display: block;
+    background: #EEE;
+    color: #333;
+    margin: 5px -10px 5px -10px;
+    padding: 5px 10px 5px 10px;
+    font-weight: bold;
+}
+
+.sidebar-title:hover {
+    background: #CCC;
+    text-decoration: none;
+    color: #111;
+}
+
+input[type='text'] {
+    width: 230px;
+    padding: 2px 2px 2px 2px;
+    border: 1px solid #CCC;
+}
+
+input[type='text']:focus {
+    border: 1px solid #690B2D;
+}
+
+.sidebar-list {
+    list-style: none;
+    margin: 0px;
+}
+
+.sidebar-item {
+    font-family: 'Ubuntu Mono', monospace;
+    margin: 0px -50px 0px -50px;
+    padding: 0px;
+    display: block;
+}
+
+a.sidebar-anchor {
+    display: block;
+    padding: 2px 0px 2px 20px;
+}
+
+a.sidebar-anchor:hover {
+    background: #DDD;
+    text-decoration: none;
+    color: #690B2D;
+}
+
+#content {
+    margin-left: 290px;
+}
+
+h2 {
+    font-family: 'Open Sans', sans-serif;
+    color: #444;
+    font-size: 36px;
+    width: 100%;
+    margin: 0px 0px 30px 0px;
+    padding-top: 30px;
+}
+
+pre {
+    margin-top: -5px;
+    margin-bottom: -22px;
+}
+
+code[lang='C++'], code.output {
+    border-radius: 5px;
+    font-family: 'Ubuntu Mono', ;
+    font-size: 16px;
+    text-shadow: 0 1px 2px black;
+    box-shadow: inset 0 2px 5px 0 black;
+}
+
+.function {
+    width: 800px;
+    border-radius: 5px;
+    margin-top: 20px;
+    border-left: 2px solid #9C1143;
+    border-right: 2px solid #9C1143;
+    border-bottom: 2px solid #9C1143;
+}
+
+.fheader {
+    padding: 10px;
+    background: #9C1143;
+    border-radius: 5px;
+    margin-left: -2px;
+    margin-right: -2px;
+    margin-bottom: -2px;
+    /*box-shadow: 0 2px 10px 0px rgba(0,0,0,.5);*/
+}
+
+.fname {
+    font-size: 24px;
+    font-family: 'Ubuntu Mono', monospace;
+    font-weight: bold;
+    color: #EEE;
+    text-shadow: 0 1px 5px #000;
+}
+
+.fdescriptor {
+    text-align: right;
+    color: white;
+    font-family: 'Ubuntu Mono', monospace;
+    text-shadow: 0 1px 2px #000;
+    font-size: 14px;
+    float: right;
+    margin-top: 0px;
+}
+
+.fcontent {
+    padding: 10px;
+}
+
+.signature {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+span.inline {
+    font-family: 'Ubuntu Mono', monospace;
+    background: rgba(0,0,0,.1);
+    border-radius: 3px;
+    padding: 0px 1px 0px 1px;
+    margin: 0px -1px 0px -1px;
+    border: 1px solid rgba(0,0,0,.2);
+}
+
+.license {
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    text-shadow: 0 1px 1px white;
+}
+
+hr {
+    width: 790px;
+    margin: 10px 5px 10px 5px;
+}
