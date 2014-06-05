@@ -3,11 +3,14 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Predicate>
-class DropWhileStreamProvider : public StreamProvider<T> {
+class DropWhile : public StreamProvider<T> {
 
 public:
-    DropWhileStreamProvider(StreamProviderPtr<T> source, Predicate&& predicate)
+    DropWhile(StreamProviderPtr<T> source, Predicate&& predicate)
         : source_(std::move(source)), predicate_(predicate) {}
 
     std::shared_ptr<T> get() override {
@@ -47,5 +50,8 @@ private:
     std::shared_ptr<T> current_;
     bool dropped_ = false;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

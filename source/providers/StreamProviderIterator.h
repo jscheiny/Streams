@@ -1,8 +1,11 @@
 #ifndef STREAM_PROVIDER_ITERATOR_H
 #define STREAM_PROVIDER_ITERATOR_H
 
+namespace stream {
+namespace provider {
+
 template<typename T>
-class StreamProvider<T>::Iterator {
+struct StreamProvider<T>::Iterator {
 
 public:
     T& operator* ();
@@ -141,8 +144,11 @@ void StreamProvider<T>::Iterator::update_initial() {
 template<typename T>
 void StreamProvider<T>::Iterator::check_consumed(const std::string& op) const {
     if(state_ == State::Consumed) {
-        throw ConsumedIteratorException(op);
+        throw stream::ConsumedIteratorException(op);
     }
 }
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

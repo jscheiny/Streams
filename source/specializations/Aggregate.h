@@ -3,6 +3,8 @@
 
 #include "SpecializationMacros.h"
 
+namespace stream {
+
 template<typename T>
 class StreamImpl<T, Bool | Number> 
     : public StreamImpl<T, Bool>, public StreamImpl<T, Number> {
@@ -62,6 +64,9 @@ class StreamImpl {
         "Illegal Stream with no specialization. "
         "This is considered impossible, please report this.");
 };
+
+} /* namespace stream */
+
 #include "UndefSpecializationMacros.h"
 
 #endif

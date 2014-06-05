@@ -8,15 +8,16 @@
 #include <iostream>
 #include <type_traits>
 
+namespace stream {
+namespace provider {
+
 template<typename T>
-class SingletonStreamProvider : public StreamProvider<T> {
+class Singleton : public StreamProvider<T> {
 
 public:
-    SingletonStreamProvider(const T& value)
-        : value_(std::make_shared<T>(value)) {}
+    Singleton(const T& value) : value_(std::make_shared<T>(value)) {}
 
-    SingletonStreamProvider(T&& value)
-        : value_(std::make_shared<T>(value)) {}
+    Singleton(T&& value) : value_(std::make_shared<T>(value)) {}
 
     std::shared_ptr<T> get() override {
         return value_;
@@ -41,5 +42,8 @@ private:
     bool first_ = true;
     std::shared_ptr<T> value_;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

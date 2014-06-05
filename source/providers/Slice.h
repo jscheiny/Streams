@@ -3,12 +3,14 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T>
-class SlicedStreamProvider : public StreamProvider<T> {
+class Slice : public StreamProvider<T> {
 
 public:
-    SlicedStreamProvider(StreamProviderPtr<T> source,
-                         size_t start, size_t end, size_t increment, bool no_end_)
+    Slice(StreamProviderPtr<T> source, size_t start, size_t end, size_t increment, bool no_end_)
         : source_(std::move(source)),
           start_(start),
           end_(end),
@@ -70,5 +72,8 @@ private:
 
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

@@ -6,17 +6,20 @@
 
 #include "SetOperation.h"
 
-template<typename T, typename Compare>
-class MergedStreamProvider : public SetOperationStreamProvider<T, Compare> {
+namespace stream {
+namespace provider {
 
-    using Parent = SetOperationStreamProvider<T, Compare>;
+template<typename T, typename Compare>
+class Merge : public SetOperation<T, Compare> {
+
+    using Parent = SetOperation<T, Compare>;
     using UpdateState = typename Parent::UpdateState;
     using ToAdvance = typename Parent::ToAdvance;
 
 public:
-    MergedStreamProvider(StreamProviderPtr<T>&& source1,
-                         StreamProviderPtr<T>&& source2,
-                         Compare&& comparator)
+    Merge(StreamProviderPtr<T>&& source1,
+          StreamProviderPtr<T>&& source2,
+          Compare&& comparator)
           : Parent(std::forward<StreamProviderPtr<T>>(source1),
                    std::forward<StreamProviderPtr<T>>(source2),
                    std::forward<Compare>(comparator)) {}
@@ -39,5 +42,8 @@ protected:
     }
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

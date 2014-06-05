@@ -11,6 +11,8 @@
     decltype(auto) method () \
         { return Super :: method (to_bool); }
 
+namespace stream {
+
 template<typename T>
 class StreamImpl<T, Bool> : public virtual StreamImpl<T, Common> {
 
@@ -47,6 +49,8 @@ public:
 private:
     PRIVATE_CONSTRUCTORS;
 };
+
+} /* namesapce stream */
 
 #undef OPERATOR_OVERRIDE
 #include "UndefSpecializationMacros.h"

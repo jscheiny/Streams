@@ -1,6 +1,3 @@
-#include "source/Stream.h"
-#include "source/Reducers.h"
-
 #include <vector>
 #include <iterator>
 #include <iostream>
@@ -8,6 +5,9 @@
 #include <chrono>
 #include <random>
 #include <iomanip>
+
+#include "source/Stream.h"
+#include "source/Reducers.h"
 
 using namespace std;
 
@@ -31,22 +31,18 @@ private:
 };
 
 int main(int argc, char const *argv[]) {
-    int heads = MakeStream::coin_flips()
+    auto coin_flips = []() {
+        return stream::MakeStream::coin_flips<std::default_random_engine, int>();
+    };
+
+    auto experiment = [coin_flips](int length) {
+        return (coin_flips() * coin_flips())
+            .limit(length)
+            .filter()
+            .count();
+    };
+
+    cout << stream::MakeStream::generate(bind(experiment, 1000))
         .limit(1000)
-        .filter()
-        .count();
-    cout << heads << endl;
-
-    C a(1);
-    C b(2);
-    C c(3);
-    vector<C*> cs = {&a, &b, nullptr, &c};
-    MakeStream::from(cs)
-        .filter()
-        .map(&C::value)
-        .print_to(cout);
-    cout << endl;
-
-    Stream<double> s;
-    cout << s.product() << endl;
+        .reduce_by(Reducers::SummaryStats<size_t>()) << endl;
 }

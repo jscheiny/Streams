@@ -5,6 +5,8 @@
 
 #include "SpecializationMacros.h"
 
+namespace stream {
+
 template<typename T>
 class StreamImpl<T, Number> : public virtual StreamImpl<T, Common> {
 
@@ -28,6 +30,8 @@ private:
     PRIVATE_CONSTRUCTORS;
 
 };
+
+} /* namespace stream */
 
 #include "UndefSpecializationMacros.h"
 

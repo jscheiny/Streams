@@ -1,6 +1,6 @@
 #define PUBLIC_USINGS \
     using ElementType = T; \
-    using iterator = typename StreamProvider<T>::Iterator
+    using iterator = typename provider::StreamProvider<T>::Iterator
 
 #define PRIVATE_USINGS \
     using Super = StreamImpl<T, Common>
@@ -22,4 +22,4 @@
 #define FRIENDS \
     friend class MakeStream; \
     template<typename, int> friend class StreamImpl; \
-    template<typename, typename, typename> friend class FlatMappedStreamProvider
+    template<typename, typename, typename> friend class provider::FlatMap

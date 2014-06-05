@@ -8,6 +8,8 @@
 #include <iterator>
 #include <tuple>
 
+namespace stream {
+
 bool to_bool(bool x) {
     return x;
 }
@@ -99,5 +101,6 @@ SplattableFunction<Function> splattable(Function&& function) {
     return SplattableFunction<Function>(std::forward<Function>(function));
 }
 
+} /* namespace stream */
 
 #endif

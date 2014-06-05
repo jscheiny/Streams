@@ -15,6 +15,8 @@
     decltype(auto) method (R (Type::*member)() const) \
         { return Super :: method (std::mem_fn(member)); }
 
+namespace stream {
+
 template<typename T>
 class StreamImpl<T, Class> : public virtual StreamImpl<T, Common> {
 
@@ -44,6 +46,8 @@ public:
 private:
     PRIVATE_CONSTRUCTORS;
 };
+
+} /* namespace stream */
 
 #undef OPERATOR_OVERRIDE
 #include "UndefSpecializationMacros.h"

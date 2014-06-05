@@ -4,6 +4,10 @@
 #include "StreamProvider.h"
 
 #include <tuple>
+#include <type_traits>
+
+namespace stream {
+namespace provider {
 
 namespace detail {
 
@@ -44,8 +48,6 @@ struct ZipperImpl<std::tuple<LArgs...>, std::tuple<RArgs...>> {
     }
 };
 
-} /* detail */
-
 struct Zipper {
     template<typename L, typename R>
     auto operator() (L&& left, R&& right) {
@@ -56,18 +58,20 @@ struct Zipper {
     }
 };
 
+} /* namespace detail */
+
 template<typename L, typename R, typename Function>
-class ZippedStreamProvider : public StreamProvider<ReturnType<Function, L&&, R&&>> {
+class Zip : public StreamProvider<ReturnType<Function, L&&, R&&>> {
 
 public:
-    using ValueType = ReturnType<Function, L&, R&>;
+    using ValueType = ReturnType<Function, L&&, R&&>;
 
-    ZippedStreamProvider(StreamProviderPtr<L> left_source,
-                         StreamProviderPtr<R> right_source,
-                         Function&& zipper)
-        : left_source_(std::move(left_source)),
-          right_source_(std::move(right_source)),
-          zipper_(zipper) {}
+    Zip(StreamProviderPtr<L> left_source,
+        StreamProviderPtr<R> right_source,
+        Function&& zipper)
+          : left_source_(std::move(left_source)),
+            right_source_(std::move(right_source)),
+            zipper_(zipper) {}
 
     std::shared_ptr<ValueType> get() override {
         return current_;
@@ -98,5 +102,8 @@ private:
     std::shared_ptr<ValueType> current_;
     Function zipper_;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

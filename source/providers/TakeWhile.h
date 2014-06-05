@@ -3,11 +3,14 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Predicate>
-class TakeWhileStreamProvider : public StreamProvider<T> {
+class TakeWhile : public StreamProvider<T> {
 
 public:
-    TakeWhileStreamProvider(StreamProviderPtr<T> source, Predicate&& predicate)
+    TakeWhile(StreamProviderPtr<T> source, Predicate&& predicate)
         : source_(std::move(source)), predicate_(predicate) {}
 
     std::shared_ptr<T> get() override {
@@ -39,5 +42,8 @@ private:
     Predicate predicate_;
     std::shared_ptr<T> current_;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

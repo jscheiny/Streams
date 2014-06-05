@@ -3,13 +3,16 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Compare>
-class SetOperationStreamProvider : public StreamProvider<T> {
+class SetOperation : public StreamProvider<T> {
 
 public:
-    SetOperationStreamProvider(StreamProviderPtr<T> source1,
-                               StreamProviderPtr<T> source2,
-                               Compare&& comparator)
+    SetOperation(StreamProviderPtr<T> source1,
+                 StreamProviderPtr<T> source2,
+                 Compare&& comparator)
           : source1_(std::move(source1)),
             source2_(std::move(source2)),
             comparator_(comparator) {}
@@ -187,5 +190,8 @@ private:
     }
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

@@ -4,15 +4,18 @@
 #include "StreamProvider.h"
 #include "../Utility.h"
 
+#include <type_traits>
+
+namespace stream {
+namespace provider {
+
 template<typename T, typename Subtractor>
-class AdjacentDifferenceStreamProvider
-    : public StreamProvider<ReturnType<Subtractor, T&, T&>> {
+class AdjacentDifference : public StreamProvider<ReturnType<Subtractor>> {
 
 public:
-    using DiffType = ReturnType<Subtractor, T&, T&>;
+    using DiffType = ReturnType<Subtractor>;
 
-    AdjacentDifferenceStreamProvider(StreamProviderPtr<T> source,
-                                     Subtractor&& subtract)
+    AdjacentDifference(StreamProviderPtr<T> source, Subtractor&& subtract)
         : source_(std::move(source)), subtract_(subtract) {}
 
     std::shared_ptr<DiffType> get() override {
@@ -63,5 +66,8 @@ private:
     std::shared_ptr<DiffType> result_;
     bool first_advance_ = true;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

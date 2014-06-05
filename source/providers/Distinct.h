@@ -6,14 +6,15 @@
 
 #include <set>
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename RawCompare>
-class DistinctStreamProvider : public StreamProvider<T> {
+class Distinct : public StreamProvider<T> {
 
 public:
-    DistinctStreamProvider(StreamProviderPtr<T> source,
-                           RawCompare&& comparator)
-        : source_(std::move(source)),
-          sorted_(PointerCompare(std::forward<RawCompare>(comparator))) {}
+    Distinct(StreamProviderPtr<T> source, RawCompare&& comparator)
+        : source_(std::move(source)), sorted_(PointerCompare(std::forward<RawCompare>(comparator))) {}
 
     std::shared_ptr<T> get() override {
         return current_;
@@ -52,5 +53,8 @@ private:
     std::shared_ptr<T> current_;
     bool first_ = true;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

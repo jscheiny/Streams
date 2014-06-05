@@ -3,6 +3,8 @@
 
 #include <type_traits>
 
+namespace stream {
+
 enum StreamTag {
     Common  = 0,
     Class   = 1,
@@ -11,6 +13,8 @@ enum StreamTag {
 };
 
 template<typename T, int Tags> class StreamImpl;
+
+namespace detail {
 
 template<typename T> struct is_class_pointer
     : public std::integral_constant<bool, std::is_class<T>::value> {};
@@ -39,16 +43,21 @@ struct ResolveTag : public std::integral_constant<int,
     EvaluateTag<BoolTag,    T> ::value |
     EvaluateTag<NumberTag,  T> ::value > {};
 
+} /* namespace detail */
+
 template<typename T>
-using Stream = StreamImpl<T, ResolveTag<T>::value>;
+using Stream = StreamImpl<T, detail::ResolveTag<T>::value>;
+
+namespace detail {
 
 template<typename T> struct StreamIdentifier {  using Type = void; };
 template<typename T> struct StreamIdentifier<Stream<T>> { using Type = T; };
 
 template<typename S> using StreamType = typename StreamIdentifier<S>::Type;
 
-template<typename T> struct IsStream : public std::false_type {};
-template<typename T> struct IsStream<Stream<T>> : public std::true_type {};
+} /* namespace detail */
+
+} /* namespace stream */
 
 
 #endif

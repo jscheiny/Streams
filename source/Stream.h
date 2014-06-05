@@ -18,6 +18,8 @@
 #include <list>
 #include <set>
 
+namespace stream {
+
 struct MakeStream {
     template<typename T>
     static Stream<RemoveRef<T>> empty();
@@ -153,7 +155,7 @@ class StreamImpl<T, Common> {
 
 public:
     using ElementType = T;
-    using iterator = typename StreamProvider<T>::Iterator;
+    using iterator = typename provider::StreamProvider<T>::Iterator;
 
     iterator begin() {
         return source_->begin();
@@ -190,7 +192,7 @@ public:
     Stream<ReturnType<Transform, T&&>> map(Transform&& transform);
 
     template<typename Transform>
-    Stream<StreamType<ReturnType<Transform, T&&>>>
+    Stream<detail::StreamType<ReturnType<Transform, T&&>>>
     flat_map(Transform&& transform);
 
     Stream<T> limit(std::size_t length);
@@ -223,12 +225,12 @@ public:
 
     Stream<T> pad(T&& padding);
 
-    Stream<GroupResult<T, 2>> pairwise();
+    Stream<provider::detail::GroupResult<T, 2>> pairwise();
 
     template<size_t N>
-    Stream<GroupResult<T, N>> grouped();
+    Stream<provider::detail::GroupResult<T, N>> grouped();
 
-    template<typename Other, typename Function = Zipper>
+    template<typename Other, typename Function = provider::detail::Zipper>
     Stream<ReturnType<Function, T&&, Other&&>> zip_with(Stream<Other>&& other,
         Function&& zipper = Function());
 
@@ -349,7 +351,7 @@ private:
     T no_identity_reduction(const std::string& name, Function&& function);
 
     template<typename Identity, typename Function>
-    ReturnType<Identity, T&> no_identity_reduction(
+    ReturnType<Identity, T&&> no_identity_reduction(
         const std::string& name,
         Identity&& identity,
         Function&& function);
@@ -364,12 +366,12 @@ private:
 
 template<typename T>
 StreamImpl<T, Common>::StreamImpl()
-    : source_(make_stream_provider<EmptyStreamProvider, T>()) {}
+    : source_(make_stream_provider<provider::Empty, T>()) {}
 
 template<typename T>
 template<typename Iterator>
 StreamImpl<T, Common>::StreamImpl(Iterator begin, Iterator end)
-    : source_(make_stream_provider<IteratorStreamProvider, T, Iterator>(
+    : source_(make_stream_provider<provider::Iterator, T, Iterator>(
         begin, end)) {}
 
 template<typename T>
@@ -393,6 +395,8 @@ std::ostream& StreamImpl<T, Common>::print_pipeline(std::ostream& os) {
        << sources << " source" << (sources == 1 ? "" : "s") << "." << std::endl;
     return os;
 }
+
+} /* namespace stream */
 
 #include "StreamFactories.h"
 #include "StreamOperators.h"

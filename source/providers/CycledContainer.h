@@ -3,11 +3,14 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Container>
-class CycledContainerStreamProvider : public StreamProvider<T> {
+class CycledContainer : public StreamProvider<T> {
 
 public:
-    CycledContainerStreamProvider(Container&& container, size_t times)
+    CycledContainer(Container&& container, size_t times)
         : container_{container},
           current_{std::begin(container_)},
           end_{std::end(container_)},
@@ -48,5 +51,8 @@ private:
     size_t times_;
     size_t iteration_ = 1;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef STREAM_TERMINATORS_IMPL_H
 #define STREAM_TERMINATORS_IMPL_H
 
+#include <type_traits>
+
+namespace stream {
+
 template<typename T>
 size_t StreamImpl<T, Common>::count() {
     StreamTerminator terminator(source_);
@@ -82,7 +86,7 @@ T StreamImpl<T, Common>::no_identity_reduction(const std::string& name,
 
 template<typename T>
 template<typename Identity, typename Function>
-ReturnType<Identity, T&> StreamImpl<T, Common>::no_identity_reduction(
+ReturnType<Identity, T&&> StreamImpl<T, Common>::no_identity_reduction(
             const std::string& name,
             Identity&& identity,
             Function&& function) {
@@ -350,5 +354,7 @@ void StreamImpl<T, Common>::for_each(Function&& function) {
         function(std::move(*source_->get()));
     }
 }
+
+} /* namespace stream */
 
 #endif

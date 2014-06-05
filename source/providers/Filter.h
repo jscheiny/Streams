@@ -3,11 +3,14 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Predicate>
-class FilteredStreamProvider : public StreamProvider<T> {
+class Filter : public StreamProvider<T> {
 
 public:
-    FilteredStreamProvider(StreamProviderPtr<T> source, Predicate&& predicate)
+    Filter(StreamProviderPtr<T> source, Predicate&& predicate)
         : source_(std::move(source)), predicate_(predicate) {}
 
     std::shared_ptr<T> get() override {
@@ -38,5 +41,7 @@ private:
     std::shared_ptr<T> current_;
 };
 
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

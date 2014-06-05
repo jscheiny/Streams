@@ -3,11 +3,14 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Adder>
-class PartialSumStreamProvider : public StreamProvider<T> {
+class PartialSum : public StreamProvider<T> {
 
 public:
-    PartialSumStreamProvider(StreamProviderPtr<T> source, Adder&& add)
+    PartialSum(StreamProviderPtr<T> source, Adder&& add)
         : source_(std::move(source)), add_(add) {}
 
     std::shared_ptr<T> get() override {
@@ -47,5 +50,8 @@ private:
     std::shared_ptr<T> current_;
     bool first_ = true;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

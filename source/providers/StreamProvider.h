@@ -5,18 +5,21 @@
 
 #include <memory>
 
+namespace stream {
+namespace provider {
+
 template<typename T>
 struct StreamProvider {
 
 public:
-    class Iterator;
+    struct Iterator;
 
     virtual std::shared_ptr<T> get() = 0;
 
     bool advance() {
         try {
             return advance_impl();
-        } catch(StopStream& stop) {
+        } catch(stream::StopStream& stop) {
             return false;
         } catch(...) {
             throw;
@@ -42,20 +45,27 @@ protected:
     }
 };
 
+} /* namespace provider */
+} /* namespace stream */
+
 #include "StreamProviderIterator.h"
 
 template<typename T>
-typename StreamProvider<T>::Iterator StreamProvider<T>::begin() {
+typename stream::provider::StreamProvider<T>::Iterator
+stream::provider::StreamProvider<T>::begin() {
     return Iterator::begin(this);
 }
 
 template<typename T>
-typename StreamProvider<T>::Iterator StreamProvider<T>::end() {
+typename stream::provider::StreamProvider<T>::Iterator
+stream::provider::StreamProvider<T>::end() {
     return Iterator::end(this);
 }
 
+namespace stream {
+
 template<typename T>
-using StreamProviderPtr = std::unique_ptr<StreamProvider<T>>;
+using StreamProviderPtr = std::unique_ptr<provider::StreamProvider<T>>;
 
 template<template<typename...> class Provider,
          typename T,
@@ -67,5 +77,6 @@ StreamProviderPtr<T> make_stream_provider(ConstructorArgs&&... args) {
             std::forward<ConstructorArgs>(args)...));
 }
 
+} /* namespace stream */
 
 #endif

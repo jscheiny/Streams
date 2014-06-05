@@ -4,11 +4,14 @@
 #include "StreamProvider.h"
 #include "../Utility.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Equal>
-class AdjacentDistinctStreamProvider : public StreamProvider<T> {
+class AdjacentDistinct : public StreamProvider<T> {
 
 public:
-    AdjacentDistinctStreamProvider(StreamProviderPtr<T> source, Equal&& equal)
+    AdjacentDistinct(StreamProviderPtr<T> source, Equal&& equal)
         : source_(std::move(source)), equal_(std::forward<Equal>(equal_)) {}
 
     std::shared_ptr<T> get() override {
@@ -50,5 +53,8 @@ private:
     std::shared_ptr<T> current_;
     bool first_ = true;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

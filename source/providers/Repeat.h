@@ -5,15 +5,16 @@
 
 #include "../Utility.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T>
-class RepeatedStreamProvider : public StreamProvider<T> {
+class Repeat : public StreamProvider<T> {
 
 public:
-    RepeatedStreamProvider(const T& value)
-        : value_(std::make_shared<T>(value)) {}
+    Repeat(const T& value) : value_(std::make_shared<T>(value)) {}
 
-    RepeatedStreamProvider(T&& value)
-        : value_(std::make_shared<T>(value)) {}
+    Repeat(T&& value) : value_(std::make_shared<T>(value)) {}
 
     std::shared_ptr<T> get() override {
         return value_;
@@ -34,5 +35,7 @@ private:
 
 };
 
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

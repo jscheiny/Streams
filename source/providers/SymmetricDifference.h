@@ -3,18 +3,20 @@
 
 #include "SetOperation.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Compare>
-class SymmetricDifferenceStreamProvider 
-          : public SetOperationStreamProvider<T, Compare> {
+class SymmetricDifference : public SetOperation<T, Compare> {
     
-    using Parent = SetOperationStreamProvider<T, Compare>;
+    using Parent = SetOperation<T, Compare>;
     using UpdateState = typename Parent::UpdateState;
     using ToAdvance = typename Parent::ToAdvance;
 
 public:
-    SymmetricDifferenceStreamProvider(StreamProviderPtr<T>&& source1,
-                                      StreamProviderPtr<T>&& source2,
-                                      Compare&& comparator)
+    SymmetricDifference(StreamProviderPtr<T>&& source1,
+                        StreamProviderPtr<T>&& source2,
+                        Compare&& comparator)
           : Parent(std::forward<StreamProviderPtr<T>>(source1),
                    std::forward<StreamProviderPtr<T>>(source2),
                    std::forward<Compare>(comparator)) {}
@@ -39,5 +41,8 @@ protected:
         return "SymmetricDifference";
     }
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

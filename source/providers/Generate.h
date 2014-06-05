@@ -5,11 +5,14 @@
 
 #include "../Utility.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Generator>
-class GeneratedStreamProvider : public StreamProvider<T> {
+class Generate : public StreamProvider<T> {
 
 public:
-    GeneratedStreamProvider(Generator&& generator)
+    Generate(Generator&& generator)
         : generator_(generator) {}
 
     std::shared_ptr<T> get() override {
@@ -33,5 +36,7 @@ private:
 
 };
 
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

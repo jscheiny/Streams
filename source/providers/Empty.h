@@ -3,8 +3,11 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T>
-class EmptyStreamProvider : public StreamProvider<T> {
+class Empty : public StreamProvider<T> {
 
 public:
     std::shared_ptr<T> get() override {
@@ -22,5 +25,8 @@ public:
     }
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

@@ -5,16 +5,17 @@
 
 #include <list>
 
+namespace stream {
+namespace provider {
+
 template<typename T>
-class ConcatenatedStreamProvider : public StreamProvider<T> {
+class Concatenate : public StreamProvider<T> {
 
 public:
     template<typename Iterator>
-    ConcatenatedStreamProvider(Iterator begin, Iterator end)
-        : sources_(begin, end) {}
+    Concatenate(Iterator begin, Iterator end) : sources_(begin, end) {}
 
-    ConcatenatedStreamProvider(StreamProviderPtr<T> first,
-                               StreamProviderPtr<T> second) {
+    Concatenate(StreamProviderPtr<T> first, StreamProviderPtr<T> second) {
         sources_.push_back(std::move(first));
         sources_.push_back(std::move(second));
     }
@@ -58,5 +59,8 @@ private:
     std::shared_ptr<T> current_;
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

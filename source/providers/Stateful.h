@@ -6,11 +6,14 @@
 
 #include <list>
 
+namespace stream {
+namespace provider {
+
 template<typename T>
-class StatefulStreamProvider : public StreamProvider<T> {
+class Stateful : public StreamProvider<T> {
 
 public:
-    StatefulStreamProvider(StreamProviderPtr<T> source)
+    Stateful(StreamProviderPtr<T> source)
         : source_(std::move(source)) {}
 
     std::shared_ptr<T> get() override {
@@ -48,5 +51,8 @@ private:
     Iterator end_;
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

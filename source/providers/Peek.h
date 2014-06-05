@@ -3,11 +3,14 @@
 
 #include "StreamProvider.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Action>
-class PeekStreamProvider : public StreamProvider<T> {
+class Peek : public StreamProvider<T> {
 
 public:
-    PeekStreamProvider(StreamProviderPtr<T> source, Action&& action)
+    Peek(StreamProviderPtr<T> source, Action&& action)
         : source_(std::move(source)), action_(action) {}
 
     std::shared_ptr<T> get() override {
@@ -37,5 +40,8 @@ private:
     std::shared_ptr<T> current_;
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

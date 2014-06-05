@@ -3,15 +3,18 @@
 
 #include "SetOperation.h"
 
-template<typename T, typename Compare>
-class DifferenceStreamProvider : public SetOperationStreamProvider<T, Compare> {
+namespace stream {
+namespace provider {
 
-    using Parent = SetOperationStreamProvider<T, Compare>;
+template<typename T, typename Compare>
+class Difference : public SetOperation<T, Compare> {
+
+    using Parent = SetOperation<T, Compare>;
     using UpdateState = typename Parent::UpdateState;
     using ToAdvance = typename Parent::ToAdvance;
 
 public:
-    DifferenceStreamProvider(StreamProviderPtr<T>&& source1,
+    Difference(StreamProviderPtr<T>&& source1,
                              StreamProviderPtr<T>&& source2,
                              Compare&& comparator)
           : Parent(std::forward<StreamProviderPtr<T>>(source1),
@@ -53,5 +56,8 @@ private:
     bool source1_advanced_;
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

@@ -6,17 +6,20 @@
 
 #include "SetOperation.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Compare>
-class UnionStreamProvider : public SetOperationStreamProvider<T, Compare> {
+class Union : public SetOperation<T, Compare> {
     
-    using Parent = SetOperationStreamProvider<T, Compare>;
+    using Parent = SetOperation<T, Compare>;
     using UpdateState = typename Parent::UpdateState;
     using ToAdvance = typename Parent::ToAdvance;
 
 public:
-    UnionStreamProvider(StreamProviderPtr<T>&& source1,
-                        StreamProviderPtr<T>&& source2,
-                        Compare&& comparator)
+    Union(StreamProviderPtr<T>&& source1,
+          StreamProviderPtr<T>&& source2,
+          Compare&& comparator)
           : Parent(std::forward<StreamProviderPtr<T>>(source1),
                    std::forward<StreamProviderPtr<T>>(source2),
                    std::forward<Compare>(comparator)) {}
@@ -40,5 +43,8 @@ protected:
         return "Union";
     }
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

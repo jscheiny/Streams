@@ -5,12 +5,14 @@
 #include "../Stream.h"
 #include "../Utility.h"
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Transform, typename In>
-class FlatMappedStreamProvider : public StreamProvider<T> {
+class FlatMap : public StreamProvider<T> {
 
 public:
-    FlatMappedStreamProvider(StreamProviderPtr<In> source,
-                             Transform&& transform)
+    FlatMap(StreamProviderPtr<In> source, Transform&& transform)
         : source_(std::move(source)), transform_(transform) {}
 
     std::shared_ptr<T> get() override {
@@ -48,10 +50,13 @@ public:
 private:
     StreamProviderPtr<In> source_;
     Transform transform_;
-    Stream<T> current_stream_;
+    stream::Stream<T> current_stream_;
     std::shared_ptr<T> current_;
     bool first_ = true;
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

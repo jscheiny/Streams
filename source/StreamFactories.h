@@ -1,10 +1,14 @@
 #ifndef STREAM_FACTORIES_IMPL_H
 #define STREAM_FACTORIES_IMPL_H
 
+namespace stream {
+
 namespace detail {
+
 template<template<typename> class Distribution, typename Engine, typename T>
 struct RandomGenerator;
-}
+
+} /* namespace detail */
 
 template<typename T>
 Stream<RemoveRef<T>> MakeStream::empty() {
@@ -14,7 +18,7 @@ Stream<RemoveRef<T>> MakeStream::empty() {
 template<typename T>
 Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
     using R = RemoveRef<T>;
-    return make_stream_provider<RepeatedStreamProvider, R>
+    return make_stream_provider<provider::Repeat, R>
         (std::forward<R>(value));
 }
 
@@ -56,14 +60,14 @@ Stream<ContainerType<Container>> MakeStream::cycle(const Container& cont) {
 template<typename T>
 Stream<T> MakeStream::cycle(std::initializer_list<T> init) {
     using Container = std::deque<T>;
-    return make_stream_provider<CycledContainerStreamProvider, T, Container>
+    return make_stream_provider<provider::CycledContainer, T, Container>
         (Container(init), 0);
 }
 
 template<typename T>
 Stream<T> MakeStream::cycle(std::initializer_list<T> init, size_t times) {
     using Container = std::deque<T>;
-    return make_stream_provider<CycledContainerStreamProvider, T, Container>
+    return make_stream_provider<provider::CycledContainer, T, Container>
         (Container(init), times);
 }
 
@@ -97,14 +101,14 @@ Stream<ContainerType<Container>> MakeStream::cycle_move(Container&& cont,
 template<typename Generator>
 Stream<ReturnType<Generator>> MakeStream::generate(Generator&& generator) {
     using T = ReturnType<Generator>;
-    return make_stream_provider<GeneratedStreamProvider, T, Generator>
+    return make_stream_provider<provider::Generate, T, Generator>
         (std::forward<Generator>(generator));
 }
 
 template<typename T, typename Function>
 Stream<RemoveRef<T>> MakeStream::iterate(T&& initial, Function&& function) {
     using R = RemoveRef<T>;
-    return make_stream_provider<IteratedStreamProvider, R, Function>
+    return make_stream_provider<provider::Iterate, R, Function>
         (std::forward<T>(initial), std::forward<Function>(function));
 }
 
@@ -255,7 +259,7 @@ Stream<T> MakeStream::coin_flips(Seed&& seed) {
 template<typename T>
 Stream<RemoveRef<T>> MakeStream::singleton(T&& value) {
     using R = RemoveRef<T>;
-    return make_stream_provider<SingletonStreamProvider, R>
+    return make_stream_provider<provider::Singleton, R>
         (std::forward<R>(value));
 }
 
@@ -283,7 +287,7 @@ Stream<ContainerType<Container>> MakeStream::from_move(Container&& cont) {
 template<typename T>
 Stream<T> MakeStream::from(std::initializer_list<T> init) {
     using Container = std::deque<T>;
-    return make_stream_provider<CycledContainerStreamProvider, T, Container>
+    return make_stream_provider<provider::CycledContainer, T, Container>
         (Container(init), 1);
 }
 
@@ -307,5 +311,7 @@ private:
 };
 
 } /* namespace detail */
+
+} /* namespace stream */
 
 #endif

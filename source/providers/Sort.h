@@ -7,14 +7,15 @@
 #include <vector>
 #include <queue>
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename RawCompare>
-class SortedStreamProvider : public StreamProvider<T> {
+class Sort : public StreamProvider<T> {
 
 public:
-    SortedStreamProvider(StreamProviderPtr<T> source,
-                         RawCompare&& comparator)
-        : source_(std::move(source)),
-          sorted_(PointerCompare(std::forward<RawCompare>(comparator))) {}
+    Sort(StreamProviderPtr<T> source, RawCompare&& comparator)
+        : source_(std::move(source)), sorted_(PointerCompare(std::forward<RawCompare>(comparator))) {}
 
     std::shared_ptr<T> get() override {
         return current_;
@@ -54,5 +55,8 @@ private:
     std::shared_ptr<T> current_;
     bool first_ = true;
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

@@ -5,11 +5,14 @@
 
 #include "../Utility.h"
 
-template<typename T, typename Iterator>
-class IteratorStreamProvider : public StreamProvider<T> {
+namespace stream {
+namespace provider {
+
+template<typename T, typename Itr>
+class Iterator : public StreamProvider<T> {
 
 public:
-    IteratorStreamProvider(Iterator begin, Iterator end)
+    Iterator(Itr begin, Itr end)
         : current_(begin), end_(end) {}
 
     std::shared_ptr<T> get() override {
@@ -33,9 +36,12 @@ public:
 
 private:
     bool first_ = true;
-    Iterator current_;
-    Iterator end_;
+    Itr current_;
+    Itr end_;
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

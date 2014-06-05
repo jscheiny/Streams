@@ -5,6 +5,9 @@
 
 #include "../Utility.h"
 
+namespace stream {
+namespace provider {
+
 namespace detail {
 
 struct IncompleteGroupError {};
@@ -59,20 +62,19 @@ struct Grouper<T, 2> {
     }
 };
 
-} /*detail*/
-
 template<typename T, size_t N>
 using GroupResult = typename detail::Grouper<T, N>::Type;
 
+} /* namespace detail */
+
 template<typename T, size_t N>
-class GroupedStreamProvider : public StreamProvider<GroupResult<T, N>> {
+class Group : public StreamProvider<detail::GroupResult<T, N>> {
     static_assert(N >= 2, "Cannot group stream into chunks of less than size 2.");
 
 public:
-    using GroupType = GroupResult<T, N>;
+    using GroupType = detail::GroupResult<T, N>;
 
-    GroupedStreamProvider(StreamProviderPtr<T> source)
-        : source_(std::move(source)) {}
+    Group(StreamProviderPtr<T> source) : source_(std::move(source)) {}
 
     std::shared_ptr<GroupType> get() override {
         return current_;
@@ -100,5 +102,8 @@ private:
     std::shared_ptr<GroupType> current_;
 
 };
+
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <tuple>
 
+namespace stream {
+
 template<typename Function, typename... Args> using ReturnType =
     decltype(std::declval<Function>()(std::declval<Args>()...));
 
@@ -188,5 +190,7 @@ private:
     Function function_;
 
 };
+
+} /* namespace stream */
 
 #endif

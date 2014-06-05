@@ -8,13 +8,15 @@
 #include <iostream>
 #include <type_traits>
 
+namespace stream {
+namespace provider {
+
 template<typename T, typename Function>
-class IteratedStreamProvider : public StreamProvider<T> {
+class Iterate : public StreamProvider<T> {
 
 public:
-    IteratedStreamProvider(T initial, Function&& function)
-        : function_(function),
-          current_(std::make_shared<T>(initial)) {}
+    Iterate(T initial, Function&& function)
+        : function_(function), current_(std::make_shared<T>(initial)) {}
 
     std::shared_ptr<T> get() override {
         return current_;
@@ -41,5 +43,7 @@ private:
     std::shared_ptr<T> current_;
 };
 
+} /* namespace provider */
+} /* namespace stream */
 
 #endif

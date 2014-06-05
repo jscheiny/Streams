@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 
+namespace stream {
+
 class StreamException {
 
 public:
@@ -65,5 +67,7 @@ public:
     StopStream() : StreamException("[End of stream]") {}
 
 };
+
+} /* namespace stream */
 
 #endif
