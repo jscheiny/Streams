@@ -1,7 +1,5 @@
-#include "Stream.h"
-
-#include "Reducers.h"
-#include "Utility.h"
+#include "source/Stream.h"
+#include "source/Reducers.h"
 
 #include <vector>
 #include <iterator>

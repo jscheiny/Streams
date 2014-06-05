@@ -1,2 +1,2 @@
 #!/bin/sh
-wc -l *.h *.cpp
+wc -l source/*.h source/*/*.h
