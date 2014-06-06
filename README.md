@@ -1,6 +1,6 @@
 # C++ Streams
 
-Streams is a C++ library that provides lazy evaluation and functional-style transformations on the data, to ease the use of C++ standard library containers and algorithms. Streams support many common functiona operations such as map, filter, and reduce, as well as various other useful operations such as various set operations (union, intersection, difference), partial sum, and adjacent difference, as well as many others. 
+Streams is a C++ library that provides lazy evaluation and functional-style transformations on the data, to ease the use of C++ standard library containers and algorithms. Streams support many common functional operations such as map, filter, and reduce, as well as various other useful operations such as various set operations (union, intersection, difference), partial sum, and adjacent difference, as well as many others. 
 
 ## Examples
 
@@ -124,21 +124,21 @@ MakeStream::from(container).print_to(std::cout) << std::endl;
 ### Finite differences:
 
 ```cpp
-auto diff1 = stream::MakeStream::counter(1).limit(6)
+auto diff1 = MakeStream::counter(1).limit(6)
     .map([](int x) { return x * x * x; })
     .adjacent_difference()
     .to_vector();
-stream::MakeStream::from(diff1).print_to(std::cout) << std::endl;
+MakeStream::from(diff1).print_to(std::cout) << std::endl;
 
-auto diff2 = stream::MakeStream::from(diff1)
+auto diff2 = MakeStream::from(diff1)
     .adjacent_difference()
     .to_vector();
-stream::MakeStream::from(diff2).print_to(std::cout) << std::endl;
+MakeStream::from(diff2).print_to(std::cout) << std::endl;
 
-auto diff3 = stream::MakeStream::from(diff2)
+auto diff3 = MakeStream::from(diff2)
     .adjacent_difference()
     .to_vector();
-stream::MakeStream::from(diff3).print_to(std::cout) << std::endl;
+MakeStream::from(diff3).print_to(std::cout) << std::endl;
 
 // Output:
 // 7 19 37 61 91
