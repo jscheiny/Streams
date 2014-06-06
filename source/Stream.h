@@ -324,7 +324,7 @@ public:
     std::multiset<T, Compare> to_multiset(Compare&& compare = Compare());
 
     template<typename Function>
-    void for_each(Function&& function);
+    Function for_each(Function&& function);
 
     inline bool occupied() const;
 

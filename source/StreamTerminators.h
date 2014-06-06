@@ -347,12 +347,13 @@ std::multiset<T, Compare> StreamImpl<T, Common>::to_multiset(Compare&& compare) 
 
 template<typename T>
 template<typename Function>
-void StreamImpl<T, Common>::for_each(Function&& function) {
+Function StreamImpl<T, Common>::for_each(Function&& function) {
     check_vacant("for_each");
     StreamTerminator terminator(source_);
     while(source_->advance()) {
         function(std::move(*source_->get()));
     }
+    return function;
 }
 
 } /* namespace stream */
