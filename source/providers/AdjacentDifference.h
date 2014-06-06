@@ -10,10 +10,10 @@ namespace stream {
 namespace provider {
 
 template<typename T, typename Subtractor>
-class AdjacentDifference : public StreamProvider<ReturnType<Subtractor>> {
+class AdjacentDifference : public StreamProvider<std::result_of_t<Subtractor(T&, T&)>> {
 
 public:
-    using DiffType = ReturnType<Subtractor>;
+    using DiffType = std::result_of_t<Subtractor(T&, T&)>;
 
     AdjacentDifference(StreamProviderPtr<T> source, Subtractor&& subtract)
         : source_(std::move(source)), subtract_(subtract) {}

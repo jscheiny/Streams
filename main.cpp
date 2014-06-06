@@ -45,4 +45,9 @@ int main(int argc, char const *argv[]) {
     cout << stream::MakeStream::generate(bind(experiment, 1000))
         .limit(1000)
         .reduce_by(Reducers::SummaryStats<size_t>()) << endl;
+
+    auto square = [](auto&& x) { return x * x; };
+
+    (stream::MakeStream::counter(0).map(square).adjacent_difference().limit(10) * coin_flips()).print_to(cout);
+    cout << endl;
 }

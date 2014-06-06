@@ -61,10 +61,10 @@ struct Zipper {
 } /* namespace detail */
 
 template<typename L, typename R, typename Function>
-class Zip : public StreamProvider<ReturnType<Function, L&&, R&&>> {
+class Zip : public StreamProvider<std::result_of_t<Function(L&&, R&&)>> {
 
 public:
-    using ValueType = ReturnType<Function, L&&, R&&>;
+    using ValueType = std::result_of_t<Function(L&&, R&&)>;
 
     Zip(StreamProviderPtr<L> left_source,
         StreamProviderPtr<R> right_source,

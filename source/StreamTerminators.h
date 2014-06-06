@@ -31,7 +31,7 @@ U StreamImpl<T, Common>::reduce(const U& identity, Accumulator&& accumulator) {
 
 template<typename T>
 template<typename Identity, typename Accumulator>
-ReturnType<Identity, T&&> StreamImpl<T, Common>::reduce(Identity&& identity,
+std::result_of_t<Identity(T&&)> StreamImpl<T, Common>::reduce(Identity&& identity,
                                                   Accumulator&& accumulator) {
     StreamTerminator terminator(source_);
     check_vacant("reduce");
@@ -86,7 +86,7 @@ T StreamImpl<T, Common>::no_identity_reduction(const std::string& name,
 
 template<typename T>
 template<typename Identity, typename Function>
-ReturnType<Identity, T&&> StreamImpl<T, Common>::no_identity_reduction(
+std::result_of_t<Identity(T&&)> StreamImpl<T, Common>::no_identity_reduction(
             const std::string& name,
             Identity&& identity,
             Function&& function) {

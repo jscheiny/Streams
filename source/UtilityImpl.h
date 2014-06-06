@@ -6,9 +6,6 @@
 
 namespace stream {
 
-template<typename Function, typename... Args> using ReturnType =
-    decltype(std::declval<Function>()(std::declval<Args>()...));
-
 // ================= Tuple Printing =================
 
 template<size_t index, size_t last, typename... Args>

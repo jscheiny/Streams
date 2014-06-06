@@ -99,8 +99,8 @@ Stream<ContainerType<Container>> MakeStream::cycle_move(Container&& cont,
 }
 
 template<typename Generator>
-Stream<ReturnType<Generator>> MakeStream::generate(Generator&& generator) {
-    using T = ReturnType<Generator>;
+Stream<std::result_of_t<Generator()>> MakeStream::generate(Generator&& generator) {
+    using T = std::result_of_t<Generator()>;
     return make_stream_provider<provider::Generate, T, Generator>
         (std::forward<Generator>(generator));
 }

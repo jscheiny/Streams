@@ -51,8 +51,9 @@ Stream<T> StreamImpl<T, Common>::peek(Action&& action) {
 
 template<typename T>
 template<typename Transform>
-Stream<ReturnType<Transform, T&&>> StreamImpl<T, Common>::map(Transform&& transform) {
-    using Result = ReturnType<Transform, T&&>;
+Stream<std::result_of_t<Transform(T&&)>>
+StreamImpl<T, Common>::map(Transform&& transform) {
+    using Result = std::result_of_t<Transform(T&&)>;
     static_assert(!std::is_void<Result>::value,
         "Return type of the mapping function cannot be void.");
 
@@ -70,9 +71,9 @@ template<typename T> struct is_stream<Stream<T>> : public std::true_type {};
 
 template<typename T>
 template<typename Transform>
-Stream<detail::StreamType<ReturnType<Transform, T&&>>>
+Stream<detail::StreamType<std::result_of_t<Transform(T&&)>>>
 StreamImpl<T, Common>::flat_map(Transform&& transform) {
-    using Result = ReturnType<Transform, T&&>;
+    using Result = std::result_of_t<Transform(T&&)>;
     static_assert(detail::is_stream<Result>::value,
         "Flat map must be passed a function which returns a stream");
     using S = detail::StreamType<Result>;
@@ -166,9 +167,9 @@ Stream<provider::detail::GroupResult<T, N>> StreamImpl<T, Common>::grouped() {
 
 template<typename T>
 template<typename Subtractor>
-Stream<ReturnType<Subtractor, T&, T&>>
+Stream<std::result_of_t<Subtractor(T&, T&)>>
 StreamImpl<T, Common>::adjacent_difference(Subtractor&& subtract) {
-    using Result = ReturnType<Subtractor, T&, T&>;
+    using Result = std::result_of_t<Subtractor(T&, T&)>;
     static_assert(!std::is_void<Result>::value,
         "Return type of the subtraction cannot be void.");
 
@@ -188,9 +189,9 @@ Stream<T> StreamImpl<T, Common>::partial_sum(Adder&& add) {
 
 template<typename T>
 template<typename Other, typename Function>
-Stream<ReturnType<Function, T&&, Other&&>> StreamImpl<T, Common>::zip_with(
+Stream<std::result_of_t<Function(T&&, Other&&)>> StreamImpl<T, Common>::zip_with(
         Stream<Other>&& other, Function&& zipper) {
-    using Result = ReturnType<Function, T&&, Other&&>;
+    using Result = std::result_of_t<Function(T&&, Other&&)>;
     static_assert(!std::is_void<Result>::value,
         "Return type of the zipping function cannot be void.");
 

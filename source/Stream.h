@@ -58,7 +58,7 @@ struct MakeStream {
                                                        size_t times);
 
     template<typename Generator>
-    static Stream<ReturnType<Generator>> generate(Generator&& generator);
+    static Stream<std::result_of_t<Generator()>> generate(Generator&& generator);
 
     template<typename T, typename Function>
     static Stream<RemoveRef<T>> iterate(T&& initial, Function&& function);
@@ -189,10 +189,10 @@ public:
     Stream<T> peek(Action&& action);
 
     template<typename Transform>
-    Stream<ReturnType<Transform, T&&>> map(Transform&& transform);
+    Stream<std::result_of_t<Transform(T&&)>> map(Transform&& transform);
 
     template<typename Transform>
-    Stream<detail::StreamType<ReturnType<Transform, T&&>>>
+    Stream<detail::StreamType<std::result_of_t<Transform(T&&)>>>
     flat_map(Transform&& transform);
 
     Stream<T> limit(std::size_t length);
@@ -212,7 +212,7 @@ public:
     Stream<T> state_point();
 
     template<typename Subtractor = std::minus<void>>
-    Stream<ReturnType<Subtractor, T&, T&>>
+    Stream<std::result_of_t<Subtractor(T&, T&)>>
     adjacent_difference(Subtractor&& subtract = Subtractor());
 
     template<typename Adder = std::plus<T>>
@@ -231,7 +231,7 @@ public:
     Stream<provider::detail::GroupResult<T, N>> grouped();
 
     template<typename Other, typename Function = provider::detail::Zipper>
-    Stream<ReturnType<Function, T&&, Other&&>> zip_with(Stream<Other>&& other,
+    Stream<std::result_of_t<Function(T&&, Other&&)>> zip_with(Stream<Other>&& other,
         Function&& zipper = Function());
 
     template<typename Compare = std::less<T>>
@@ -257,7 +257,7 @@ public:
     U reduce(const U& identity, Accumulator&& accumulator);
 
     template<typename Identity, typename Accumulator>
-    ReturnType<Identity, T&&> reduce(Identity&& identity, Accumulator&& accum);
+    std::result_of_t<Identity(T&&)> reduce(Identity&& identity, Accumulator&& accum);
 
     template<typename Accumulator>
     T reduce(Accumulator&& accumulator);
@@ -351,7 +351,7 @@ private:
     T no_identity_reduction(const std::string& name, Function&& function);
 
     template<typename Identity, typename Function>
-    ReturnType<Identity, T&&> no_identity_reduction(
+    std::result_of_t<Identity(T&&)> no_identity_reduction(
         const std::string& name,
         Identity&& identity,
         Function&& function);
