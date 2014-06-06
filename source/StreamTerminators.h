@@ -297,9 +297,10 @@ OutputIterator StreamImpl<T, Common>::move_to(OutputIterator out) {
 }
 
 template<typename T>
-void StreamImpl<T, Common>::print_to(std::ostream& os, const char* delimiter) {
+std::ostream& StreamImpl<T, Common>::print_to(std::ostream& os, const char* delimiter) {
     check_vacant("print_to");
     copy_to(std::ostream_iterator<T>(os, delimiter));
+    return os;
 }
 
 

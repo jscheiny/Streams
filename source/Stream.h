@@ -309,7 +309,7 @@ public:
     template<typename OutputIterator>
     OutputIterator move_to(OutputIterator out);
 
-    void print_to(std::ostream& os, const char* delimiter = " ");
+    std::ostream& print_to(std::ostream& os, const char* delimiter = " ");
 
     std::vector<T> to_vector();
 
