@@ -16,14 +16,15 @@ int number_heads(int flips) {
         .count();
 };
 
-int experiment(int trials, int flips) {
+void experiment(int trials, int flips) {
     auto stats = MakeStream::generate(std::bind(number_heads, flips))
         .limit(trials)
         .reduce_by(Reducers::SummaryStats<int>());
     std::cout << stats << std::endl;
 }
 
-// Example output:
+// Example output for experiment(1000, 1000):
+// N=1000, u=499.812, s=252.763, min=452, max=549
 ```
 
 ### Investigating the Collatz conjecture:
