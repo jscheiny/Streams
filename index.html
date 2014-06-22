@@ -13,9 +13,9 @@
 </head>
 <body>
 <div id="sidebar">
-    <a href="#" class="sidebar-title">C++ Streams</a>
+   <!--  <a href="#" class="sidebar-title">C++ Streams</a>
     <a href="#intro" class="sidebar-title">Introduction</a>
-    <span class="sidebar-title"><input type="text" id="search"/></span>
+    <a href="#recipes" class="sidebar-title">Recipes</a> -->
 </div>
 <div id="content">
     <div id="title">C++ Streams</div>
@@ -35,7 +35,7 @@
 
     <p>To use streams <a target="blank" href="https://github.com/jscheiny/Streams">download</a>
     them from Github. To use, simply <span class="inline">#include "Stream.h"</span>.
-    Streams require C++14 to compile. Streams consist only of header files, so you
+    Streams require <b>C++14</b> to compile. Streams consist only of header files, so you
     shouldn't have to modify your build process to use them. </p>
 
     <h2 id="intro">Introduction</h2>
@@ -87,6 +87,41 @@
     incur the overhead cost of making stream iterators safe to use.
     </p>
 
+    <h3>Specializations</h3>
+
+    <p>Streams are specialized based on the element type of the stream to allow extended
+    functionality based on that type. For example, for streams of arithmetic types
+    (<span class="inline">int</span>, <span class="inline">double</span>, etc.) there
+    is specialization of <span class="inline"><a href="#sum">sum()</a></span> such that
+    it has the default identity of 0. Specializations for most type are listed in their
+    relevant sections. However, for class types, there are specializations that are
+    further reaching, and we shall discuss here. For any method that takes function of
+    the element type (e.g. <span class="inline"><a href="#map">map()</a></span>,
+    <span class="inline"><a href="#filter">filter()</a></span>, <span class="inline">
+    <a href="#take_while">take_while()</a></span>, to name a few), there is a specialization
+    that allows for passing member function pointers to the function. For example consider
+    the following example:
+    </p>
+
+    <p>
+        <pre class="outside">
+            <code lang="C++">class Thing {
+    int x;
+    int value() const { return x }
+}
+
+Stream&lt;Thing&gt; things = /* ... */</code>
+        </pre>
+    </p>
+
+    <p>In this case, all of the following are equivalent, with the last one being the one
+    that is provided by the stream specialization for class types:</p>
+
+    <pre class="outside">
+        <code lang="C++">Stream&lt;int&gt; values = things.map([](Thing&& thing) { return thing.value(); });
+Stream&lt;int&gt; values = things.map(std::mem_fn(&Thing::value));
+Stream&lt;int&gt; values = things.map(&Thing::value);</code>
+    </pre>
 
     <h2 id="methods">Methods</h2>
 
@@ -103,7 +138,7 @@
             <pre>
                 <code lang="C++">iterator Stream&lt;T&gt;::begin();</code>
             </pre>
- 
+
             Returns an iterator to the beginning of the stream.
             Iterators for streams have all of the standard iterator operator overloads,
             and act for the most part just like normal forward iterators. However,
@@ -380,7 +415,7 @@ Stream&lt;T&gt; MakeStream::singleton(T&& value);</code>
                 <code lang="C++">Stream&lt;T&gt; MakeStream::from(Iterator begin, Iterator end);
 Stream&lt;T&gt; MakeStream::from(const Container& cont);
 Stream&lt;T&gt; MakeStream::from(T* arr, size_t length);
-Stream&lt;T&gt; MakeStream::from(std::initializer_list<T> init);</code>
+Stream&lt;T&gt; MakeStream::from(std::initializer_list&lt;T&gt; init);</code>
             </pre>
 
             Creates a stream from some existing set of data, a container for which
@@ -420,7 +455,7 @@ Stream&lt;T&gt; MakeStream::from_move(Container&& cont);</code>
             </pre>
 
             Creates a stream from a container of data, moving that container into
-            itself, so that the stream maybe used safely outside of the current scope.
+            itself, so that the stream may be used safely outside of the current scope.
 
             <br/><br/>
             <i>Example:</i>
@@ -449,9 +484,9 @@ Stream&lt;int&gt; make_stream_unsafe() {
 }
 
 int main(int argc, char const *argv[]) {
-    make_stream_safe1().print_to(std::cout);   std::cout << std::endl;
-    make_stream_safe2().print_to(std::cout);   std::cout << std::endl;
-    make_stream_unsafe().print_to(std::cout);  std::cout << std::endl;
+    make_stream_safe1().print_to(std::cout) << std::endl;
+    make_stream_safe2().print_to(std::cout) << std::endl;
+    make_stream_unsafe().print_to(std::cout) << std::endl;
 }</code>
             </pre>
 
@@ -597,9 +632,9 @@ Stream&lt;int&gt; make_stream_unsafe() {
 }
 
 int main(int argc, char const *argv[]) {
-    make_stream_safe1().print_to(std::cout);   std::cout << std::endl;
-    make_stream_safe2().print_to(std::cout);   std::cout << std::endl;
-    make_stream_unsafe().print_to(std::cout);  std::cout << std::endl;
+    make_stream_safe1().print_to(std::cout) << std::endl;
+    make_stream_safe2().print_to(std::cout) << std::endl;
+    make_stream_unsafe().print_to(std::cout) << std::endl;
 }</code>
             </pre>
 
@@ -853,7 +888,7 @@ Stream&lt;T&gt; MakeStream::uniform_random_ints(T lower, T upper, Seed&& seed);<
                 <code lang="C++">template&lt;typename T = double,
          typename Engine = std::default_random_engine&gt;
 Stream&lt;T&gt; MakeStream::uniform_random_reals(T lower = 0.0, T upper = 1.0);
-template&lt;typename T = double,
+template&lt;typename T,
          typename Engine = std::default_random_engine,
          typename Seed&gt;
 Stream&lt;T&gt; MakeStream::uniform_random_reals(T lower, T upper, Seed&& seed);</code>
@@ -1852,6 +1887,11 @@ double dot_product = (v1 * v2).sum();</code>
 
     <h2 id="stateful">Stateful Intermediate Stream Operators</h2>
 
+    <p>These operators insert another stage of a stream pipeline or combine
+    two streams in some way forming a new stream, which contains the data of
+    the old streams. These operations accumulate some non constant amount of space to
+    store their necessary state.</p>
+
     <div class="function stateful operator" id="state_point">
         <div class="fheader">
             <span class="fname">::state_point()</span>
@@ -2505,12 +2545,13 @@ OutputIterator Stream&lt;T&gt;::move_to(OutputIterator iterator);</code>
         <div class="fcontent">
             <span class="signature">Method signature:</span>
             <pre>
-                <code lang="C++">void Stream&lt;T&gt;::print_to(std::ostream& os,
-                         const char* delimiter = ' ');</code>
+                <code lang="C++">std::ostream& Stream&lt;T&gt;::print_to(std::ostream& os,
+                                  const char* delimiter = ' ');</code>
             </pre>
 
             Prints the elements of the stream to the given
-            <span class="inline">ostream</span>, with a delimiter after every element.
+            <span class="inline">ostream</span>, with a delimiter after every element. The return value
+            is simply the input stream, thus allowing chaining of stream insertions.
             Calling <span class="inline">stream.print_to(os, delimiter)</span> is a convenience method for:
 
             <pre>
@@ -2723,9 +2764,9 @@ stream.peek([](auto& value) {
 
     <p> 
     C++ Streams are developed by <a href="http://scheinerman.net/jonah">Jonah Scheinerman</a>.
-    Please reach out to me if you have question or concerns.</p>
+    Please <a href="mailto:jonah@scheinerman.net">contact</a> me if you have question or concerns.</p>
 
-    <p class="license">C++ Streams are distributed under the MIT open source license.</p>
+    <p class="license">C++ Streams are distributed under the <a href="http://opensource.org/licenses/MIT" target="blank">MIT open source license</a>.</p>
 
     <p class="license">Copyright &copy; 2014 by Jonah Scheinerman</p>
 </div>
