@@ -1,2 +1,2 @@
 #!/bin/sh
-wc -l source/*.h source/*/*.h
+wc -l source/*.h source/*/*.h | sort
