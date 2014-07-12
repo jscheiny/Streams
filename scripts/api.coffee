@@ -1,6 +1,6 @@
 Titles =
     'top':
-        title: 'C++ Streams'
+        title: 'C++ Streams API'
         link:  ''
     'intro':
         title: 'Introduction'

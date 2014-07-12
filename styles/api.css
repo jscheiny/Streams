@@ -31,6 +31,20 @@ li {
     margin: 40px 0px 50px 0px;
 }
 
+span.sep {
+    margin: 0px 10px 0px 10px;
+    color: #999;
+}
+
+.note {
+    background: #DDD;
+    width: 780px;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 5px;
+    box-shadow: inset 0 1px 5px -1px black;
+}
+
 #sidebar {
     position: fixed;
     font-size: 14px;
@@ -94,7 +108,7 @@ a.sidebar-anchor:hover {
 }
 
 #content {
-    margin-left: 290px;
+    margin-left: 300px;
 }
 
 h2 {
