@@ -1,6 +1,17 @@
 # C++ Streams
 
-Streams is a C++ library that provides lazy evaluation and functional-style transformations on the data, to ease the use of C++ standard library containers and algorithms. Streams support many common functional operations such as map, filter, and reduce, as well as various other useful operations such as various set operations (union, intersection, difference), partial sum, and adjacent difference, as well as many others. 
+Streams is a C++ library that provides lazy evaluation and functional-style transformations on the data, to ease the use of C++ standard library containers and algorithms. Streams support many common functional operations such as map, filter, and reduce, as well as various other useful operations such as various set operations (union, intersection, difference), partial sum, and adjacent difference, as well as many others.
+
+To use, simply `#include "Stream.h"`, and compile using a C++14 compatible compiler. All streams classes/functions can be found in the `stream` namespace.
+
+Links:
+
+* [Documentation](http://jscheiny.github.io/Streams)
+* [Github](http://github.com/jscheiny/Streams)
+* [Contact](http://scheinerman.net/jonah)
+
+C++ Streams are distributed under the MIT open source license.
+Copyright (c) 2014 by Jonah Scheinerman
 
 ## Examples
 
