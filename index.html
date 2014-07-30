@@ -35,47 +35,48 @@
 
     <h2 id="intro">Examples</h2>
 
+    (Note: In all of the examples, assume we are using the namespaces <span class="inline">stream</span> and <span class="inline">stream::op</span>).
+
     Summing the first 10 squares:
 
-    <pre><code lang="C++">int total = stream::MakeStream::counter(1)
-    .map([] (int x) { return x * x; })
-    .limit(10)
-    .sum();</code></pre>
+    <pre><code lang="C++">int total = MakeStream::counter(1)
+    | map_([] (int x) { return x * x; })
+    | limit(10)
+    | sum();</code></pre>
 
     Investigating the collatz conjecture:
 
-    <pre><code lang="C++">int distance = stream::MakeStream::generate(1124,
-    [] (int n) {
-        if(n % 2 == 0)
-            return n / 2;
-        else
-            return 3 * n + 1;
-    })
-    .take_while([] (int n) {
-        return n != 1;
-    })
-    .count();</code></pre>
+    <pre><code lang="C++">auto next_collatz = [] (int n) {
+    if(n % 2 == 0)
+        return n / 2;
+    else
+        return 3 * n + 1;
+};
+
+int distance = MakeStream::generate(1124, collatz_next)
+    | take_while([] (int n) { return n != 1; })
+    | count();</code></pre>
 
     Running a coin flip experiment:
 
-    <pre><code lang="C++">int heads = stream::MakeStream::coin_flips() // Uniform random bools
-    .limit(1000) // Take the first 1000 coin flips
-    .filter()    // Take only the true ones (heads)
-    .count();</code></pre>
+    <pre><code lang="C++">int heads = MakeStream::coin_flips() // Uniform random bools
+    | limit(1000) // Take the first 1000 coin flips
+    | filter()    // Take only the true ones (heads)
+    | count();</code></pre>
 
     Extracting values from objects and handling them:
 
     <pre><code lang="C++">std::vector&lt;Widget&gt; widgets = /* ... */
-std::set&lt;int&gt; ids = stream::MakeStream::from(widgets)
-    .map(&Widget::getId)
-    .to_set();</code></pre>
+std::set&lt;int&gt; ids = MakeStream::from(widgets)
+    | map_(&Widget::getId)
+    | to_set();</code></pre>
 
     Getting summary statistics from a set of data:
 
     <pre><code lang="C++">std::vector&lt;Widget&gt; widgets = /* ... */
-auto stats = stream::MakeStream::from(widgets)
-    .map(&Widget::getValue)
-    .reduce_by(Reducers::SummaryStats&lt;double&gt;());
+auto stats = MakeStream::from(widgets)
+    | map_(&Widget::getValue)
+    | reducers::SummaryStats&lt;double&gt;().reducer();
 std::cout &lt;&lt; "Mean   = " &lt;&lt; stats.mean()   &lt;&lt; "\n"
           &lt;&lt; "StdDev = " &lt;&lt; stats.stddev() &lt;&lt; "\n"
           &lt;&lt; "Min    = " &lt;&lt; stats.min()    &lt;&lt; "\n"
@@ -94,28 +95,26 @@ std::set_intersection(left.begin(), left.end(),
 
     We can now do this much more readably:
 
-    <pre><code lang="C++">using namespace stream;
-std::set&lt;Gadget&gt; left = /* ... */
+    <pre><code lang="C++">std::set&lt;Gadget&gt; left = /* ... */
 std::set&lt;Gadget&gt; right = /* ... */
 
-std::set&lt;Gadget&gt; result =
-    Stream&lt;Gadget&gt;(left).intersect_with(Stream&lt;Gadget&gt;(right))
-    .to_set();</code></pre>
+std::set&lt;Gadget&gt; result = Stream&lt;Gadget&gt;(left)
+    | intersect_with(Stream&lt;Gadget&gt;(right))
+    | to_set();</code></pre>
 
     Vector operations:
 
     <pre><code lang="C++">std::vector&lt;double&gt; vec1 = /* ... */
-std::vector&lt;double&gt; vec2 = /* ... */;
+std::vector&lt;double&gt; vec2 = /* ... */
 
 auto stream = [](auto& x) {
-    return stream::MakeStream::from(x);
+    return MakeStream::from(x);
 };
 
-auto sum = (stream(vec1) + stream(vec2)).to_vector();
-auto scale = (stream(vec1) * 5).to_vector();
-auto translate = (stream(vec1) + 10).to_vector();
-int dot_product = (stream(vec1) * stream(vec2)).sum();
-    </code></pre>
+auto sum = (stream(vec1) + stream(vec2)) | to_vector();
+auto scale = (stream(vec1) * 5) | to_vector();
+auto translate = (stream(vec1) + 10) | to_vector();
+double dot_product = (stream(vec1) * stream(vec2)) | sum();</code></pre>
 
     <p>
     For more complete information, see the <a href="api.html">API reference</a>.
