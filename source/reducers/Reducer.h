@@ -1,7 +1,7 @@
 #ifndef REDUCER_H
 #define REDUCER_H
 
-#include "Stream.h"
+#include "../Stream.h"
 
 #include <functional>
 
