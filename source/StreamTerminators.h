@@ -1,362 +1,355 @@
-#ifndef STREAM_TERMINATORS_IMPL_H
-#define STREAM_TERMINATORS_IMPL_H
-
-#include <type_traits>
+#ifndef STREAM_TERMINATORS_H
+#define STREAM_TERMINATORS_H
 
 namespace stream {
+namespace op {
 
-template<typename T>
-size_t StreamImpl<T, Common>::count() {
-    StreamTerminator terminator(source_);
-    check_vacant("count");
-    size_t count = 0;
-    while(source_->advance()) {
-        source_->get();
-        count++;
-    }
-    return count;
+#define CLASS_SPECIALIZATIONS(operation) \
+    template<typename R, typename C> auto operation (R (C::*member)()) \
+        { return operation (std::mem_fn(member)); } \
+    template<typename R, typename C> auto operation (R (C::*member)() const) \
+        { return operation (std::mem_fn(member)); }
+
+template<typename Function>
+auto for_each(Function&& function) {
+    return make_terminator("stream::op::for_each", [=](auto&& stream) mutable {
+        auto& source = stream.getSource();
+        while(source->advance()) {
+            function(std::move(*source->get()));
+        }
+        return function;
+    });
 }
 
-template<typename T>
+CLASS_SPECIALIZATIONS(for_each);
+
+auto count() {
+    return make_terminator("stream::op::count", [=](auto&& stream) {
+        auto& source = stream.getSource();
+        size_t count = 0;
+        while(source->advance()) {
+            source->get();
+            count++;
+        }
+        return count;
+    });
+}
+
 template<typename U, typename Accumulator>
-U StreamImpl<T, Common>::reduce(const U& identity, Accumulator&& accumulator) {
-    StreamTerminator terminator(source_);
-    check_vacant("reduce");
-    U result = identity;
-    while(source_->advance()) {
-        result = accumulator(std::move(result), std::move(*source_->get()));
-    }
-    return result;
-}
-
-template<typename T>
-template<typename Identity, typename Accumulator>
-std::result_of_t<Identity(T&&)> StreamImpl<T, Common>::reduce(Identity&& identity,
-                                                  Accumulator&& accumulator) {
-    StreamTerminator terminator(source_);
-    check_vacant("reduce");
-    if(source_->advance()) {
-        return reduce(identity(std::move(*source_->get())),
-                      std::forward<Accumulator>(accumulator));
-    } else {
-        throw EmptyStreamException("reduce");
-    }
-}
-
-template<typename T>
-template<typename Accumulator>
-T StreamImpl<T, Common>::reduce(Accumulator&& accumulator) {
-    StreamTerminator terminator(source_);
-    check_vacant("reduce");
-    if(source_->advance()) {
-        return reduce(std::move(*source_->get()), std::forward<Accumulator>(accumulator));
-    } else {
-        throw EmptyStreamException("reduce");
-    }
-}
-
-template<typename T>
-template<typename U>
-U StreamImpl<T, Common>::reduce_by(const Reducer<T, U>& reducer) {
-    StreamTerminator terminator(source_);
-    check_vacant("reduce_by");
-    if(source_->advance()) {
-        U result = reducer.initial(std::move(*source_->get()));
-        while(source_->advance()) {
-            result = reducer.accumulate(std::move(result), std::move(*source_->get()));
+auto identity_reduce(const U& identity, Accumulator&& accumulator) {
+    return make_terminator("stream::op::identity_reduce", [=](auto&& stream) mutable {
+        auto& source = stream.getSource();
+        U result = identity;
+        while(source->advance()) {
+            result = accumulator(std::move(result), std::move(*source->get()));
         }
         return result;
-    } else {
-        throw EmptyStreamException("reduce_by");
-    }
+    });
 }
 
-template<typename T>
-template<typename Function>
-T StreamImpl<T, Common>::no_identity_reduction(const std::string& name,
-                                               Function&& function) {
-    StreamTerminator terminator(source_);
-    check_vacant(name);
-    try {
-        return reduce(std::forward<Function>(function));
-    } catch(EmptyStreamException& e) {
-        throw EmptyStreamException(name);
-    }
-}
-
-template<typename T>
-template<typename Identity, typename Function>
-std::result_of_t<Identity(T&&)> StreamImpl<T, Common>::no_identity_reduction(
-            const std::string& name,
-            Identity&& identity,
-            Function&& function) {
-    check_vacant(name);
-    try {
-        return reduce(std::forward<Identity>(identity),
-                      std::forward<Function>(function));
-    } catch(EmptyStreamException& e) {
-        throw EmptyStreamException(name);
-    }
-}
-
-template<typename T>
-T StreamImpl<T, Common>::sum() {
-    return no_identity_reduction("sum", std::plus<T>());
-}
-
-template<typename T>
-T StreamImpl<T, Common>::sum(const T& identity) {
-    return reduce(identity, std::plus<T>());
-}
-
-template<typename T>
-T StreamImpl<T, Common>::product() {
-    return no_identity_reduction("product", std::multiplies<T>());
-}
-
-template<typename T>
-T StreamImpl<T, Common>::product(const T& identity) {
-    return reduce(identity, std::multiplies<T>());
-}
-
-template<typename T>
-template<typename Compare>
-T StreamImpl<T, Common>::max(Compare&& compare) {
-    return no_identity_reduction("max", [less=std::forward<Compare>(compare)]
-        (T& a, T& b) {
-            return less(a, b) ? b : a;
-        });
-}
-
-template<typename T>
-template<typename Compare>
-T StreamImpl<T, Common>::min(Compare&& compare) {
-    return no_identity_reduction("min", [less=std::forward<Compare>(compare)]
-        (T& a, T& b) {
-            return less(a, b) ? a : b;
-        });
-}
-
-template<typename T>
-template<typename Compare>
-std::pair<T, T> StreamImpl<T, Common>::minmax(Compare&& compare) {
-    return no_identity_reduction("minmax",
-        [](T value) { return std::make_pair(value, value); },
-        [less=std::forward<Compare>(compare)] (auto&& accumulated, T&& value) {
-            if(less(value, accumulated.first)) {
-                return std::pair<T,T>(std::forward<T>(value), accumulated.second);
-            }
-            if(less(accumulated.second, value)) {
-                return std::pair<T,T>(accumulated.first, std::forward<T>(value));
-            }
-            return accumulated;
-        });
-}
-
-template<typename T>
-T StreamImpl<T, Common>::first() {
-    check_vacant("first");
-    StreamTerminator terminator(source_);
-    if(source_->advance()) {
-        return std::move(*source_->get());
-    } else {
-        throw EmptyStreamException("first");
-    }
-}
-
-template<typename T>
-T StreamImpl<T, Common>::last() {
-    return no_identity_reduction("last",
-        [](T& first, T& second) { return second; });
-}
-
-template<typename T>
-T StreamImpl<T, Common>::nth(size_t index) {
-    check_vacant("nth");
-    try {
-        return skip(index).first();
-    } catch(EmptyStreamException& e) {
-        throw EmptyStreamException("nth");
-    }
-}
-
-template<typename T>
-T StreamImpl<T, Common>::operator[] (size_t index) {
-    check_vacant("operator[]");
-    StreamTerminator terminator(source_);
-    try {
-        return nth(index);
-    } catch(EmptyStreamException& e) {
-        throw EmptyStreamException("operator[]");
-    }
-}
-
-template<typename T>
-std::vector<T> StreamImpl<T, Common>::random_sample(size_t size) {
-    check_vacant("random_sample");
-    StreamTerminator terminator(source_);
-
-    std::vector<T> results;
-    for(int i = 0; i < size; i++) {
-        if(source_->advance()) {
-            results.push_back(std::move(*source_->get()));
+template<typename Accumulator>
+auto reduce(Accumulator&& accumulator) {
+    return make_terminator("stream::op::reduce", [=](auto&& stream) mutable {
+        auto& source = stream.getSource();
+        if(source->advance()) {
+            auto reduction = identity_reduce(std::move(*source->get()),
+                                             std::forward<Accumulator>(accumulator));
+            return stream | reduction;
         } else {
-            return results;
+            throw EmptyStreamException("stream::op::reduce");
         }
-    }
+    });
+}
 
-    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine generator(seed);
-    auto random_index = [&generator](int upper) {
-        return std::uniform_int_distribution<int>(0, upper - 1)(generator);
+template<typename IdentityFn, typename Accumulator>
+auto reduce(IdentityFn&& identityFn, Accumulator&& accumulator) {
+    return make_terminator("stream::op::reduce", [=](auto&& stream) mutable {
+        auto& source = stream.getSource();
+        if(source->advance()) {
+            auto reduction = identity_reduce(identityFn(std::move(*source->get())),
+                                             std::forward<Accumulator>(accumulator));
+            return stream | reduction;
+        } else {
+            throw EmptyStreamException("stream::op::reduce");
+        }
+    });
+}
+
+auto first() {
+    return make_terminator("stream::op::first", [=](auto&& stream) {
+        auto& source = stream.getSource();
+        if(source->advance()) {
+            return std::move(*source->get());
+        } else {
+            throw EmptyStreamException("stream::op::first");
+        }
+    });
+}
+
+auto last() {
+    return reduce([](auto&& first, auto&& second) { return second; })
+        .rename("stream::op::last");
+}
+
+auto nth(size_t index) {
+    return make_terminator("stream::op::nth", [=](auto&& stream) {
+        try {
+            return stream | skip(index) | first();
+        } catch(EmptyStreamException& e) {
+            throw EmptyStreamException("stream::op::nth");
+        }
+    });
+}
+
+auto sum() {
+    return reduce(std::plus<void>())
+        .rename("stream::op::sum");
+}
+
+template<typename T>
+auto sum(const T& identity) {
+    return identity_reduce(identity, std::plus<T>())
+        .rename("stream::op::sum");
+}
+
+auto product() {
+    return reduce(std::multiplies<void>())
+        .rename("stream::op::product");
+}
+
+template<typename T>
+auto product(const T& identity) {
+    return identity_reduce(identity, std::multiplies<T>())
+        .rename("stream::op::product");
+}
+
+template<typename Less = std::less<void>>
+auto max(Less&& less = Less()) {
+    return reduce([=](const auto& a, const auto& b) {
+        return less(a, b) ? b : a;
+    }).rename("stream::op::max");
+}
+
+template<typename Less = std::less<void>>
+auto min(Less&& less = Less()) {
+    return reduce([=](const auto& a, const auto& b) {
+        return less(a, b) ? a : b;
+    }).rename("stream::op::min");
+}
+
+template<typename Less = std::less<void>>
+auto minmax(Less&& less = Less()) {
+    auto to_pair = [](auto&& x) { return std::make_pair(x, x); };
+    auto next_minmax = [less](auto&& accumulated, auto&& value) {
+        using T = std::remove_reference_t<decltype(value)>;
+        if(less(value, accumulated.first)) {
+            return std::pair<T,T>(std::move(value), std::move(accumulated.second));
+        }
+        if(less(accumulated.second, value)) {
+            return std::pair<T,T>(std::move(accumulated.first), std::move(value));
+        }
+        return accumulated;
     };
 
-    size_t seen = size;
-    while(source_->advance()) {
-        seen++;
-        int index = random_index(seen);
-        if(index < size) {
-            results[index] = std::move(*source_->get());
-        } else {
-            source_->get();
-        }
-    }
-
-    return results;
+    return reduce(to_pair, next_minmax).rename("stream::op::minmax");
 }
 
-template<typename T>
-T StreamImpl<T, Common>::random_element() {
-    check_vacant("random_element");
-    StreamTerminator terminator(source_);
 
-    auto vec = random_sample(1);
-    if(vec.empty()) {
-        throw EmptyStreamException("random_element");
-    }
-    return vec[0];
-}
-
-template<typename T>
 template<typename Predicate>
-bool StreamImpl<T, Common>::any(Predicate&& predicate) {
-    check_vacant("any");
-    StreamTerminator terminator(source_);
-
-    while(source_->advance()) {
-        if(predicate(*source_->get())) {
-            return true;
+auto any(Predicate&& predicate) {
+    return make_terminator("stream::op::any", [=](auto&& stream) mutable {
+        auto& source = stream.getSource();
+        while(source->advance()) {
+            if(predicate(*source->get())) {
+                return true;
+            }
         }
-    }
-    return false;
+        return false;
+    });
 }
 
-template<typename T>
-template<typename Predicate>
-bool StreamImpl<T, Common>::all(Predicate&& predicate) {
-    check_vacant("all");
-    StreamTerminator terminator(source_);
+auto any() {
+    return any(to_bool);
+}
 
-    while(source_->advance()) {
-        if(!predicate(*source_->get())) {
-            return false;
+CLASS_SPECIALIZATIONS(any);
+
+template<typename Predicate>
+auto all(Predicate&& predicate) {
+    return make_terminator("stream::op::all", [=](auto&& stream) mutable {
+        auto& source = stream.getSource();
+        while(source->advance()) {
+            if(!predicate(*source->get())) {
+                return false;
+            }
         }
-    }
-    return true;
+        return true;
+    });
 }
 
-template<typename T>
+auto all() {
+    return all(to_bool);
+}
+
+CLASS_SPECIALIZATIONS(all);
+
 template<typename Predicate>
-bool StreamImpl<T, Common>::none(Predicate&& predicate) {
-    check_vacant("none");
-    return !any(std::forward<Predicate>(predicate));
+auto none(Predicate&& predicate) {
+    return any(std::forward<Predicate>(predicate))
+        .then([](bool x) { return !x; })
+        .rename("stream::op::none");
 }
 
-template<typename T>
+auto none() {
+    return none(to_bool);
+}
+
+// CLASS_SPECIALIZATIONS(none);
+
+template<typename Predicate>
+auto not_all(Predicate&& predicate) {
+    return all(std::forward<Predicate>(predicate))
+        .then([](bool x) { return !x; })
+        .rename("stream::op::not_all");
+}
+
+auto not_all() {
+    return not_all(to_bool);
+}
+
+CLASS_SPECIALIZATIONS(none);
+
 template<typename OutputIterator>
-OutputIterator StreamImpl<T, Common>::copy_to(OutputIterator out) {
-    check_vacant("copy_to");
-    StreamTerminator terminator(source_);
-    while(source_->advance()) {
-        *out = std::move(*source_->get());
-        out++;
-    }
-    return out;
+auto copy_to(OutputIterator out) {
+    return make_terminator("stream::op::copy_to", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        auto& source = stream.getSource();
+        while(source->advance()) {
+            *out = *source->get();
+            ++out;
+        }
+        return out;
+    });
 }
 
-template<typename T>
 template<typename OutputIterator>
-OutputIterator StreamImpl<T, Common>::move_to(OutputIterator out) {
-    check_vacant("move_to");
-    StreamTerminator terminator(source_);
-    while(source_->advance()) {
-        *out = std::move(*source_->get());
-        out++;
-    }
-    return out;
+auto move_to(OutputIterator out) {
+    return make_terminator("stream::op::move_to", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        auto& source = stream.getSource();
+        while(source->advance()) {
+            *out = std::move(*source->get());
+            ++out;
+        }
+        return out;
+    });
 }
 
-template<typename T>
-std::ostream& StreamImpl<T, Common>::print_to(std::ostream& os, const char* delimiter) {
-    check_vacant("print_to");
-    copy_to(std::ostream_iterator<T>(os, delimiter));
-    return os;
+auto print_to(std::ostream& os, const char* delimiter = " ") {
+    return make_terminator("stream::op::print_to", [&os, delimiter](auto&& stream) -> std::ostream& {
+        using T = StreamType<decltype(stream)>;
+        stream | copy_to(std::ostream_iterator<T>(os, delimiter));
+        return os;
+    });
 }
 
-
-template<typename T>
-std::vector<T> StreamImpl<T, Common>::to_vector() {
-    check_vacant("to_vector");
-    std::vector<T> result;
-    copy_to(back_inserter(result));
-    return result;
+auto to_vector() {
+    return make_terminator("stream::op::to_vector", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        std::vector<T> result;
+        stream | copy_to(std::back_inserter(result));
+        return result;
+    });
 }
 
-template<typename T>
-std::list<T> StreamImpl<T, Common>::to_list() {
-    check_vacant("to_list");
-    std::list<T> result;
-    copy_to(back_inserter(result));
-    return result;
+auto to_list() {
+    return make_terminator("stream::op::to_list", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        std::list<T> result;
+        stream | copy_to(std::back_inserter(result));
+        return result;
+    });
 }
 
-template<typename T>
-std::deque<T> StreamImpl<T, Common>::to_deque() {
-    check_vacant("to_deque");
-    std::deque<T> result;
-    copy_to(back_inserter(result));
-    return result;
+auto to_deque() {
+    return make_terminator("stream::op::to_deque", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        std::deque<T> result;
+        stream | copy_to(std::back_inserter(result));
+        return result;
+    });
 }
 
-template<typename T>
-template<typename Compare>
-std::set<T, Compare> StreamImpl<T, Common>::to_set(Compare&& compare) {
-    check_vacant("to_set");
-    std::set<T, Compare> result;
-    copy_to(inserter(result, result.end()));
-    return result;
+template<typename Less = std::less<void>>
+auto to_set(Less&& less = Less()) {
+    return make_terminator("stream::op::to_set", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        std::set<T, Less> result(std::forward<Less>(less));
+        copy_to(std::inserter(result, result.end()))(std::move(stream));
+        return result;
+    });
 }
 
-template<typename T>
-template<typename Compare>
-std::multiset<T, Compare> StreamImpl<T, Common>::to_multiset(Compare&& compare) {
-    check_vacant("to_multiset");
-    std::multiset<T, Compare> result;
-    copy_to(inserter(result, result.end()));
-    return result;
+template<typename Less = std::less<void>>
+auto to_multiset(Less&& less = Less()) {
+    return make_terminator("stream::op::to_multiset", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        std::multiset<T, Less> result(std::forward<Less>(less));
+        stream | copy_to(std::inserter(result, result.end()));
+        return result;
+    });
 }
 
-template<typename T>
-template<typename Function>
-Function StreamImpl<T, Common>::for_each(Function&& function) {
-    check_vacant("for_each");
-    StreamTerminator terminator(source_);
-    while(source_->advance()) {
-        function(std::move(*source_->get()));
-    }
-    return function;
+auto random_sample(size_t size) {
+    return make_terminator("stream::op::random_sample", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        auto& source = stream.getSource();
+
+        std::vector<T> results;
+        for(int i = 0; i < size; i++) {
+            if(source->advance()) {
+                results.push_back(std::move(*source->get()));
+            } else {
+                return results;
+            }
+        }
+
+        auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::default_random_engine generator(seed);
+        auto random_index = [&generator](int upper) {
+            return std::uniform_int_distribution<int>(0, upper - 1)(generator);
+        };
+
+        size_t seen = size;
+        while(source->advance()) {
+            seen++;
+            int index = random_index(seen);
+            if(index < size) {
+                results[index] = std::move(*source->get());
+            } else {
+                source->get();
+            }
+        }
+
+        return results;
+    });
 }
 
-} /* namespace stream */
+auto random_element() {
+    return random_sample(1)
+        .then([](auto&& vec) {
+            if(vec.empty()) {
+                throw EmptyStreamException("stream::op::random_element");
+            }
+            return vec[0];
+        })
+        .rename("stream::op::element");
+}
+
+#undef CLASS_SPECIALIZATIONS
+
+} /* op */
+} /* stream */
+
 
 #endif

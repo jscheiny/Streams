@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-namespace Reducers {
+namespace reducers {
 
 template<typename In, typename Out> class SummaryStats;
 

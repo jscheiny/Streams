@@ -37,7 +37,7 @@ protected:
         return UpdateState::UpdateFinished;
     }
 
-    std::string get_operation_name() override {
+    std::string get_operation_name() const override {
         return "Merge";
     }
 

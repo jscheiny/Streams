@@ -11,7 +11,7 @@ namespace provider {
 
 template<typename T, typename Compare>
 class Union : public SetOperation<T, Compare> {
-    
+
     using Parent = SetOperation<T, Compare>;
     using UpdateState = typename Parent::UpdateState;
     using ToAdvance = typename Parent::ToAdvance;
@@ -39,7 +39,7 @@ protected:
         return UpdateState::UpdateFinished;
     }
 
-    std::string get_operation_name() override {
+    std::string get_operation_name() const override {
         return "Union";
     }
 };

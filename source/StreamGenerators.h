@@ -1,5 +1,5 @@
-#ifndef STREAM_FACTORIES_IMPL_H
-#define STREAM_FACTORIES_IMPL_H
+#ifndef STREAM_GENERATORS_H
+#define STREAM_GENERATORS_H
 
 namespace stream {
 
@@ -115,7 +115,7 @@ Stream<RemoveRef<T>> MakeStream::iterate(T&& initial, Function&& function) {
 template<typename T>
 Stream<RemoveRef<T>> MakeStream::counter(T&& start) {
     using R = RemoveRef<T>;
-    return MakeStream::iterate(std::forward<T>(start), [](R& value) {
+    return MakeStream::iterate(std::forward<T>(start), [](R value) {
             return ++value;
         });
 }
@@ -124,7 +124,7 @@ template<typename T, typename U>
 Stream<RemoveRef<T>> MakeStream::counter(T&& start, U&& increment) {
     using R = RemoveRef<T>;
     return MakeStream::iterate(std::forward<T>(start),
-        [inc = std::forward<U>(increment)](R& value) {
+        [inc = std::forward<U>(increment)](const R& value) {
             return value + inc;
         });
 }
@@ -142,16 +142,16 @@ template<typename T>
 Stream<RemoveRef<T>> MakeStream::range(T&& lower, T&& upper) {
     using R = RemoveRef<T>;
     return MakeStream::counter(lower)
-        .take_while([upper = std::forward<T>(upper)](R& value) {
+        | op::take_while([upper = std::forward<T>(upper)](const R& value) {
             return value != upper;
         });
 }
 
 template<typename T, typename U>
-Stream<RemoveRef<T>> range(T&& lower, T&& upper, U&& increment) {
+Stream<RemoveRef<T>> MakeStream::range(T&& lower, T&& upper, U&& increment) {
     using R = RemoveRef<T>;
     return MakeStream::counter(lower, std::forward<U>(increment))
-        .take_while([upper = std::forward<T>(upper)](R& value) {
+        | op::take_while([upper = std::forward<T>(upper)](const R& value) {
             return value < upper;
         });
 }
@@ -160,7 +160,7 @@ template<typename T, typename U>
 Stream<RemoveRef<T>> MakeStream::range(T&& lower, T&& upper, const U& increment) {
     using R = RemoveRef<T>;
     return MakeStream::counter(lower, increment)
-        .take_while([upper = std::forward<T>(upper)](R& value) {
+        | op::take_while([upper = std::forward<T>(upper)](const R& value) {
             return value < upper;
         });
 }
@@ -169,7 +169,7 @@ template<typename T>
 Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper) {
     using R = RemoveRef<T>;
     return MakeStream::counter(lower)
-        .take_while([upper = std::forward<T>(upper)](R& value) {
+        | op::take_while([upper = std::forward<T>(upper)](R& value) {
             return value <= upper;
         });
 }
@@ -179,7 +179,7 @@ Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper, U&& incremen
     using R = RemoveRef<T>;
     using R = RemoveRef<T>;
     return MakeStream::counter(lower, std::forward<U>(increment))
-        .take_while([upper = std::forward<T>(upper)](R& value) {
+        | op::take_while([upper = std::forward<T>(upper)](R& value) {
             return value <= upper;
         });
 }
@@ -189,7 +189,7 @@ Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper, const U& inc
     using R = RemoveRef<T>;
     using R = RemoveRef<T>;
     return MakeStream::counter(lower, increment)
-        .take_while([upper = std::forward<T>(upper)](R& value) {
+        | op::take_while([upper = std::forward<T>(upper)](R& value) {
             return value <= upper;
         });
 }
@@ -281,7 +281,7 @@ Stream<ContainerType<Container>> MakeStream::from(const Container& cont) {
 template<typename Container>
 Stream<ContainerType<Container>> MakeStream::from_move(Container&& cont) {
     using T = ContainerType<Container>;
-    return MakeStream::cycle_move(std::forward<Container>(cont), 1);  
+    return MakeStream::cycle_move(std::forward<Container>(cont), 1);
 }
 
 template<typename T>

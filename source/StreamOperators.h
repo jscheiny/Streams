@@ -1,252 +1,313 @@
-#ifndef STREAM_OPERATORS_IMPL_H
-#define STREAM_OPERATORS_IMPL_H
+#ifndef STREAM_OPERATORS_H
+#define STREAM_OPERATORS_H
+
+#include <functional>
 
 namespace stream {
+namespace op {
 
-template<typename T>
+#define CLASS_SPECIALIZATIONS(operation) \
+    template<typename R, typename C> auto operation (R (C::*member)()) \
+        { return operation (std::mem_fn(member)); } \
+    template<typename R, typename C> auto operation (R (C::*member)() const) \
+        { return operation (std::mem_fn(member)); }
+
 template<typename Predicate>
-Stream<T> StreamImpl<T, Common>::filter(Predicate&& predicate) {
-    check_vacant("filter");
-    return make_stream_provider<provider::Filter, T, Predicate>
-        (std::move(source_), std::forward<Predicate>(predicate));
+auto filter(Predicate&& predicate) {
+    return make_operator("stream::op::filter", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::Filter, T, Predicate>(
+                std::move(stream.getSource()), std::forward<Predicate>(predicate))));
+    });
 }
 
-template<typename T>
+auto filter() {
+    return filter(to_bool);
+}
+
+CLASS_SPECIALIZATIONS(filter);
+
 template<typename Predicate>
-Stream<T> StreamImpl<T, Common>::take_while(Predicate&& predicate) {
-    check_vacant("take_while");
-    return make_stream_provider<provider::TakeWhile, T, Predicate>
-        (std::move(source_), std::forward<Predicate>(predicate));
+auto take_while(Predicate&& predicate) {
+    return make_operator("stream::op::take_while", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::TakeWhile, T, Predicate>
+                (std::move(stream.getSource()), std::forward<Predicate>(predicate))));
+    });
 }
 
-template<typename T>
+auto take_while() {
+    return take_while(to_bool);
+}
+
+CLASS_SPECIALIZATIONS(take_while);
+
 template<typename Predicate>
-Stream<T> StreamImpl<T, Common>::drop_while(Predicate&& predicate) {
-    check_vacant("drop_while");
-    return make_stream_provider<provider::DropWhile, T, Predicate>
-        (std::move(source_), std::forward<Predicate>(predicate));
+auto drop_while(Predicate&& predicate) {
+    return make_operator("stream::op::drop_while", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::DropWhile, T, Predicate>(
+                std::move(stream.getSource()), std::forward<Predicate>(predicate))));
+    });
 }
 
-template<typename T>
-Stream<T> StreamImpl<T, Common>::slice(size_t start, size_t end, size_t increment) {
-    check_vacant("slice");
-    return make_stream_provider<provider::Slice, T>
-        (std::move(source_), start, end, increment, false);
+auto drop_while() {
+    return drop_while(to_bool);
 }
 
-template<typename T>
-Stream<T> StreamImpl<T, Common>::slice_to_end(size_t start, size_t increment) {
-    check_vacant("slice_to_end");
-    return make_stream_provider<provider::Slice, T>
-        (std::move(source_), start, 0, increment, true);
+CLASS_SPECIALIZATIONS(drop_while);
+
+auto slice(std::size_t start, std::size_t end, std::size_t increment = 1) {
+    return make_operator("stream::op::slice", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::Slice, T>(
+                std::move(stream.getSource()), start, end, increment, false)));
+    });
 }
 
-template<typename T>
+auto slice_to_end(std::size_t start, std::size_t increment) {
+    return make_operator("stream::op::slice", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::Slice, T>(
+                std::move(stream.getSource()), start, 0, increment, true)));
+    });
+}
+
+auto limit(std::size_t length) {
+    return slice(0, length).rename("stream::op::limit");
+}
+
+auto skip(std::size_t amount) {
+    return slice_to_end(amount, 1).rename("stream::op::skip");
+}
+
+template<typename Function>
+auto map_(Function&& function) {
+    return make_operator("stream::op::map_", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        using Result = std::result_of_t<Function(T&&)>;
+        static_assert(!std::is_void<Result>::value,
+            "Return type of the mapping function cannot be void.");
+
+        return Stream<Result>(std::move(
+            make_stream_provider<provider::Map, Result, Function, T>(
+                std::move(stream.getSource()), std::forward<Function>(function))));
+    });
+}
+
+CLASS_SPECIALIZATIONS(map_);
+
 template<typename Action>
-Stream<T> StreamImpl<T, Common>::peek(Action&& action) {
-    check_vacant("peek");
-    return make_stream_provider<provider::Peek, T, Action>
-        (std::move(source_), std::forward<Action>(action));
+auto peek(Action&& action) {
+    return make_operator("stream::op::peek", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::Peek, T, Action>(
+                std::move(stream.getSource()), std::forward<Action>(action))));
+    });
 }
 
-template<typename T>
-template<typename Transform>
-Stream<std::result_of_t<Transform(T&&)>>
-StreamImpl<T, Common>::map(Transform&& transform) {
-    using Result = std::result_of_t<Transform(T&&)>;
-    static_assert(!std::is_void<Result>::value,
-        "Return type of the mapping function cannot be void.");
+CLASS_SPECIALIZATIONS(peek);
 
-    check_vacant("map");
-    return make_stream_provider<provider::Map, Result, Transform, T>
-        (std::move(source_), std::forward<Transform>(transform));
+template<typename Transform>
+auto flat_map(Transform&& transform) {
+    return make_operator("stream::op::flat_map", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        using Result = std::result_of_t<Transform(T&&)>;
+        using S = StreamType<Result>;
+        static_assert(!std::is_void<S>::value,
+            "Flat map must be passed a function which returns a stream.");
+
+        return Stream<S>(std::move(
+            make_stream_provider<provider::FlatMap, S, Transform, T>(
+                std::move(stream.getSource()), std::forward<Transform>(transform))));
+    });
+}
+
+CLASS_SPECIALIZATIONS(flat_map);
+
+template<typename Equal = std::equal_to<void>>
+auto adjacent_distinct(Equal&& equal = Equal()) {
+    return make_operator("stream::op::adjacent_distinct", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::AdjacentDistinct, T, Equal>(
+                std::move(stream.getSource()), std::forward<Equal>(equal))));
+    });
+}
+
+template<typename Subtractor = std::minus<void>>
+auto adjacent_difference(Subtractor&& subtract = Subtractor()) {
+    return make_operator("stream::op::adjacent_difference", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        using Result = std::result_of_t<Subtractor(T&, T&)>;
+        return Stream<T>(std::move(StreamProviderPtr<Result>(
+            new provider::AdjacentDifference<T, Subtractor>(
+                std::move(stream.getSource()), std::forward<Subtractor>(subtract)))));
+    });
+}
+
+template<typename Adder = std::plus<void>>
+auto partial_sum(Adder&& add = Adder()) {
+    return make_operator("stream::op::partial_sum", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::PartialSum, T, Adder>(
+                std::move(stream.getSource()), std::forward<Adder>(add))));
+    });
+}
+
+template<typename U>
+auto concat(Stream<U>&& tail) {
+    return make_operator("stream::op::concat", [tail = std::move(tail)] (auto&& head) mutable {
+        if(!tail.occupied())
+            throw VacantStreamException("stream::op::concat");
+        using T = StreamType<decltype(head)>;
+        static_assert(std::is_same<T, U>::value,
+            "Cannot concatenate streams with different types.");
+
+        auto concat_ptr = dynamic_cast<provider::Concatenate<T>*>(head.getSource().get());
+        if(concat_ptr) {
+            concat_ptr->concat(std::move(tail.getSource()));
+            return std::move(head);
+        }
+        return Stream<T>(std::move(
+            make_stream_provider<provider::Concatenate, T>(
+                std::move(head.getSource()), std::move(tail.getSource()))));
+    });
+}
+
+template<typename Iterator>
+auto concat(Iterator begin, Iterator end) {
+    return make_operator("stream::op::concat", [=](auto&& stream) {
+        using I = IteratorType<Iterator>;
+        using T = StreamType<decltype(stream)>;
+        static_assert(std::is_same<T, I>::value,
+            "Cannot concatenate streams with different types.");
+
+        return stream | op::concat(Stream<T>(begin, end));
+    });
+}
+
+template<size_t N>
+auto group() {
+    return make_operator("stream::op::group", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        using G = provider::detail::GroupResult<T, N>;
+        return Stream<G>(std::move(StreamProviderPtr<G>(
+            new provider::Group<T, N>(std::move(stream.getSource())))));
+    });
+}
+
+auto pairwise() {
+    return group<2>().rename("stream::op::pairwise");
+}
+
+template<typename R, typename Function = provider::detail::Zipper>
+auto zip_with(Stream<R>&& right, Function&& zipper = Function()) {
+    return make_operator("stream::op::zip_with", [right = std::move(right), zipper]
+    (auto&& left) mutable {
+        if(!right.occupied())
+            throw VacantStreamException("stream::op::zip_with");
+
+        using L = StreamType<decltype(left)>;
+        using Result = std::result_of_t<Function(L&&, R&&)>;
+        static_assert(!std::is_void<Result>::value,
+            "Return type of the zipping function cannot be void.");
+
+        return Stream<Result>(std::move(StreamProviderPtr<Result>(
+            new provider::Zip<L, R, Function>(
+                std::move(left.getSource()), std::move(right.getSource()),
+                std::forward<Function>(zipper)))));
+    });
 }
 
 namespace detail {
 
-template<typename T> struct is_stream : public std::false_type {};
-template<typename T> struct is_stream<Stream<T>> : public std::true_type {};
+template<template<typename...> class Provider, typename T, typename Less>
+auto make_set_operator(const std::string& name, Stream<T>&& right, Less&& less) {
+    return make_operator(name, [name, right = std::move(right), less] (auto&& left) mutable {
+        if(!right.occupied())
+            throw VacantStreamException(name);
+        using S = StreamType<decltype(left)>;
+        static_assert(std::is_same<T, S>::value,
+            "Cannot compute combination of streams of different types.");
 
-} /* namespace detail */
-
-template<typename T>
-template<typename Transform>
-Stream<detail::StreamType<std::result_of_t<Transform(T&&)>>>
-StreamImpl<T, Common>::flat_map(Transform&& transform) {
-    using Result = std::result_of_t<Transform(T&&)>;
-    static_assert(detail::is_stream<Result>::value,
-        "Flat map must be passed a function which returns a stream");
-    using S = detail::StreamType<Result>;
-
-    check_vacant("flat_map");
-    return make_stream_provider<provider::FlatMap, S, Transform, T>
-        (std::move(source_), std::forward<Transform>(transform));
+        return Stream<T>(std::move(
+            make_stream_provider<Provider, T, Less>(
+                std::move(left.getSource()), std::move(right.getSource()),
+                std::forward<Less>(less))));
+    });
 }
 
-template<typename T>
-Stream<T> StreamImpl<T, Common>::limit(std::size_t length) {
-    check_vacant("limit");
-    return slice(0, length);
+} /* detail */
+
+template<typename T, typename Less = std::less<T>>
+auto merge_with(Stream<T>&& right, Less&& less = Less()) {
+    return detail::make_set_operator<provider::Merge>(
+        "stream::op::merge_with", std::move(right), std::forward<Less>(less));
 }
 
-template<typename T>
-Stream<T> StreamImpl<T, Common>::skip(std::size_t amount) {
-    check_vacant("skip");
-    return slice_to_end(amount, 1);
+template<typename T, typename Less = std::less<T>>
+auto union_with(Stream<T>&& right, Less&& less = Less()) {
+    return detail::make_set_operator<provider::Union>(
+        "stream::op::union_with", std::move(right), std::forward<Less>(less));
 }
 
-template<typename T>
-template<typename Equal>
-Stream<T> StreamImpl<T, Common>::adjacent_distinct(Equal&& equal) {
-    check_vacant("adjacent_distinct");
-    return make_stream_provider<provider::AdjacentDistinct, T, Equal>
-        (std::move(source_), std::forward<Equal>(equal));
+template<typename T, typename Less = std::less<T>>
+auto intersect_with(Stream<T>&& right, Less&& less = Less()) {
+    return detail::make_set_operator<provider::Intersection>(
+        "stream::op::intersect_with", std::move(right), std::forward<Less>(less));
 }
 
-template<typename T>
-template<typename Compare>
-Stream<T> StreamImpl<T, Common>::sort(Compare&& comparator) {
-    check_vacant("sort");
-    return make_stream_provider<provider::Sort, T, Compare>
-        (std::move(source_), std::forward<Compare>(comparator));
+template<typename T, typename Less = std::less<T>>
+auto difference_with(Stream<T>&& right, Less&& less = Less()) {
+    return detail::make_set_operator<provider::Difference>(
+        "stream::op::difference_with", std::move(right), std::forward<Less>(less));
 }
 
-template<typename T>
-Stream<T> StreamImpl<T, Common>::state_point() {
-    check_vacant("state_point");
-    return make_stream_provider<provider::Stateful, T>
-        (std::move(source_));
+template<typename T, typename Less = std::less<T>>
+auto symmetric_difference_with(Stream<T>&& right, Less&& less = Less()) {
+    return detail::make_set_operator<provider::SymmetricDifference>(
+        "stream::op::symmetric_difference_with", std::move(right), std::forward<Less>(less));
 }
 
-template<typename T>
-template<typename Compare>
-Stream<T> StreamImpl<T, Common>::distinct(Compare&& comparator) {
-    check_vacant("distinct");
-    return make_stream_provider<provider::Distinct, T, Compare>
-        (std::move(source_), std::forward<Compare>(comparator));
+auto state_point() {
+    return make_operator("stream::op::state_point", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(make_stream_provider<provider::Stateful, T>(
+            std::move(stream.getSource()))));
+    });
 }
 
-template<typename T>
-template<typename Iterator>
-Stream<T> StreamImpl<T, Common>::concat(Iterator begin, Iterator end) {
-    return concat(Stream<T>(begin, end));
+template<typename Less = std::less<void>>
+auto sort(Less&& less = Less()) {
+    return make_operator("stream::op::sort", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::Sort, T, Less>(
+                std::move(stream.getSource()), std::forward<Less>(less))));
+    });
 }
 
-template<typename T>
-Stream<T> StreamImpl<T, Common>::concat(Stream<T>&& other) {
-    check_vacant("concat");
-    auto concat_ptr = dynamic_cast<provider::Concatenate<T>*>(source_.get());
-    if(concat_ptr) {
-        concat_ptr->concat(std::move(other.source_));
-        return std::move(*this);
-    }
-    return make_stream_provider<provider::Concatenate, T>
-        (std::move(source_), std::move(other.source_));
+template<typename Less = std::less<void>>
+auto distinct(Less&& less = Less()) {
+    return make_operator("stream::op::distinct", [=](auto&& stream) mutable {
+        using T = StreamType<decltype(stream)>;
+        return Stream<T>(std::move(
+            make_stream_provider<provider::Distinct, T, Less>(
+                std::move(stream.getSource()), std::forward<Less>(less))));
+    });
 }
 
-template<typename T>
-Stream<T> StreamImpl<T, Common>::pad(T&& padding) {
-    return concat(MakeStream::repeat(std::forward<T>(padding)));
-}
+#undef CLASS_SPECIALIZATIONS
 
-template<typename T>
-Stream<provider::detail::GroupResult<T, 2>> StreamImpl<T, Common>::pairwise() {
-    check_vacant("pairwise");
-    return grouped<2>();
-}
-
-template<typename T>
-template<size_t N>
-Stream<provider::detail::GroupResult<T, N>> StreamImpl<T, Common>::grouped() {
-    using GroupType = provider::detail::GroupResult<T, N>;
-
-    check_vacant("grouped");
-    return std::move(StreamProviderPtr<GroupType>(
-        new provider::Group<T, N>(std::move(source_))));
-}
-
-template<typename T>
-template<typename Subtractor>
-Stream<std::result_of_t<Subtractor(T&, T&)>>
-StreamImpl<T, Common>::adjacent_difference(Subtractor&& subtract) {
-    using Result = std::result_of_t<Subtractor(T&, T&)>;
-    static_assert(!std::is_void<Result>::value,
-        "Return type of the subtraction cannot be void.");
-
-    check_vacant("adjacent_difference");
-    return std::move(StreamProviderPtr<Result>(
-        new provider::AdjacentDifference<T, Subtractor>(
-            std::move(source_), std::forward<Subtractor>(subtract))));
-}
-
-template<typename T>
-template<typename Adder>
-Stream<T> StreamImpl<T, Common>::partial_sum(Adder&& add) {
-    check_vacant("partial_sum");
-    return make_stream_provider<provider::PartialSum, T, Adder>
-        (std::move(source_), std::forward<Adder>(add));
-}
-
-template<typename T>
-template<typename Other, typename Function>
-Stream<std::result_of_t<Function(T&&, Other&&)>> StreamImpl<T, Common>::zip_with(
-        Stream<Other>&& other, Function&& zipper) {
-    using Result = std::result_of_t<Function(T&&, Other&&)>;
-    static_assert(!std::is_void<Result>::value,
-        "Return type of the zipping function cannot be void.");
-
-    check_vacant("zip_with");
-    return std::move(StreamProviderPtr<Result>(
-        new provider::Zip<T, Other, Function>(
-            std::move(source_), std::move(other.source_),
-            std::forward<Function>(zipper))));
-}
-
-template<typename T>
-template<typename Compare>
-Stream<T> StreamImpl<T, Common>::merge_with(Stream<T>&& other, Compare&& compare) {
-    check_vacant("merge_with");
-    return make_stream_provider<provider::Merge, T, Compare>
-        (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare));
-}
-
-template<typename T>
-template<typename Compare>
-Stream<T> StreamImpl<T, Common>::union_with(Stream<T>&& other, Compare&& compare) {
-    check_vacant("union_with");
-    return make_stream_provider<provider::Union, T, Compare>
-        (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare));
-}
-
-template<typename T>
-template<typename Compare>
-Stream<T> StreamImpl<T, Common>::intersection_with(Stream<T>&& other, Compare&& compare) {
-    check_vacant("intersection_with");
-    return make_stream_provider<provider::Intersection, T, Compare>
-        (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare));
-}
-
-template<typename T>
-template<typename Compare>
-Stream<T> StreamImpl<T, Common>::difference_with(Stream<T>&& other, Compare&& compare) {
-    check_vacant("difference_with");
-    return make_stream_provider<provider::Difference, T, Compare>
-        (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare));
-}
-
-template<typename T>
-template<typename Compare>
-Stream<T> StreamImpl<T, Common>::symmetric_difference_with(Stream<T>&& other, Compare&& compare) {
-    check_vacant("symmetric_difference_with");
-    return make_stream_provider<provider::SymmetricDifference, T, Compare>
-        (std::move(source_), std::move(other.source_),
-         std::forward<Compare>(compare));
-}
-
-} /* namespace stream */
+} /* op */
+} /* stream */
 
 #endif

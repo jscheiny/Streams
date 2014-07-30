@@ -28,7 +28,7 @@ public:
 private:
     static std::string build_message(const std::string& term) {
         std::stringstream message;
-        message << "No terminal result for operation Stream::" << term;
+        message << "No terminal result for operation " << term;
         return message.str();
     }
 };
@@ -36,13 +36,13 @@ private:
 class VacantStreamException : public StreamException {
 
 public:
-    explicit VacantStreamException(const std::string& method)
-        : StreamException(build_message(method)) {}
+    explicit VacantStreamException(const std::string& opname)
+        : StreamException(build_message(opname)) {}
 
 private:
-    static std::string build_message(const std::string& method) {
+    static std::string build_message(const std::string& opname) {
         std::stringstream message;
-        message << "Cannot call Stream::" << method << " on a vacant stream";
+        message << "Cannot perform operation " << opname << " on a vacant stream.";
         return message.str();
     }
 };

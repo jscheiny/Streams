@@ -32,7 +32,7 @@ public:
     std::pair<int, int> print(std::ostream& os, int indent) const override {
         this->print_indent_arrow(os, indent);
         os << get_operation_name() << ":\n";
-        auto left =source1_->print(os, indent + 1); 
+        auto left =source1_->print(os, indent + 1);
         auto right = source2_->print(os, indent + 1);
         return {left.first + right.first + 1, left.second + right.second};
     }
@@ -106,7 +106,7 @@ protected:
         return UpdateState::StreamFinished;
     }
 
-    virtual std::string get_operation_name() = 0;
+    virtual std::string get_operation_name() const = 0;
 
 private:
     ToAdvance advance_ = ToAdvance::Both;
@@ -178,7 +178,7 @@ private:
             } else if(depletion_ == DepleteState::Both) {
                 state = if_both_depleted();
             }
-            
+
             if(state == UpdateState::UpdateFinished) {
                 return true;
             } else if(state == UpdateState::StreamFinished) {
