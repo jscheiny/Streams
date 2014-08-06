@@ -6,6 +6,7 @@
 #include "providers/Providers.h"
 #include "Utility.h"
 
+#include <unordered_set>
 #include <functional>
 #include <type_traits>
 #include <iostream>
@@ -168,15 +169,22 @@ public:
     }
 
     Stream()
-      : source_(make_stream_provider<provider::Empty, T>()) {}
+        : source_(make_stream_provider<provider::Empty, T>()) {}
 
     Stream(StreamProviderPtr<T> source)
-      : source_(std::move(source)) {}
+        : source_(std::move(source)) {}
 
     template<typename Iterator>
     Stream(Iterator begin, Iterator end)
-      : source_(make_stream_provider<provider::Iterator, T, Iterator>(
+        : source_(make_stream_provider<provider::Iterator, T, Iterator>(
             begin, end)) {}
+
+    template<typename Container>
+    Stream(const Container& container)
+        : Stream(container.begin(), container.end()) {}
+
+    Stream(std::initializer_list<T> init)
+        : Stream(std::deque<T>(init.begin(), init.end())) {}
 
     template<typename F>
     auto operator| (Operator<F>&& op) ->
@@ -201,6 +209,14 @@ public:
             decltype(term.apply_to(std::move(*this))) {
         return term.apply_to(std::move(*this));
     }
+
+    template<typename A> operator std::vector<T, A>();
+    template<typename A> operator std::list<T, A>();
+    template<typename A> operator std::deque<T, A>();
+    template<typename C, typename A> operator std::set<T, C, A>();
+    template<typename C, typename A> operator std::multiset<T, C, A>();
+    template<typename H, typename P, typename A> operator std::unordered_set<T, H, P, A>();
+    template<typename H, typename P, typename A> operator std::unordered_multiset<T, H, P, A>();
 
     StreamProviderPtr<T>& getSource() {
         return source_;
@@ -249,5 +265,6 @@ private:
 #include "StreamTerminators.h"
 #include "StreamGenerators.h"
 #include "StreamAlgebra.h"
+#include "StreamConversions.h"
 
 #endif

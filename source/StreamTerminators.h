@@ -253,53 +253,6 @@ auto print_to(std::ostream& os, const char* delimiter = " ") {
     });
 }
 
-auto to_vector() {
-    return make_terminator("stream::op::to_vector", [=](auto&& stream) {
-        using T = StreamType<decltype(stream)>;
-        std::vector<T> result;
-        stream | copy_to(std::back_inserter(result));
-        return result;
-    });
-}
-
-auto to_list() {
-    return make_terminator("stream::op::to_list", [=](auto&& stream) {
-        using T = StreamType<decltype(stream)>;
-        std::list<T> result;
-        stream | copy_to(std::back_inserter(result));
-        return result;
-    });
-}
-
-auto to_deque() {
-    return make_terminator("stream::op::to_deque", [=](auto&& stream) {
-        using T = StreamType<decltype(stream)>;
-        std::deque<T> result;
-        stream | copy_to(std::back_inserter(result));
-        return result;
-    });
-}
-
-template<typename Less = std::less<void>>
-auto to_set(Less&& less = Less()) {
-    return make_terminator("stream::op::to_set", [=](auto&& stream) {
-        using T = StreamType<decltype(stream)>;
-        std::set<T, Less> result(std::forward<Less>(less));
-        copy_to(std::inserter(result, result.end()))(std::move(stream));
-        return result;
-    });
-}
-
-template<typename Less = std::less<void>>
-auto to_multiset(Less&& less = Less()) {
-    return make_terminator("stream::op::to_multiset", [=](auto&& stream) {
-        using T = StreamType<decltype(stream)>;
-        std::multiset<T, Less> result(std::forward<Less>(less));
-        stream | copy_to(std::inserter(result, result.end()));
-        return result;
-    });
-}
-
 auto random_sample(size_t size) {
     return make_terminator("stream::op::random_sample", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;

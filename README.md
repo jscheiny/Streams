@@ -85,11 +85,11 @@ auto to_stream = [](std::vector<double>& vec) {
     return MakeStream::from(vec);
 };
 
-auto sum_vec = (to_stream(x) + to_stream(y)) | to_vector();
-auto diff_vec = (to_stream(x) - to_stream(y)) | to_vector();
+std::vector<double> sum_vec = to_stream(x) + to_stream(y);
+std::vector<double> diff_vec = to_stream(x) - to_stream(y);
 double dot_product = (to_stream(x) * to_stream(y)) | sum();
-auto scaling = (to_stream(x) * 10) | to_vector();
-auto translating = (to_stream(x) + 3.7) | to_vector();
+std::vector<double> scaling = to_stream(x) * 10;
+std::vector<double> translating = to_stream(x) + 3.7;
 ```
 
 ### Set operations:
@@ -102,20 +102,17 @@ auto to_stream = [](std::set<int>& vec) {
     return MakeStream::from(vec);
 };
 
-auto set_union = to_stream(x) | union_with(to_stream(y)) | to_set();
+std::set<int> set_union = to_stream(x) | union_with(to_stream(y));
 // Better than:
 //   std::set<int> result;
 //   std::set_union(x.begin(), x.end(), y.begin(), y.end(),
 //                  inserter(result, result.end()));
-auto set_intersect = to_stream(x)
-    | intersection_with(to_stream(y))
-    | to_set();
-auto set_diff = to_stream(x)
-    | difference_with(to_stream(y))
-    | to_set();
-auto set_sym_diff = to_stream(x)
-    | symmetric_difference_with(to_stream(y))
-    | to_set();
+std::set<int> set_intersect = to_stream(x)
+    | intersection_with(to_stream(y));
+std::set<int> set_diff = to_stream(x)
+    | difference_with(to_stream(y));
+std::set<int> set_sym_diff = to_stream(x)
+    | symmetric_difference_with(to_stream(y));
 ```
 
 ### Adding unique ids:
@@ -125,10 +122,9 @@ std::vector<T> objects = /* ... */;
 
 std::vector<T> objects_with_ids = MakeStream::from(objects)
     | zip_with(MakeStream::counter(1), [](T&& object, int id) {
-            object.set_id(id);
-            return object;
-        })
-    | to_vector();
+        object.set_id(id);
+        return object;
+    });
 ```
 
 ### Printing containers:
@@ -140,20 +136,17 @@ std::vector<T> objects_with_ids = MakeStream::from(objects)
 ### Finite differences:
 
 ```cpp
-auto diff1 = MakeStream::closed_range(1, 6)
+std::vector<int> diff1 = MakeStream::closed_range(1, 6)
     | map_([](int x) { return x * x * x; })
-    | adjacent_difference()
-    | to_vector();
+    | adjacent_difference();
 (MakeStream::from(diff1) | print_to(std::cout)) << std::endl;
 
-auto diff2 = MakeStream::from(diff1)
-    | adjacent_difference()
-    | to_vector();
+std::vector<int> diff2 = MakeStream::from(diff1)
+    | adjacent_difference();
 (MakeStream::from(diff2) | print_to(std::cout)) << std::endl;
 
-auto diff3 = MakeStream::from(diff2)
-    | adjacent_difference()
-    | to_vector();
+std::vector<int> diff3 = MakeStream::from(diff2)
+    | adjacent_difference();
 (MakeStream::from(diff3) | print_to(std::cout)) << std::endl;
 
 // Output:
