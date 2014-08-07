@@ -33,21 +33,21 @@ public:
     }
 
     template<typename G>
-    Operator<Compose<F, G>> operator| (Operator<G>&& right) {
-        return Operator<Compose<F, G>>(Compose<F,G>(
-            *this, std::forward<Operator<G>>(right)));
+    Operator<Compose<G, F>> operator| (Operator<G>&& right) {
+        return {{right.operator_, operator_}};
     }
 
     template<typename G>
-    Terminator<Compose<F, G>> operator| (Terminator<G>&& right) {
-        return Terminator<Compose<F, G>>(Compose<F, G>(
-            *this, std::forward<Operator<G>>(right)));
+    Terminator<Compose<G, F>> operator| (Terminator<G>&& right) {
+        return {{right.terminator_, operator_}};
     }
 
     Operator<F> rename(const std::string& name) && {
         name_ = name;
         return std::move(*this);
     }
+
+    template<typename> friend class Operator;
 private:
     std::string name_;
     F operator_;
@@ -86,6 +86,8 @@ public:
     Terminator<Compose<G, F>> then(G&& function) {
         return {Compose<G, F>(std::forward<G>(function), terminator_)};
     }
+
+    template<typename> friend class Operator;
 private:
     std::string name_;
     F terminator_;
