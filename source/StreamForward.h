@@ -12,7 +12,7 @@ namespace detail {
 template<typename T> struct StreamIdentifier { using type = void; };
 template<typename T> struct StreamIdentifier<Stream<T>> { using type = T; };
 
-} /* detail */
+} /* namespace detail */
 
 template<typename S> using StreamType =
     typename detail::StreamIdentifier<std::remove_reference_t<S>>::type;

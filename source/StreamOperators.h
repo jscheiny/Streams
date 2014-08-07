@@ -245,7 +245,7 @@ auto make_set_operator(const std::string& name, Stream<T>&& right, Less&& less) 
     });
 }
 
-} /* detail */
+} /* namespace detail */
 
 template<typename T, typename Less = std::less<T>>
 auto merge_with(Stream<T>&& right, Less&& less = Less()) {
@@ -307,7 +307,7 @@ auto distinct(Less&& less = Less()) {
 
 #undef CLASS_SPECIALIZATIONS
 
-} /* op */
-} /* stream */
+} /* namespace op */
+} /* namespace stream */
 
 #endif

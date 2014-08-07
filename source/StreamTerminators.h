@@ -301,8 +301,8 @@ auto random_element() {
 
 #undef CLASS_SPECIALIZATIONS
 
-} /* op */
-} /* stream */
+} /* namespace op */
+} /* namespace stream */
 
 
 #endif
