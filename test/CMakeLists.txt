@@ -17,3 +17,5 @@ function(add_stream_test test_name)
     target_link_libraries(${test_name} gmock gmock_main)
     add_test(${test_name} ${test_name})
 endfunction(add_stream_test)
+
+add_stream_test(RepeatTest)

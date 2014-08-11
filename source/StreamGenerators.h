@@ -24,7 +24,7 @@ Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
 
 template<typename T>
 Stream<RemoveRef<T>> MakeStream::repeat(T&& value, size_t times) {
-    return MakeStream::repeat(value).limit(times);
+    return MakeStream::repeat(value) | op::limit(times);
 }
 
 template<typename Iterator>
