@@ -19,6 +19,7 @@ function(add_stream_test test_name)
 endfunction(add_stream_test)
 
 add_stream_test(EmptyTest)
+add_stream_test(SingletonTest)
 add_stream_test(RepeatTest)
 add_stream_test(CycleTest)
 add_stream_test(CounterTest)
