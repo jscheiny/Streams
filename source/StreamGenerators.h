@@ -177,7 +177,6 @@ Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper) {
 template<typename T, typename U>
 Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper, U&& increment) {
     using R = RemoveRef<T>;
-    using R = RemoveRef<T>;
     return MakeStream::counter(lower, std::forward<U>(increment))
         | op::take_while([upper = std::forward<T>(upper)](R& value) {
             return value <= upper;
@@ -186,7 +185,6 @@ Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper, U&& incremen
 
 template<typename T, typename U>
 Stream<RemoveRef<T>> MakeStream::closed_range(T&& lower, T&& upper, const U& increment) {
-    using R = RemoveRef<T>;
     using R = RemoveRef<T>;
     return MakeStream::counter(lower, increment)
         | op::take_while([upper = std::forward<T>(upper)](R& value) {
