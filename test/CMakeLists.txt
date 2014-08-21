@@ -12,7 +12,7 @@ include_directories("${source_dir}/gtest/include")
 link_directories("${binary_dir}")
 
 function(add_stream_test test_name)
-    add_executable(${test_name} "${test_name}.cc")
+    add_executable(${test_name} "${test_name}.cpp")
     add_dependencies(${test_name} googlemock)
     target_link_libraries(${test_name} gmock gmock_main)
     add_test(${test_name} ${test_name})
