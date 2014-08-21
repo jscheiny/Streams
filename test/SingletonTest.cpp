@@ -6,6 +6,6 @@ using namespace testing;
 using namespace stream;
 using namespace stream::op;
 
-TEST(Singleton, Default) {
+TEST(SingletonTest, Default) {
     EXPECT_THAT(MakeStream::singleton(5) | to_vector(), ElementsAre(5));
 }

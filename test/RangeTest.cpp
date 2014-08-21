@@ -6,12 +6,12 @@ using namespace testing;
 using namespace stream;
 using namespace stream::op;
 
-TEST(Range, Default) {
+TEST(RangeTest, Default) {
     EXPECT_THAT(MakeStream::range(0, 5) | to_vector(),
                 ElementsAre(0, 1, 2, 3, 4));
 }
 
-TEST(Range, Increment) {
+TEST(RangeTest, Increment) {
     EXPECT_THAT(MakeStream::range(0, 6, 3) | to_vector(),
                 ElementsAre(0, 3));
 
@@ -24,12 +24,12 @@ TEST(Range, Increment) {
                 ElementsAre(0, 5, 10));
 }
 
-TEST(ClosedRange, Default) {
+TEST(ClosedRangeTest, Default) {
     EXPECT_THAT(MakeStream::closed_range(0, 5) | to_vector(),
                 ElementsAre(0, 1, 2, 3, 4, 5));
 }
 
-TEST(ClosedRange, Increment) {
+TEST(ClosedRangeTest, Increment) {
     EXPECT_THAT(MakeStream::closed_range(0, 6, 3) | to_vector(),
                 ElementsAre(0, 3, 6));
 
