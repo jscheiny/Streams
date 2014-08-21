@@ -46,7 +46,7 @@ operator+ (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator+ (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() + right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value + right;
     });
 }
@@ -54,7 +54,7 @@ auto operator+ (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator+ (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left + std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left + value;
     });
 }
@@ -69,7 +69,7 @@ operator- (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator- (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() - right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value - right;
     });
 }
@@ -77,7 +77,7 @@ auto operator- (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator- (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left - std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left - value;
     });
 }
@@ -92,7 +92,7 @@ operator* (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator* (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() * right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value * right;
     });
 }
@@ -100,7 +100,7 @@ auto operator* (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator* (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left * std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left * value;
     });
 }
@@ -115,7 +115,7 @@ operator/ (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator/ (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() / right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value / right;
     });
 }
@@ -123,7 +123,7 @@ auto operator/ (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator/ (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left / std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left / value;
     });
 }
@@ -138,7 +138,7 @@ operator% (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator% (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() % right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value % right;
     });
 }
@@ -146,7 +146,7 @@ auto operator% (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator% (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left % std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left % value;
     });
 }
@@ -161,7 +161,7 @@ operator== (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator== (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() == right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value == right;
     });
 }
@@ -169,7 +169,7 @@ auto operator== (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator== (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left == std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left == value;
     });
 }
@@ -184,7 +184,7 @@ operator!= (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator!= (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() != right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value != right;
     });
 }
@@ -192,7 +192,7 @@ auto operator!= (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator!= (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left != std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left != value;
     });
 }
@@ -207,7 +207,7 @@ operator< (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator< (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() < right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value < right;
     });
 }
@@ -215,7 +215,7 @@ auto operator< (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator< (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left < std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left < value;
     });
 }
@@ -230,7 +230,7 @@ operator> (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator> (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() > right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value > right;
     });
 }
@@ -238,7 +238,7 @@ auto operator> (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator> (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left > std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left > value;
     });
 }
@@ -253,7 +253,7 @@ operator<= (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator<= (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() <= right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value <= right;
     });
 }
@@ -261,7 +261,7 @@ auto operator<= (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator<= (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left <= std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left <= value;
     });
 }
@@ -276,7 +276,7 @@ operator>= (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator>= (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() >= right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value >= right;
     });
 }
@@ -284,7 +284,7 @@ auto operator>= (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator>= (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left >= std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left >= value;
     });
 }
@@ -299,7 +299,7 @@ operator&& (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator&& (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() && right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value && right;
     });
 }
@@ -307,7 +307,7 @@ auto operator&& (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator&& (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left && std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left && value;
     });
 }
@@ -322,7 +322,7 @@ operator|| (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator|| (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() || right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value || right;
     });
 }
@@ -330,7 +330,7 @@ auto operator|| (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator|| (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left || std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left || value;
     });
 }
@@ -345,7 +345,7 @@ operator& (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator& (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() & right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value & right;
     });
 }
@@ -353,7 +353,7 @@ auto operator& (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator& (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left & std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left & value;
     });
 }
@@ -368,7 +368,7 @@ operator| (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator| (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() & right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value | right;
     });
 }
@@ -376,7 +376,7 @@ auto operator| (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator| (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left & std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left | value;
     });
 }
@@ -391,7 +391,7 @@ operator^ (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
 template<typename S, typename T>
 auto operator^ (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() ^ right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value ^ right;
     });
 }
@@ -399,7 +399,7 @@ auto operator^ (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator^ (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left ^ std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left ^ value;
     });
 }
@@ -407,14 +407,14 @@ auto operator^ (const T& left, stream::Stream<S>&& right)
 template<typename T1, typename T2>
 stream::Stream<decltype(std::declval<T1&&>() << std::declval<T2&&>())>
 operator<< (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(right, [](T1& t1, T2& t2) {
-        return t1 << t2; });
+    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
+        [](T1&& t1, T2&& t2) { return t1 << t2; });
 }
 
 template<typename S, typename T>
 auto operator<< (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() << right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value << right;
     });
 }
@@ -422,7 +422,7 @@ auto operator<< (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator<< (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left << std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left << value;
     });
 }
@@ -430,15 +430,14 @@ auto operator<< (const T& left, stream::Stream<S>&& right)
 template<typename T1, typename T2>
 stream::Stream<decltype(std::declval<T1&&>() >> std::declval<T2&&>())>
 operator>> (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(right, [](T1& t1, T2& t2) {
-        return t1 >> t2;
-    });
+    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
+        [](T1&& t1, T2&& t2) { return t1 >> t2; });
 }
 
 template<typename S, typename T>
 auto operator>> (stream::Stream<S>&& left, const T& right)
         -> stream::Stream<decltype(std::declval<S&&>() >> right)> {
-    return left | stream::op::map_([&right] (S&& value) {
+    return left | stream::op::map_([right] (S&& value) {
         return value >> right;
     });
 }
@@ -446,7 +445,7 @@ auto operator>> (stream::Stream<S>&& left, const T& right)
 template<typename S, typename T>
 auto operator>> (const T& left, stream::Stream<S>&& right)
         -> stream::Stream<decltype(left >> std::declval<S&&>())> {
-    return right | stream::op::map_([&left] (S&& value) {
+    return right | stream::op::map_([left] (S&& value) {
         return left >> value;
     });
 }

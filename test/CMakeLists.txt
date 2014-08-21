@@ -18,6 +18,7 @@ function(add_stream_test test_name)
     add_test(${test_name} ${test_name})
 endfunction(add_stream_test)
 
+# Stream generators
 add_stream_test(EmptyTest)
 add_stream_test(SingletonTest)
 add_stream_test(RepeatTest)
@@ -25,3 +26,6 @@ add_stream_test(CycleTest)
 add_stream_test(CounterTest)
 add_stream_test(RangeTest)
 add_stream_test(FromTest)
+
+# Stream operators
+add_stream_test(AlgebraTest)
