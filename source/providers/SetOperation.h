@@ -13,9 +13,9 @@ public:
     SetOperation(StreamProviderPtr<T> source1,
                  StreamProviderPtr<T> source2,
                  Compare&& comparator)
-          : source1_(std::move(source1)),
-            source2_(std::move(source2)),
-            comparator_(comparator) {}
+          : comparator_(comparator),
+            source1_(std::move(source1)),
+            source2_(std::move(source2)) {}
 
     std::shared_ptr<T> get() override {
         return result_;
@@ -175,7 +175,7 @@ private:
                 state = if_first_depleted();
             } else if(depletion_ == DepleteState::Second) {
                 state = if_second_depleted();
-            } else if(depletion_ == DepleteState::Both) {
+            } else { // depletion_ == DepleteState::Both
                 state = if_both_depleted();
             }
 
