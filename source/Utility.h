@@ -32,7 +32,7 @@ InvertedPredicate<Function> not_(Function&& fn) {
 }
 
 template<typename T>
-using RemoveRef = typename std::remove_reference<T>::type;
+using RemoveRef = std::remove_const_t<std::remove_reference_t<T>>;
 
 template<typename Itr>
 using IteratorType = typename std::iterator_traits<Itr>::value_type;

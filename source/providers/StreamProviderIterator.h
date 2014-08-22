@@ -13,9 +13,9 @@ public:
     Iterator operator++ (int);
     bool operator== (Iterator& other);
     bool operator!= (Iterator& other);
-    
-    friend class StreamProvider<T>;
-    
+
+    friend struct StreamProvider<T>;
+
 private:
     enum class State {
         Initial,
@@ -27,7 +27,7 @@ private:
     static Iterator begin(StreamProvider<T>* source);
     static Iterator iterating(StreamProvider<T>* source, std::shared_ptr<T> value);
     static Iterator end(StreamProvider<T>* source);
- 
+
     Iterator(StreamProvider<T>* source, State state, std::shared_ptr<T> value);
 
     void update_initial();

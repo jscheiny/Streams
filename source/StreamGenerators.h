@@ -19,7 +19,7 @@ template<typename T>
 Stream<RemoveRef<T>> MakeStream::repeat(T&& value) {
     using R = RemoveRef<T>;
     return make_stream_provider<provider::Repeat, R>
-        (std::forward<R>(value));
+        (std::forward<T>(value));
 }
 
 template<typename T>
