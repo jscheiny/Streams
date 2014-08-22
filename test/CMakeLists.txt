@@ -29,3 +29,8 @@ add_stream_test(FromTest)
 
 # Stream operators
 add_stream_test(AlgebraTest)
+add_stream_test(FilterTest)
+add_stream_test(WhileTest)
+add_stream_test(SliceTest)
+add_stream_test(PeekTest)
+add_stream_test(MapTest)
