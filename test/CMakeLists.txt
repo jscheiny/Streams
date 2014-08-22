@@ -43,3 +43,8 @@ add_stream_test(GroupTest)
 add_stream_test(ZipTest)
 add_stream_test(SetOperationsTest)
 add_stream_test(StatefulTest)
+
+# Stream terminators
+add_stream_test(AccessTest)
+add_stream_test(NumericReductionTest)
+add_stream_test(QuantifierTest)

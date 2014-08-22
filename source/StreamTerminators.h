@@ -92,13 +92,7 @@ auto last() {
 }
 
 auto nth(size_t index) {
-    return make_terminator("stream::op::nth", [=](auto&& stream) {
-        try {
-            return stream | skip(index) | first();
-        } catch(EmptyStreamException& e) {
-            throw EmptyStreamException("stream::op::nth");
-        }
-    });
+    return (skip(index) | first()).rename("stream::op::nth");
 }
 
 auto sum() {
@@ -154,7 +148,6 @@ auto minmax(Less&& less = Less()) {
     return reduce(to_pair, next_minmax).rename("stream::op::minmax");
 }
 
-
 template<typename Predicate>
 auto any(Predicate&& predicate) {
     return make_terminator("stream::op::any", [=](auto&& stream) mutable {
@@ -204,7 +197,7 @@ auto none() {
     return none(to_bool);
 }
 
-// CLASS_SPECIALIZATIONS(none);
+CLASS_SPECIALIZATIONS(none);
 
 template<typename Predicate>
 auto not_all(Predicate&& predicate) {
@@ -217,7 +210,7 @@ auto not_all() {
     return not_all(to_bool);
 }
 
-CLASS_SPECIALIZATIONS(none);
+CLASS_SPECIALIZATIONS(not_all);
 
 template<typename OutputIterator>
 auto copy_to(OutputIterator out) {
