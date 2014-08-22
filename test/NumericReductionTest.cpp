@@ -41,3 +41,17 @@ TEST(ProductTest, Identity) {
     EXPECT_THAT(MakeStream::empty<int>() | product(1), Eq(1));
 }
 
+TEST(StatisticTest, Min) {
+    EXPECT_THAT(MakeStream::from({3, -2, 8}) | min(), Eq(-2));
+    EXPECT_EXCEPTION(MakeStream::empty<int>() | min(), EmptyStreamException);
+}
+
+TEST(StatisticTest, Max) {
+    EXPECT_THAT(MakeStream::from({3, -2, 8}) | max(), Eq(8));
+    EXPECT_EXCEPTION(MakeStream::empty<int>() | max(), EmptyStreamException);
+}
+
+TEST(StatisticTest, MinMax) {
+    EXPECT_THAT(MakeStream::from({3, -2, 8}) | minmax(), Eq(std::make_pair(-2, 8)));
+    EXPECT_EXCEPTION(MakeStream::empty<int>() | minmax(), EmptyStreamException);
+}
