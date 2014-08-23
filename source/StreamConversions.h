@@ -67,10 +67,10 @@ private:
     std::string name_;
 };
 
-struct Hash_void {
+struct PolymorphicHash {
     template<typename T>
-    size_t operator()(const T& value) {
-        return std::hash<T>(value);
+    decltype(auto) operator() (const T& value) {
+        return std::hash<T>{}(value);
     }
 };
 
@@ -92,8 +92,8 @@ public:
         });
     }
 
-    template<typename Hash = Hash_void,
-             typename Predicate = std::less<void>>
+    template<typename Hash = PolymorphicHash,
+             typename Predicate = std::equal_to<void>>
     auto operator() (const Hash& hash = Hash(),
                      const Predicate& predicate = Predicate()) const {
         return make_terminator(name_, [hash, predicate](auto&& stream) {
