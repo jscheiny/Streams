@@ -3,452 +3,94 @@
 
 #include "Utility.h"
 
-template<typename T>
-stream::Stream<std::result_of_t<std::negate<void>(T&&)>> operator- (stream::Stream<T>&& stream) {
-    return stream | stream::op::map_(std::negate<void>());
-}
+#define STREAM_OP_STREAM(Op, Function) \
+    template<typename T1, typename T2> \
+    stream::Stream<std::result_of_t< Function (T1&&, T2&&)>> \
+    operator Op (stream::Stream<T1>&& left, stream::Stream<T2>&& right) { \
+        return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right), \
+                                           Function{}); \
+    }
 
-template<typename T>
-stream::Stream<decltype(+std::declval<T&&>())> operator+ (stream::Stream<T>&& stream) {
-    return stream | stream::op::map_([](T&& x) {
-        return +x;
-    });
-}
+#define STREAM_OP_VALUE(Op) \
+    template<typename S, typename T> \
+    auto operator Op (stream::Stream<S>&& left, const T& right) \
+            -> stream::Stream<decltype(std::declval<S&&>() Op right)> { \
+        return left | stream::op::map_([right] (S&&value) { \
+            return value Op right; \
+        }); \
+    }
 
-template<typename T>
-stream::Stream<decltype(!std::declval<T&&>())> operator! (stream::Stream<T>&& stream) {
-    return stream | stream::op::map_([](T&& x) {
-        return !x;
-    });
-}
+#define VALUE_OP_STREAM(Op) \
+    template<typename S, typename T> \
+    auto operator Op (const T& left, stream::Stream<S>&& right) \
+            -> stream::Stream<decltype(left Op std::declval<S&&>())> { \
+        return right | stream::op::map_([left] (S&& value) { \
+            return left Op value; \
+        }); \
+    }
 
-template<typename T>
-stream::Stream<decltype(~std::declval<T&&>())> operator~ (stream::Stream<T>&& stream) {
-    return stream | stream::op::map_([](T&& x) {
-        return ~x;
-    });
-}
+#define BINARY_OPERATOR(Op, Function) \
+    STREAM_OP_STREAM(Op, Function) \
+    STREAM_OP_VALUE(Op) \
+    VALUE_OP_STREAM(Op) \
 
-template<typename T>
-stream::Stream<decltype(*std::declval<T&&>())> operator* (stream::Stream<T>&& stream) {
-    return stream | stream::op::map_([](T&& x) {
-        return *x;
-    });
-}
+#define UNARY_OPERATOR(Op) \
+    template<typename T> \
+    stream::Stream<decltype( Op std::declval<T&&>())> operator Op (stream::Stream<T>&& stream) { \
+        return stream | stream::op::map_([](T&& x) { return Op x; }); \
+    }
 
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::plus<void>(T1&&, T2&&)>>
-operator+ (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::plus<void>());
-}
 
-template<typename S, typename T>
-auto operator+ (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() + right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value + right;
-    });
-}
+struct ShiftLeft {
+    template<typename L, typename R>
+    constexpr auto operator()(L&& left, R&& right) const
+        -> decltype(std::forward<L>(left) << std::forward<R>(right)) {
+        return std::forward<L>(left) << std::forward<R>(right);
+    }
+};
 
-template<typename S, typename T>
-auto operator+ (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left + std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left + value;
-    });
-}
+struct ShiftRight {
+    template<typename L, typename R>
+    constexpr auto operator()(L&& left, R&& right) const
+        -> decltype(std::forward<L>(left) >> std::forward<R>(right)) {
+        return std::forward<L>(left) >> std::forward<R>(right);
+    }
+};
 
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::minus<void>(T1&&, T2&&)>>
-operator- (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::minus<void>());
-}
 
-template<typename S, typename T>
-auto operator- (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() - right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value - right;
-    });
-}
+UNARY_OPERATOR(-);
+UNARY_OPERATOR(+);
+UNARY_OPERATOR(!);
+UNARY_OPERATOR(~);
+UNARY_OPERATOR(*);
 
-template<typename S, typename T>
-auto operator- (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left - std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left - value;
-    });
-}
+BINARY_OPERATOR(+, std::plus<void>);
+BINARY_OPERATOR(-, std::minus<void>);
+BINARY_OPERATOR(*, std::multiplies<void>);
+BINARY_OPERATOR(/, std::divides<void>);
+BINARY_OPERATOR(%, std::modulus<void>);
 
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::multiplies<void>(T1&&, T2&&)>>
-operator* (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::multiplies<void>());
-}
+BINARY_OPERATOR(==, std::equal_to<void>);
+BINARY_OPERATOR(!=, std::not_equal_to<void>);
+BINARY_OPERATOR(<,  std::less<void>);
+BINARY_OPERATOR(>,  std::greater<void>);
+BINARY_OPERATOR(<=, std::less_equal<void>);
+BINARY_OPERATOR(>=, std::greater_equal<void>);
 
-template<typename S, typename T>
-auto operator* (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() * right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value * right;
-    });
-}
+BINARY_OPERATOR(&&, std::logical_and<void>);
+BINARY_OPERATOR(||, std::logical_or<void>);
 
-template<typename S, typename T>
-auto operator* (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left * std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left * value;
-    });
-}
+BINARY_OPERATOR(&, std::bit_and<void>);
+BINARY_OPERATOR(|, std::bit_or<void>);
+BINARY_OPERATOR(^, std::bit_xor<void>);
 
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::divides<void>(T1&&, T2&&)>>
-operator/ (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::divides<void>());
-}
+BINARY_OPERATOR(<<, ShiftLeft);
+BINARY_OPERATOR(>>, ShiftRight);
 
-template<typename S, typename T>
-auto operator/ (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() / right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value / right;
-    });
-}
-
-template<typename S, typename T>
-auto operator/ (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left / std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left / value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::modulus<void>(T1&&, T2&&)>>
-operator% (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::modulus<void>());
-}
-
-template<typename S, typename T>
-auto operator% (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() % right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value % right;
-    });
-}
-
-template<typename S, typename T>
-auto operator% (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left % std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left % value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::equal_to<void>(T1&&, T2&&)>>
-operator== (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::equal_to<void>());
-}
-
-template<typename S, typename T>
-auto operator== (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() == right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value == right;
-    });
-}
-
-template<typename S, typename T>
-auto operator== (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left == std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left == value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::not_equal_to<void>(T1&&, T2&&)>>
-operator!= (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::not_equal_to<void>());
-}
-
-template<typename S, typename T>
-auto operator!= (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() != right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value != right;
-    });
-}
-
-template<typename S, typename T>
-auto operator!= (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left != std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left != value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::less<void>(T1&&, T2&&)>>
-operator< (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::less<void>());
-}
-
-template<typename S, typename T>
-auto operator< (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() < right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value < right;
-    });
-}
-
-template<typename S, typename T>
-auto operator< (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left < std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left < value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::greater<void>(T1&&, T2&&)>>
-operator> (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::greater<void>());
-}
-
-template<typename S, typename T>
-auto operator> (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() > right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value > right;
-    });
-}
-
-template<typename S, typename T>
-auto operator> (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left > std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left > value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::less_equal<void>(T1&&, T2&&)>>
-operator<= (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::less_equal<void>());
-}
-
-template<typename S, typename T>
-auto operator<= (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() <= right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value <= right;
-    });
-}
-
-template<typename S, typename T>
-auto operator<= (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left <= std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left <= value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::greater_equal<void>(T1&&, T2&&)>>
-operator>= (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::greater_equal<void>());
-}
-
-template<typename S, typename T>
-auto operator>= (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() >= right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value >= right;
-    });
-}
-
-template<typename S, typename T>
-auto operator>= (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left >= std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left >= value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::logical_and<void>(T1&&, T2&&)>>
-operator&& (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::logical_and<void>());
-}
-
-template<typename S, typename T>
-auto operator&& (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() && right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value && right;
-    });
-}
-
-template<typename S, typename T>
-auto operator&& (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left && std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left && value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::logical_or<void>(T1&&, T2&&)>>
-operator|| (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::logical_or<void>());
-}
-
-template<typename S, typename T>
-auto operator|| (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() || right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value || right;
-    });
-}
-
-template<typename S, typename T>
-auto operator|| (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left || std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left || value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::bit_and<void>(T1&&, T2&&)>>
-operator& (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::bit_and<void>());
-}
-
-template<typename S, typename T>
-auto operator& (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() & right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value & right;
-    });
-}
-
-template<typename S, typename T>
-auto operator& (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left & std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left & value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::bit_or<void>(T1&&, T2&&)>>
-operator| (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::bit_or<void>());
-}
-
-template<typename S, typename T>
-auto operator| (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() & right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value | right;
-    });
-}
-
-template<typename S, typename T>
-auto operator| (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left & std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left | value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<std::result_of_t<std::bit_xor<void>(T1&&, T2&&)>>
-operator^ (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-                                       std::bit_xor<void>());
-}
-
-template<typename S, typename T>
-auto operator^ (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() ^ right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value ^ right;
-    });
-}
-
-template<typename S, typename T>
-auto operator^ (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left ^ std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left ^ value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<decltype(std::declval<T1&&>() << std::declval<T2&&>())>
-operator<< (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-        [](T1&& t1, T2&& t2) { return t1 << t2; });
-}
-
-template<typename S, typename T>
-auto operator<< (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() << right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value << right;
-    });
-}
-
-template<typename S, typename T>
-auto operator<< (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left << std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left << value;
-    });
-}
-
-template<typename T1, typename T2>
-stream::Stream<decltype(std::declval<T1&&>() >> std::declval<T2&&>())>
-operator>> (stream::Stream<T1>&& left, stream::Stream<T2>&& right) {
-    return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right),
-        [](T1&& t1, T2&& t2) { return t1 >> t2; });
-}
-
-template<typename S, typename T>
-auto operator>> (stream::Stream<S>&& left, const T& right)
-        -> stream::Stream<decltype(std::declval<S&&>() >> right)> {
-    return left | stream::op::map_([right] (S&& value) {
-        return value >> right;
-    });
-}
-
-template<typename S, typename T>
-auto operator>> (const T& left, stream::Stream<S>&& right)
-        -> stream::Stream<decltype(left >> std::declval<S&&>())> {
-    return right | stream::op::map_([left] (S&& value) {
-        return left >> value;
-    });
-}
-
+#undef STREAM_OP_STREAM
+#undef STREAM_OP_VALUE
+#undef VALUE_OP_STREAM
+#undef BINARY_OPERATOR
+#undef UNARY_OPERATOR
 
 #endif
