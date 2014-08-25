@@ -56,11 +56,6 @@ TEST(ConversionTest, ToMultiSetImplicit) {
     EXPECT_THAT(implicit, ElementsAre(1, 1, 3, 3, 5));
 }
 
-template<typename A, typename B>
-struct TESTER {
-    static_assert(std::is_same<A, B>::value, "A should be B");
-};
-
 TEST(ConversionTest, ToUnorderedSetExplicit) {
     EXPECT_THAT(MakeStream::from({1, 5, 3, 3, 1}) | to_unordered_set(),
                 UnorderedElementsAre(1, 3, 5));
