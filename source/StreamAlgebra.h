@@ -80,10 +80,9 @@ BINARY_OPERATOR(>=, std::greater_equal<void>);
 BINARY_OPERATOR(&&, std::logical_and<void>);
 BINARY_OPERATOR(||, std::logical_or<void>);
 
-BINARY_OPERATOR(&, std::bit_and<void>);
-BINARY_OPERATOR(|, std::bit_or<void>);
-BINARY_OPERATOR(^, std::bit_xor<void>);
-
+BINARY_OPERATOR(&,  std::bit_and<void>);
+BINARY_OPERATOR(|,  std::bit_or<void>);
+BINARY_OPERATOR(^,  std::bit_xor<void>);
 BINARY_OPERATOR(<<, ShiftLeft);
 BINARY_OPERATOR(>>, ShiftRight);
 
