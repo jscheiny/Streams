@@ -133,24 +133,20 @@ std::vector<T> objects_with_ids = MakeStream::from(objects)
 (MakeStream::from(container) | print_to(std::cout)) << std::endl;
 ```
 
-### Finite differences:
+### Operator composition:
 
 ```cpp
-std::vector<int> diff1 = MakeStream::closed_range(1, 6)
-    | map_([](int x) { return x * x * x; })
-    | adjacent_difference();
-(MakeStream::from(diff1) | print_to(std::cout)) << std::endl;
+auto square = map_([](auto&& x) { return x * x; });
+(MakeStream::range(1, 6) | square | print_to(std::cout)) << std::endl; // 1 4 9 16 25
 
-std::vector<int> diff2 = MakeStream::from(diff1)
-    | adjacent_difference();
-(MakeStream::from(diff2) | print_to(std::cout)) << std::endl;
+auto square_and_sum = square | sum();
+int result = MakeStream::range(1, 4) | square_and_sum; // 14
 
-std::vector<int> diff3 = MakeStream::from(diff2)
-    | adjacent_difference();
-(MakeStream::from(diff3) | print_to(std::cout)) << std::endl;
+auto every_nth = [](int n) {
+    return zip_with(MakeStream::counter(0))
+         | filter([=](const auto& tup) { return std::get<1>(tup) % n == 0; })
+         | map_([](auto&& tup) { return std::get<0>(tup); });
+};
 
-// Output:
-// 7 19 37 61 91
-// 12 18 24 30
-// 6 6 6
+MakeStream::from({1, 3, 8, 4, 7}) | every_nth(2) | print_to(std::cout); // 1 8 7
 ```

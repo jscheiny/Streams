@@ -6,7 +6,7 @@ namespace stream {
 template<typename F, typename G>
 class Compose {
 public:
-    Compose(F f, G g) : f_(f), g_(g) {}
+    Compose(F&& f, G&& g) : f_(std::forward<F>(f)), g_(std::forward<G>(g)) {}
 
     template<typename T>
     std::result_of_t<F(std::result_of_t<G(Stream<T>&&)>)> operator() (Stream<T>&& stream) {
@@ -21,8 +21,8 @@ private:
 template<typename F>
 class Operator {
 public:
-    Operator(const std::string& name, F&& op) : name_(name), operator_(std::move(op)) {}
-    Operator(F&& op) : operator_(op) {}
+    Operator(const std::string& name, F&& op) : name_(name), operator_(std::forward<F>(op)) {}
+    Operator(F&& op) : operator_(std::forward<F>(op)) {}
 
     template<typename T>
     std::result_of_t<F(Stream<T>&&)> apply_to(Stream<T>&& stream)  {
@@ -34,12 +34,12 @@ public:
 
     template<typename G>
     Operator<Compose<G, F>> operator| (Operator<G>&& right) {
-        return {{right.operator_, operator_}};
+        return {{std::move(right.operator_), std::move(operator_)}};
     }
 
     template<typename G>
     Terminator<Compose<G, F>> operator| (Terminator<G>&& right) {
-        return {{right.terminator_, operator_}};
+        return {{std::move(right.terminator_), std::move(operator_)}};
     }
 
     Operator<F> rename(const std::string& name) && {
@@ -84,7 +84,7 @@ public:
 
     template<typename G>
     Terminator<Compose<G, F>> then(G&& function) {
-        return {Compose<G, F>(std::forward<G>(function), terminator_)};
+        return {Compose<G, F>(std::forward<G>(function), std::move(terminator_))};
     }
 
     template<typename> friend class Operator;
