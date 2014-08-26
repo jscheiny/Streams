@@ -18,7 +18,7 @@ std::string to_string(int x) {
 }
 
 #define EXCEPTION_TEST(Operation, Exception) \
-    [&](){ \
+    [](){ \
         bool thrown = false; \
         try { Operation; } catch(Exception& e) { thrown = true; } \
         return thrown; \
