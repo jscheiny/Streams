@@ -46,7 +46,6 @@ TEST(Reduce, SameTypeIdentity) {
 }
 
 TEST(Reduce, DiffTypeIdentity) {
-
     EXPECT_THAT(MakeStream::range(1, 6) | identity_reduce(""s, int_concat),
                 Eq("12345"s));
     EXPECT_THAT(MakeStream::empty<int>() | identity_reduce("BLAH"s, int_concat),
