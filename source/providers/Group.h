@@ -20,21 +20,9 @@ std::shared_ptr<T> next(StreamProviderPtr<T>& source) {
     throw IncompleteGroupError();
 }
 
-template<typename A, typename B>
-struct Append {
-};
-
-template<template<typename...> class Base, typename... Args, typename Head>
-struct Append<Head, Base<Args...>> {
-    using Type = Base<Head, Args...>;
-};
-
 template<typename T, size_t N>
 struct Grouper {
-private:
-    using SubType = typename Grouper<T, N-1>::Type;
-public:
-    using Type = typename Append<T, SubType>::Type;
+    using Type = NTuple<T, N>;
 
     static Type group(StreamProviderPtr<T>& source) {
         auto sub = Grouper<T, N-1>::group(source);
@@ -45,7 +33,7 @@ public:
 
 template<typename T>
 struct Grouper<T, 3> {
-    using Type = std::tuple<T, T, T>;
+    using Type = NTuple<T, 3>;
 
     static Type group(StreamProviderPtr<T>& source) {
         auto first = next(source);

@@ -6,6 +6,32 @@
 
 namespace stream {
 
+// ===================== N-Tuple ====================
+
+namespace detail {
+
+template<typename A, typename B>
+struct Append {
+};
+
+template<template<typename...> class Base, typename... Args, typename Head>
+struct Append<Head, Base<Args...>> {
+    using Type = Base<Head, Args...>;
+};
+
+template<typename T, size_t N>
+struct NTupleImpl {
+    using SubType = typename NTupleImpl<T, N-1>::Type;
+    using Type = typename Append<T, SubType>::Type;
+};
+
+template<typename T>
+struct NTupleImpl<T, 1> {
+    using Type = std::tuple<T>;
+};
+
+} /* namespace detail*/
+
 // ================= Tuple Printing =================
 
 template<size_t index, size_t last, typename... Args>

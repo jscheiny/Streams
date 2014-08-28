@@ -22,6 +22,7 @@
 #include "Merge.h"
 #include "PartialSum.h"
 #include "Peek.h"
+#include "Recurrence.h"
 #include "Repeat.h"
 #include "Singleton.h"
 #include "Slice.h"

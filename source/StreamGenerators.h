@@ -107,9 +107,16 @@ Stream<std::result_of_t<Generator()>> MakeStream::generate(Generator&& generator
 
 template<typename T, typename Function>
 Stream<RemoveRef<T>> MakeStream::iterate(T&& initial, Function&& function) {
-    using R = RemoveRef<T>;
-    return make_stream_provider<provider::Iterate, R, Function>
-        (std::forward<T>(initial), std::forward<Function>(function));
+    return recurrence(std::forward<Function>(function), std::forward<T>(initial));
+}
+
+template<typename... Args, typename Function>
+Stream<RemoveRef<Head<Args...>>> MakeStream::recurrence(Function&& function, Args&&... initial) {
+    constexpr size_t Order = sizeof...(Args);
+    using R = RemoveRef<Head<Args...>>;
+    return StreamProviderPtr<R>(
+        new provider::Recurrence<R, Order, Function>(
+            {{std::forward<Args>(initial)...}}, std::forward<Function>(function)));
 }
 
 template<typename T>
@@ -133,7 +140,7 @@ template<typename T, typename U>
 Stream<RemoveRef<T>> MakeStream::counter(T&& start, const U& increment) {
     using R = RemoveRef<T>;
     return MakeStream::iterate(std::forward<T>(start),
-        [&inc = increment](R& value) {
+        [&inc = increment](const R& value) {
             return value + inc;
         });
 }

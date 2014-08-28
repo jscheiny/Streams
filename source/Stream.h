@@ -63,6 +63,9 @@ struct MakeStream {
     template<typename T, typename Function>
     static Stream<RemoveRef<T>> iterate(T&& initial, Function&& function);
 
+    template<typename... Args, typename Function>
+    static Stream<RemoveRef<Head<Args...>>> recurrence(Function&& function, Args&&... initial);
+
     template<typename T>
     static Stream<RemoveRef<T>> counter(T&& start);
 

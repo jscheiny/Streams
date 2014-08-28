@@ -24,6 +24,7 @@ add_stream_test(SingletonTest)
 add_stream_test(RepeatTest)
 add_stream_test(CycleTest)
 add_stream_test(CounterTest)
+add_stream_test(RecurrenceTest)
 add_stream_test(RangeTest)
 add_stream_test(FromTest)
 

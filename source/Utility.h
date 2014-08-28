@@ -26,10 +26,21 @@ struct InvertedPredicate {
     Function function;
 };
 
+template<typename Head, typename... Tail>
+struct HeadImpl {
+    using type = Head;
+};
+
+template<typename... Ts>
+using Head = typename HeadImpl<Ts...>::type;
+
 template<typename Function>
 InvertedPredicate<Function> not_(Function&& fn) {
     return {std::forward<Function>(fn)};
 }
+
+template<typename T, size_t N>
+using NTuple = typename detail::NTupleImpl<T, N>::Type;
 
 template<typename T>
 using RemoveRef = std::remove_const_t<std::remove_reference_t<T>>;
