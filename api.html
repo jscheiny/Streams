@@ -2513,7 +2513,7 @@ auto for_each(Function&& function);</code>
 
     <div class="function terminator" id="to_container">
         <div class="fheader">
-            <span class="fname">::to_<i>container</i>()</span>
+            <span class="fname">to_<i>container</i>()</span>
             <span class="fdescriptor">Stateful terminal stream operator</span>
         </div>
         <div class="fcontent">
@@ -2523,11 +2523,20 @@ auto for_each(Function&& function);</code>
 auto to_list();
 auto to_deque();
 auto to_set();
-auto to_multiset();</code>
+auto to_multiset();
+auto to_unordered_set();
+auto to_unordered_multiset();</code>
             </pre>
 
             Returns a stream terminator that creates a container of the given type and inserts the elements of the
-            stream into that container thereafter returning the contianer.
+            stream into that container thereafter returning the contianer. In addition, the
+            <span class="inline">Stream</span> class contains conversion operators for each of the above container
+            types. For example, the following two lines are equivalent
+
+            <pre>
+                <code lang="C++">std::vector&lt;int&gt; result = stream;
+auto result = stream | to_vector();</code>
+            </pre>
         </div>
     </div>
 
@@ -2584,7 +2593,7 @@ auto move_to(OutputIterator iterator);</code>
             Calling <span class="inline">stream | print_to(os, delimiter)</span> is a convenience method for:
 
             <pre>
-                <code lang="C++">stream | copy_to(std::ostream_iterator&lt;T&gt;(os), delimiter);
+                <code lang="C++">stream | copy_to(std::ostream_iterator&lt;T&gt;(os, delimiter));
 return os;</code>
             </pre>
         </div>
