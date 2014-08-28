@@ -763,7 +763,8 @@ Stream&lt;T&gt; MakeStream::generate(Generator&& generator);</code>
 Stream&lt;T&gt; MakeStream::iterate(T&& value, Function&& function);</code>
             </pre>
 
-            Creates a stream that, given a value <span class="inline">x</span> and
+            This is special case of <a href="#recurrence"><span class="inline">recurrence()</span></a>
+            that creates a stream that, given a value <span class="inline">x</span> and
             a function <span class="inline">f</span> returns the stream produced by
             <span class="inline">x</span>, <span class="inline">f(x)</span>,
             <span class="inline">f(f(x))</span> and so on. In the below example
@@ -782,8 +783,44 @@ Stream&lt;T&gt; MakeStream::iterate(T&& value, Function&& function);</code>
     }
 });</code>
             </pre>
+
+            Note that <span class="inline">iterate(n, f)</span> is a convenience for
+            <span class="inline">recurrence(f, n)</span>.
         </div>
     </div>
+
+    <div class="function generator" id="recurrence">
+        <div class="fheader">
+            <span class="fname">::recurrence()</span>
+            <span class="fdescriptor">Stream generator<br/></span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename... Args, typename Function&gt;
+Stream&lt;T&gt; MakeStream::recurrence(Function&& function, Args&&... initial);</code>
+            </pre>
+
+            A more general version of <a href="#iterate"><span class="inline">iterate()</span></a>,
+            creates an infinite stream that is a recurrence relation starting with some initial
+            set of values. For example for a second order recurrence relation (two initial values),
+            the output of the stream would be: a<sub>1</sub>, a<sub>2</sub>,
+            a<sub>3</sub> = f(a<sub>1</sub>, a<sub>2</sub>),
+            a<sub>4</sub> = f(a<sub>2</sub>, a<sub>3</sub>),
+            a<sub>5</sub> = f(a<sub>3</sub>, a<sub>4</sub>) ...
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::recurrence(std::plus&lt;int&gt;(), 0, 1); // 0 1 1 2 3 5 8 ...</code>
+            </pre>
+
+            Note that in the case that <span class="inline">sizeof...(Args) == 1</span>, this
+            is identical to <a href="#iterate"><span class="inline">iterate()</span></a>.
+        </div>
+    </div>
+
 
     <div class="function generator" id="counter">
         <div class="fheader">
