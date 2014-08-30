@@ -265,7 +265,7 @@ template<typename T>
 Stream<RemoveRef<T>> MakeStream::singleton(T&& value) {
     using R = RemoveRef<T>;
     return make_stream_provider<provider::Singleton, R>
-        (std::forward<R>(value));
+        (std::forward<T>(value));
 }
 
 template<typename Iterator>
