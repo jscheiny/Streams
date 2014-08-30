@@ -28,7 +28,7 @@ auto count() {
         auto& source = stream.getSource();
         size_t count = 0;
         while(source->advance()) {
-            source->get();
+            std::move(*source->get());
             count++;
         }
         return count;
