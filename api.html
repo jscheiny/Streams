@@ -1858,6 +1858,35 @@ auto group();</code>
         </div>
     </div>
 
+    <div class="function stateless operator" id="overlap">
+        <div class="fheader">
+            <span class="fname">overlap()</span>
+            <span class="fdescriptor">Statelesss intermediate stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;size_t N&gt;
+auto overlap();</code>
+            </pre>
+
+            Returns a stream operator that returns a stream with overlapping adjacent elements
+            grouped into groups of size <span class="inline">N</span> where
+            <span class="inline">N</span> is a compile time constant. The resulting
+            stream is a stream of <span class="inline">N</span>-tuples, all of whose elements
+            are of the original stream type, <span class="inline">T</span>.
+
+            <br/><br/>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">MakeStream::counter(1) | overlap&lt;2&gt;() // (1, 2), (2, 3), (4, 5), ...
+MakeStream::counter(1) | overlap&lt;3&gt;() // (1, 2, 3), (2, 3, 4), (4, 5, 6), ...</code>
+            </pre>
+
+        </div>
+    </div>
+
     <div class="function stateless operator" id="operator">
         <div class="fheader">
             <span class="fname">operator<i>?</i>()</span>
