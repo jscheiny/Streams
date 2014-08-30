@@ -21,17 +21,6 @@ auto apply(Function&& function, std::array<T, N>& args) {
                       std::make_index_sequence<N>());
 }
 
-template<typename T>
-struct SeqTail {};
-
-template<typename T, T Head, T... Tail>
-struct SeqTail<std::integer_sequence<T, Head, Tail...>> {
-    using type = std::integer_sequence<T, Tail...>;
-};
-
-template<typename T, T N>
-using make_1based_sequence = typename SeqTail<std::make_integer_sequence<T, N>>::type;
-
 template<typename T, size_t N, size_t... I>
 std::array<T, N> rotate_impl(std::array<T, N>&& array, const T& last, std::index_sequence<I...>) {
     return {{std::forward<T>(std::get<I>(array))..., last}};
@@ -41,11 +30,6 @@ template<typename T, size_t N>
 std::array<T, N> rotate(std::array<T, N>&& array, const T& last) {
     return rotate_impl(std::forward<std::array<T, N>>(array), last,
                        make_1based_sequence<size_t, N>());
-}
-
-template<typename T>
-std::array<T, 1> rotate(std::array<T, 1>&& array, const T& last) {
-    return {{last}};
 }
 
 } /* namespace detail */

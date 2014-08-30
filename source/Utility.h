@@ -34,6 +34,9 @@ struct HeadImpl {
 template<typename... Ts>
 using Head = typename HeadImpl<Ts...>::type;
 
+template<typename T, T N>
+using make_1based_sequence = typename detail::SeqTail<std::make_integer_sequence<T, N>>::type;
+
 template<typename Function>
 InvertedPredicate<Function> not_(Function&& fn) {
     return {std::forward<Function>(fn)};

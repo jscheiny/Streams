@@ -21,6 +21,7 @@
 #include "Map.h"
 #include "Merge.h"
 #include "PartialSum.h"
+#include "Overlap.h"
 #include "Peek.h"
 #include "Recurrence.h"
 #include "Repeat.h"

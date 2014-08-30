@@ -6,6 +6,18 @@
 
 namespace stream {
 
+namespace detail {
+
+template<typename T>
+struct SeqTail {};
+
+template<typename T, T Head, T... Tail>
+struct SeqTail<std::integer_sequence<T, Head, Tail...>> {
+    using type = std::integer_sequence<T, Tail...>;
+};
+
+} /* namespace detail */
+
 // ===================== N-Tuple ====================
 
 namespace detail {

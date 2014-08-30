@@ -208,6 +208,16 @@ auto pairwise() {
     return group<2>().rename("stream::op::pairwise");
 }
 
+template<size_t N>
+auto overlap() {
+    return make_operator("stream::op::overlap", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        using O = NTuple<T, N>;
+        return Stream<O>(std::move(StreamProviderPtr<O>(
+            new provider::Overlap<T, N>(std::move(stream.getSource())))));
+    });
+}
+
 template<typename R, typename Function = provider::detail::Zipper>
 auto zip_with(Stream<R>&& right, Function&& zipper = Function()) {
     return make_operator("stream::op::zip_with", [right = std::move(right), zipper]
