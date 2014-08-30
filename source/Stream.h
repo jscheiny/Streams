@@ -174,6 +174,12 @@ public:
     Stream()
         : source_(make_stream_provider<provider::Empty, T>()) {}
 
+    Stream(Stream<T>&& other) = default;
+    Stream<T>& operator= (Stream<T>&& other) = default;
+
+    Stream(const Stream<T>& other) = delete;
+    Stream<T>& operator= (const Stream<T>& other) = default;
+
     Stream(StreamProviderPtr<T> source)
         : source_(std::move(source)) {}
 
