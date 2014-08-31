@@ -208,6 +208,15 @@ auto pairwise() {
     return group<2>().rename("stream::op::pairwise");
 }
 
+auto group(size_t N) {
+    return make_operator("stream::op::group", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        using G = std::vector<T>;
+        return Stream<G>(std::move(StreamProviderPtr<G>(
+            new provider::DynamicGroup<T>(std::move(stream.getSource()), N))));
+    });
+}
+
 template<size_t N>
 auto overlap() {
     return make_operator("stream::op::overlap", [=](auto&& stream) {
@@ -215,6 +224,15 @@ auto overlap() {
         using O = NTuple<T, N>;
         return Stream<O>(std::move(StreamProviderPtr<O>(
             new provider::Overlap<T, N>(std::move(stream.getSource())))));
+    });
+}
+
+auto overlap(size_t N) {
+    return make_operator("stream::op::overlap", [=](auto&& stream) {
+        using T = StreamType<decltype(stream)>;
+        using O = std::deque<T>;
+        return Stream<O>(std::move(StreamProviderPtr<O>(
+            new provider::DynamicOverlap<T>(std::move(stream.getSource()), N))));
     });
 }
 

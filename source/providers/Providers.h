@@ -10,6 +10,8 @@
 #include "Difference.h"
 #include "Distinct.h"
 #include "DropWhile.h"
+#include "DynamicGroup.h"
+#include "DynamicOverlap.h"
 #include "Empty.h"
 #include "Filter.h"
 #include "FlatMap.h"
