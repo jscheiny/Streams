@@ -41,17 +41,14 @@ public:
         sources_.push_back(std::move(source));
     }
 
-    std::pair<int, int> print(std::ostream& os, int indent) const override {
-        this->print_indent_arrow(os, indent);
+    PrintInfo print(std::ostream& os, int indent) const override {
+        this->print_indent(os, indent);
         os << "Concatenation[" << sources_.size() << "]:\n";
-        int stages = 1;
-        int sources = 0;
+        PrintInfo result{0, 1};
         for(auto& source : sources_) {
-            auto sub = source->print(os, indent + 1);
-            stages += sub.first;
-            sources += sub.second;
+            result = result + source->print(os, indent + 1);
         }
-        return {stages, sources};
+        return result;
     }
 
 private:

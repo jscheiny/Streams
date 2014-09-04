@@ -244,12 +244,11 @@ public:
     }
 
     std::string pipeline() {
-        int stages, sources;
         std::stringstream ss;
-        std::tie(stages, sources) = source_->print(ss, 1);
+        provider::PrintInfo info = source_->print(ss, 1);
         ss << "Stream pipeline with "
-           << stages << " stage" << (stages == 1 ? "" : "s") << " and "
-           << sources << " source" << (sources == 1 ? "" : "s") << ".";
+           << info.stages << " stage" << (info.stages == 1 ? "" : "s") << " and "
+           << info.sources << " source" << (info.sources == 1 ? "" : "s") << ".";
         return ss.str();
     }
 

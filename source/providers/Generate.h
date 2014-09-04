@@ -24,10 +24,10 @@ public:
         return true;
     }
 
-    std::pair<int, int> print(std::ostream& os, int indent) const override {
-        this->print_indent_arrow(os, indent);
+    PrintInfo print(std::ostream& os, int indent) const override {
+        this->print_indent(os, indent);
         os << "[generated stream]\n";
-        return {0, 1};
+        return PrintInfo::Source();
     }
 
 private:

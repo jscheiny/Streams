@@ -51,13 +51,12 @@ public:
         return false;
     }
 
-    std::pair<int, int> print(std::ostream& os, int indent) const override {
-        this->print_indent_arrow(os, indent);
-        os << "Slice[" << start_ << ", " 
+    PrintInfo print(std::ostream& os, int indent) const override {
+        this->print_indent(os, indent);
+        os << "Slice[" << start_ << ", "
                        << (no_end_ ? -1 : static_cast<long>(end_)) << ", "
                        << increment_ <<  "]:\n";
-        auto sub = source_->print(os, indent + 1);
-        return {sub.first + 1, sub.second};
+        return source_->print(os, indent + 1).addStage();
     }
 
 private:

@@ -85,11 +85,10 @@ public:
         }
     }
 
-    std::pair<int, int> print(std::ostream& os, int indent) const override {
-        this->print_indent_arrow(os, indent);
+    PrintInfo print(std::ostream& os, int indent) const override {
+        this->print_indent(os, indent);
         os << "Grouped[" << N << "]:\n";
-        auto sub = source_->print(os, indent + 1);
-        return {sub.first + 1, sub.second};
+        return source_->print(os, indent + 1).addStage();
     }
 
 private:
