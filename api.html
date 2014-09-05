@@ -2628,6 +2628,36 @@ return os;</code>
         </div>
     </div>
 
+    <h2 id="reducers">Stream Reducers</h2>
+    
+    Stream Reducers are class that provide convenient common reductions of streams for a variety of types.
+
+    <div class="function reducer" id="reducer">
+        <div class="fheader">
+            <span class="fname">Reducer</span>
+            <span class="fdescriptor">Stream reducer</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">template&gt;typename In, typename Out&lt;
+class Reducer {
+    virtual Out initial(In&& in) const = 0;
+    virtual Out accumulate(Out&& out, In&& in) const = 0;
+    auto reducer() const;
+}</code>
+            </pre>
+            Reducers provide the two main functions provided to the
+            <a href="#reduce"><span class="inline">reduce()</span></a> terminator as class methods
+            for a subclass to overload. One constructs an instance of a reducer subclass and then
+            calls the <span class="inline">reducer()</span> method to turn it into a terminal operation
+            that reduces a stream using the desired functions.
+            
+            Reducers are not included when you include <span class="inline">"Stream.h"</span>, you
+            must additionally include <span class="inline">"Reducers.h"</span> to get them.
+        </div>
+    </div>
+
     <h2 id="exceptions">Stream Exceptions</h2>
 
     <div class="function exception" id="streamexception">

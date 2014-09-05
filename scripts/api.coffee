@@ -20,6 +20,9 @@ Titles =
     'terminator':
         title: 'Terminal Operators'
         link:  'terminals'
+    'reducers':
+        title: 'Reducers'
+        link: 'reducers'
     'exception':
         title: 'Exceptions'
         link:  'exceptions'
@@ -65,5 +68,6 @@ $ ->
     makeFunctionSideBarSection $sidebar, 'operator.stateless'
     makeFunctionSideBarSection $sidebar, 'operator.stateful'
     makeFunctionSideBarSection $sidebar, 'terminator'
+    makeFunctionSideBarSection $sidebar, 'reducers'
     makeFunctionSideBarSection $sidebar, 'exception'
     makeLinkSidebarSection $sidebar, 'recipes'
