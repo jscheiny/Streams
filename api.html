@@ -674,16 +674,6 @@ Stream&lt;T&gt; MakeStream::cycle_move(Container&& cont, size_t times)</code>
             will loop over a range indefinitely, whereas the ones with the parameter
             will only loop over the sequence that many times. <br/><br/>
 
-
-            <b>Warning!</b> Beware using most of these methods if your Stream is going to
-            be used outside of the current scope. The exception to this is the
-            <span class="inline">initializer_list</span> generator, which will capture
-            the list, and therefore is safe to use outside of the current scope. To
-            safely capture a container in a cycle, use the
-            <span class="inline"><a href="#cycle_move">cycle_move()</a></span>
-            generator method.
-
-
             <br/><br/>
             <i>Example:</i>
 
@@ -2629,10 +2619,10 @@ return os;</code>
     </div>
 
     <h2 id="reducers">Stream Reducers</h2>
-    
+
     Stream Reducers are class that provide convenient common reductions of streams for a variety of types.
 
-    <div class="function reducer" id="reducer">
+    <div class="function reducers" id="reducer">
         <div class="fheader">
             <span class="fname">Reducer</span>
             <span class="fdescriptor">Stream reducer</span>
@@ -2640,7 +2630,7 @@ return os;</code>
         <div class="fcontent">
             <span class="signature">Class signature:</span>
             <pre>
-                <code lang="C++">template&gt;typename In, typename Out&lt;
+                <code lang="C++">template&lt;typename In, typename Out&gt;
 class Reducer {
     virtual Out initial(In&& in) const = 0;
     virtual Out accumulate(Out&& out, In&& in) const = 0;
@@ -2652,9 +2642,76 @@ class Reducer {
             for a subclass to overload. One constructs an instance of a reducer subclass and then
             calls the <span class="inline">reducer()</span> method to turn it into a terminal operation
             that reduces a stream using the desired functions.
-            
+            <br><br>
             Reducers are not included when you include <span class="inline">"Stream.h"</span>, you
             must additionally include <span class="inline">"Reducers.h"</span> to get them.
+        </div>
+    </div>
+
+    <div class="function reducers" id="histogram">
+        <div class="fheader">
+            <span class="fname">Histogram</span>
+            <span class="fdescriptor">Stream reducer</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename In, typename Less = std::less&lt;In&gt;&gt;
+class Histogram : public Histogram&lt;In, std::map&lt;In, size_t, Less&gt;&gt; {
+public:
+    Histogram(Less&& less = Less());
+}</code>
+            </pre>
+
+            A reducer that accumulate the contents of a stream by counting the occurences of each
+            item that's tconsidered distinct by the given comparison operator.
+
+            <br><br>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">std::map&lt;int, int&gt; result = MakeStream::from({1, 3, 1, 2, 1, 2}
+    | reducer::Histogram&lt;int&gt;().reducer();
+// result contains {1: 3, 2: 2, 3: 1}</code>
+            </pre>
+        </div>
+    </div>
+
+    <div class="function reducers" id="summarystats">
+        <div class="fheader">
+            <span class="fname">SummaryStats</span>
+            <span class="fdescriptor">Stream reducer</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Class signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename In, typename Result = double&gt;
+class SummaryStats : public Reducer&lt;In, Stats&lt;In, Result&gt;&gt; {
+}
+
+template&lt;typename In, typename Out&gt;
+class Stat {
+    size_t number() const;
+    Out mean() const;
+    Out stddev() const;
+    In min() const;
+    In max() const;
+};</code>
+            </pre>
+
+            A reducer that accumulates various summary statistics about the input data,
+            and returns a statistics object containing those.
+
+            <br><br>
+            <i>Example:</i>
+
+            <pre>
+                <code lang="C++">auto stats = MakeStream::normal_randoms()
+    | limit(1000)
+    | reducers::SummaryStats&lt;int&gt;().reducer();
+std::cout << stats << std::endl;
+// Example output: N=1000, u=0.015, s=0.473248, min=-3, max=3</code>
+            </pre>
         </div>
     </div>
 
