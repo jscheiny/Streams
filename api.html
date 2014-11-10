@@ -1824,21 +1824,24 @@ left | symmetric_difference_with(right); // 1, 4, 5, 13, 18</code>
             <span class="signature">Method signature:</span>
             <pre>
                 <code lang="C++">template&lt;size_t N&gt;
-auto group();</code>
+auto group();
+auto group(size_t N);</code>
             </pre>
 
-            Returns a stream operator that returns a stream with adjacent elements grouped into groups of size
-            <span class="inline">N</span>, where <span class="inline">N</span>
-            is a compile time constant. The resulting stream is a stream of
-            <span class="inline">N</span>-tuples, all of whose elements are of
-            the original stream type, <span class="inline">T</span>.
+            Returns a stream operator that returns a stream with adjacent elements
+            grouped into groups of size <span class="inline">N</span>. <span class="inline">N</span>
+            can either be a compile time constant or a runtime value. In the former case,
+            the resulting stream is a stream of <span class="inline">N</span>-tuples,
+            all of whose elements are of the original stream type, <span class="inline">T</span>.
+            In the latter case, the resulting stream is a stream of
+            <span class="inline">std::vector&lt;T&gt;</span>.
 
             <br/><br/>
             <i>Example:</i>
 
             <pre>
-                <code lang="C++">MakeStream::counter(1)
-    | group&lt;3&gt;() // Stream contains (1, 2, 3), (4, 5, 6), ...</code>
+                <code lang="C++">MakeStream::counter(1) | group&lt;3&gt;() // (1, 2, 3), (4, 5, 6), ...
+MakeStream::counter(1) | group(3) // [1, 2, 3], [4, 5, 6], ...</code>
             </pre>
 
             This is specialied for <span class="inline">N = 2</span>, so that
@@ -1857,21 +1860,24 @@ auto group();</code>
             <span class="signature">Method signature:</span>
             <pre>
                 <code lang="C++">template&lt;size_t N&gt;
-auto overlap();</code>
+auto overlap();
+auto overlap(size_t N);</code>
             </pre>
 
             Returns a stream operator that returns a stream with overlapping adjacent elements
-            grouped into groups of size <span class="inline">N</span> where
-            <span class="inline">N</span> is a compile time constant. The resulting
-            stream is a stream of <span class="inline">N</span>-tuples, all of whose elements
-            are of the original stream type, <span class="inline">T</span>.
+            grouped into groups of size <span class="inline">N</span>.
+            <span class="inline">N</span> can either be a compile time constant or a runtime value.
+            In the former case, the resulting stream is a stream of <span class="inline">N</span>-tuples,
+            all of whose elements are of the original stream type, <span class="inline">T</span>.
+            In the latter case, the resulting stream is a stream of <span class="inline">std::deque&lt;T&gt;</span>.
 
             <br/><br/>
             <i>Example:</i>
 
             <pre>
-                <code lang="C++">MakeStream::counter(1) | overlap&lt;2&gt;() // (1, 2), (2, 3), (4, 5), ...
-MakeStream::counter(1) | overlap&lt;3&gt;() // (1, 2, 3), (2, 3, 4), (4, 5, 6), ...</code>
+                <code lang="C++">MakeStream::counter(1) | overlap&lt;2&gt;() // (1, 2), (2, 3), (4, 5), (5, 6), ...
+MakeStream::counter(1) | overlap&lt;3&gt;() // (1, 2, 3), (2, 3, 4), (4, 5, 6), ...
+MakeStream::counter(1) | overlap(4)   // [1, 2, 3, 4], [2, 3, 4, 5], ...</code>
             </pre>
 
         </div>
