@@ -124,11 +124,45 @@ auto max(Less&& less = Less()) {
     }).rename("stream::op::max");
 }
 
+template<typename Function, typename Less = std::less<void>>
+auto max_by(Function&& function, Less&& less = Less()) {
+    auto to_pair = [function](auto&& x) { return std::make_pair(function(x), x); };
+    auto next = [function, less](auto&& accumulated, auto&& value) {
+        auto candidate = function(std::move(value));
+        if(less(candidate, accumulated.first)) {
+          return accumulated;
+        } else {
+          return std::make_pair(std::move(candidate), std::move(value));
+        }
+    };
+
+    return reduce(to_pair, next)
+        .then([](auto&& accumulated) { return accumulated.second; })
+        .rename("stream::op::max_by");
+}
+
 template<typename Less = std::less<void>>
 auto min(Less&& less = Less()) {
     return reduce([=](const auto& a, const auto& b) {
         return less(a, b) ? a : b;
     }).rename("stream::op::min");
+}
+
+template<typename Function, typename Less = std::less<void>>
+auto min_by(Function&& function, Less&& less = Less()) {
+    auto to_pair = [function](auto&& x) { return std::make_pair(function(x), x); };
+    auto next = [function, less](auto&& accumulated, auto&& value) {
+        auto candidate = function(std::move(value));
+        if(less(candidate, accumulated.first)) {
+          return std::make_pair(std::move(candidate), std::move(value));
+        } else {
+          return accumulated;
+        }
+    };
+
+    return reduce(to_pair, next)
+        .then([](auto&& accumulated) { return accumulated.second; })
+        .rename("stream::op::min_by");
 }
 
 template<typename Less = std::less<void>>
