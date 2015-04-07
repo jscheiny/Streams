@@ -46,12 +46,27 @@ TEST(StatisticTest, Min) {
     EXPECT_EXCEPTION(MakeStream::empty<int>() | min(), EmptyStreamException);
 }
 
+TEST(StatisticTest, MinBy) {
+    EXPECT_THAT(MakeStream::from({3, -2, 8}) | min_by([](auto x) { return -x; }), Eq(8));
+    EXPECT_EXCEPTION(MakeStream::empty<int>() | min_by([](auto x) { return -x; }), EmptyStreamException);
+}
+
 TEST(StatisticTest, Max) {
     EXPECT_THAT(MakeStream::from({3, -2, 8}) | max(), Eq(8));
     EXPECT_EXCEPTION(MakeStream::empty<int>() | max(), EmptyStreamException);
 }
 
+TEST(StatisticTest, MaxBy) {
+    EXPECT_THAT(MakeStream::from({3, -2, 8}) | max_by([](auto x) { return -x; }), Eq(-2));
+    EXPECT_EXCEPTION(MakeStream::empty<int>() | max_by([](auto x) { return -x; }), EmptyStreamException);
+}
+
 TEST(StatisticTest, MinMax) {
     EXPECT_THAT(MakeStream::from({3, -2, 8}) | minmax(), Eq(std::make_pair(-2, 8)));
     EXPECT_EXCEPTION(MakeStream::empty<int>() | minmax(), EmptyStreamException);
+}
+
+TEST(StatisticTest, MinMaxBy) {
+    EXPECT_THAT(MakeStream::from({3, -2, 8}) | minmax_by([](auto x) { return -x; }), Eq(std::make_pair(8, -2)));
+    EXPECT_EXCEPTION(MakeStream::empty<int>() | minmax_by([](auto x) { return -x; }), EmptyStreamException);
 }
