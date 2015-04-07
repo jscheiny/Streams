@@ -126,14 +126,14 @@ auto max(Less&& less = Less()) {
 
 template<typename Function, typename Less = std::less<void>>
 auto max_by(Function&& function, Less&& less = Less()) {
+    /* Pair is (max, max_elem) */
     auto to_pair = [function](auto&& x) { return std::make_pair(function(x), x); };
     auto next = [function, less](auto&& accumulated, auto&& value) {
-        auto candidate = function(std::move(value));
-        if(less(candidate, accumulated.first)) {
-          return accumulated;
-        } else {
-          return std::make_pair(std::move(candidate), std::move(value));
+        auto fvalue = function(std::move(value));
+        if(less(accumulated.first, fvalue)) {
+            return std::make_pair(std::move(fvalue), std::move(value));
         }
+        return accumulated;
     };
 
     return reduce(to_pair, next)
@@ -150,14 +150,14 @@ auto min(Less&& less = Less()) {
 
 template<typename Function, typename Less = std::less<void>>
 auto min_by(Function&& function, Less&& less = Less()) {
+    /* Pair is (min, min_elem) */
     auto to_pair = [function](auto&& x) { return std::make_pair(function(x), x); };
     auto next = [function, less](auto&& accumulated, auto&& value) {
-        auto candidate = function(std::move(value));
-        if(less(candidate, accumulated.first)) {
-          return std::make_pair(std::move(candidate), std::move(value));
-        } else {
-          return accumulated;
+        auto fvalue = function(std::move(value));
+        if(less(fvalue, accumulated.first)) {
+            return std::make_pair(std::move(fvalue), std::move(value));
         }
+        return accumulated;
     };
 
     return reduce(to_pair, next)
@@ -180,6 +180,31 @@ auto minmax(Less&& less = Less()) {
     };
 
     return reduce(to_pair, next_minmax).rename("stream::op::minmax");
+}
+
+template<typename Function, typename Less = std::less<void>>
+auto minmax_by(Function&& function, Less&& less = Less()) {
+    /* Pair is ((min, min_elem), (max, max_elem)) */
+    auto to_pair = [function](auto&& x) {
+      auto fx = function(x);
+      return std::make_pair(std::make_pair(fx, x), std::make_pair(fx, x));
+    };
+    auto next = [function, less](auto&& accumulated, auto&& value) {
+        auto fvalue = function(std::move(value));
+        auto min = accumulated.first;
+        if(less(fvalue, min.first)) {
+            min = std::make_pair(std::move(fvalue), std::move(value));
+        }
+        auto max = accumulated.second;
+        if(less(max.first, fvalue)) {
+            max = std::make_pair(std::move(fvalue), std::move(value));
+        }
+        return std::make_pair(min, max);
+    };
+
+    return reduce(to_pair, next)
+        .then([](auto&& accumulated) { return std::make_pair(accumulated.first.second, accumulated.second.second); })
+        .rename("stream::op::minmax_by");
 }
 
 template<typename Predicate>

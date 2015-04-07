@@ -65,3 +65,8 @@ TEST(StatisticTest, MinMax) {
     EXPECT_THAT(MakeStream::from({3, -2, 8}) | minmax(), Eq(std::make_pair(-2, 8)));
     EXPECT_EXCEPTION(MakeStream::empty<int>() | minmax(), EmptyStreamException);
 }
+
+TEST(StatisticTest, MinMaxBy) {
+    EXPECT_THAT(MakeStream::from({3, -2, 8}) | minmax_by([](auto x) { return -x; }), Eq(std::make_pair(8, -2)));
+    EXPECT_EXCEPTION(MakeStream::empty<int>() | minmax_by([](auto x) { return -x; }), EmptyStreamException);
+}
