@@ -1,5 +1,5 @@
-#ifndef PROVIDER_H
-#define PROVIDER_H
+#ifndef SCHEINERMAN_STREAM_PROVIDER_H
+#define SCHEINERMAN_STREAM_PROVIDER_H
 
 #include "../StreamError.h"
 

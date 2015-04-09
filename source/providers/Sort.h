@@ -1,5 +1,5 @@
-#ifndef PROVIDERS_SORT_H
-#define PROVIDERS_SORT_H
+#ifndef SCHEINERMAN_STREAM_PROVIDERS_SORT_H
+#define SCHEINERMAN_STREAM_PROVIDERS_SORT_H
 
 #include "StreamProvider.h"
 #include "../Utility.h"

@@ -1,5 +1,5 @@
-#ifndef UTILITY_IMPL_H
-#define UTILITY_IMPL_H
+#ifndef SCHEINERMAN_STREAM_UTILITY_IMPL_H
+#define SCHEINERMAN_STREAM_UTILITY_IMPL_H
 
 #include <iostream>
 #include <tuple>

@@ -1,5 +1,5 @@
-#ifndef PROVIDERS_FLAT_MAP_H
-#define PROVIDERS_FLAT_MAP_H
+#ifndef SCHEINERMAN_STREAM_PROVIDERS_FLAT_MAP_H
+#define SCHEINERMAN_STREAM_PROVIDERS_FLAT_MAP_H
 
 #include "StreamProvider.h"
 #include "../Stream.h"

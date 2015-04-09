@@ -1,5 +1,5 @@
-#ifndef REDUCER_H
-#define REDUCER_H
+#ifndef SCHEINERMAN_STREAM_REDUCER_H
+#define SCHEINERMAN_STREAM_REDUCER_H
 
 #include "../Stream.h"
 

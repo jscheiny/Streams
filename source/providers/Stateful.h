@@ -1,5 +1,5 @@
-#ifndef PROVIDERS_STATEFUL_H
-#define PROVIDERS_STATEFUL_H
+#ifndef SCHEINERMAN_STREAM_PROVIDERS_STATEFUL_H
+#define SCHEINERMAN_STREAM_PROVIDERS_STATEFUL_H
 
 #include "StreamProvider.h"
 #include "../Utility.h"

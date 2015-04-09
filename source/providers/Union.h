@@ -1,5 +1,5 @@
-#ifndef PROVIDERS_UNION_H
-#define PROVIDERS_UNION_H
+#ifndef SCHEINERMAN_STREAM_PROVIDERS_UNION_H
+#define SCHEINERMAN_STREAM_PROVIDERS_UNION_H
 
 #include "StreamProvider.h"
 #include "../Utility.h"

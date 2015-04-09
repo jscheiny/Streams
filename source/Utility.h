@@ -1,5 +1,5 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef SCHEINERMAN_STREAM_UTILITY_H
+#define SCHEINERMAN_STREAM_UTILITY_H
 
 #include "StreamForward.h"
 #include "UtilityImpl.h"

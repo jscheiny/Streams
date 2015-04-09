@@ -1,5 +1,5 @@
-#ifndef STREAM_H
-#define STREAM_H
+#ifndef SCHEINERMAN_STREAM_STREAM_H
+#define SCHEINERMAN_STREAM_STREAM_H
 
 #include "StreamForward.h"
 #include "StreamError.h"

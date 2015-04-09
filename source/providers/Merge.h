@@ -1,5 +1,5 @@
-#ifndef PROVIDERS_MERGE_H
-#define PROVIDERS_MERGE_H
+#ifndef SCHEINERMAN_STREAM_PROVIDERS_MERGE_H
+#define SCHEINERMAN_STREAM_PROVIDERS_MERGE_H
 
 #include "StreamProvider.h"
 #include "../Utility.h"

@@ -1,5 +1,5 @@
-#ifndef STREAM_ERROR_H
-#define STREAM_ERROR_H
+#ifndef SCHEINERMAN_STREAM_STREAM_ERROR_H
+#define SCHEINERMAN_STREAM_STREAM_ERROR_H
 
 #include <string>
 #include <sstream>
