@@ -53,7 +53,7 @@
         return 3 * n + 1;
 };
 
-int distance = MakeStream::generate(1124, collatz_next)
+int distance = MakeStream::generate(1124, next_collatz)
     | take_while([] (int n) { return n != 1; })
     | count();</code></pre>
 
