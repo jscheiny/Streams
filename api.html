@@ -2163,6 +2163,25 @@ auto min(Less&& less = Less());</code>
         </div>
     </div>
 
+    <div class="function terminator" id="min_by">
+        <div class="fheader">
+            <span class="fname">min_by()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Function, typename Less = std::less&lt;void&gt;&gt;
+auto min_by(Function&& function, Less&& less = Less());</code>
+            </pre>
+
+            Returns a stream terminator that returns the element of the stream that results in the smallest 
+            value of the given function as determined by the provided less than operator (by default, the
+            built in <span class="inline">&lt;</span> operator); If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>.
+        </div>
+    </div>
+
     <div class="function terminator" id="max">
         <div class="fheader">
             <span class="fname">max()</span>
@@ -2182,6 +2201,25 @@ auto max(Less&& less = Less());</code>
         </div>
     </div>
 
+    <div class="function terminator" id="max_by">
+        <div class="fheader">
+            <span class="fname">max_by()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Function, typename Less = std::less&lt;void&gt;&gt;
+auto max_by(Function&& function, Less&& less = Less());</code>
+            </pre>
+
+            Returns a stream terminator that returns the element of the stream that results in the largest 
+            value of the given function as determined by the provided less than operator (by default, the
+            built in <span class="inline">&lt;</span> operator); If the stream is empty, throws an
+            <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>.
+        </div>
+    </div>
+
     <div class="function terminator" id="minmax">
         <div class="fheader">
             <span class="fname">minmax()</span>
@@ -2194,11 +2232,31 @@ auto max(Less&& less = Less());</code>
 auto minmax(Less&& less = Less());</code>
             </pre>
 
-            Returns a stream terminator that returns the smallest and largests of the stream as given by the provided
+            Returns a stream terminator that returns the smallest and largest elements of the stream as given by the provided
             less than operator (by default, the built in <span class="inline">&lt;</span>
             operator); The first field of the resulting pair is the minimum,
             the second field is the maximum element. If the stream is empty, throws an
             <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>.
+        </div>
+    </div>
+
+    <div class="function terminator" id="minmax_by">
+        <div class="fheader">
+            <span class="fname">minmax_by()</span>
+            <span class="fdescriptor">Stateless terminal stream operator</span>
+        </div>
+        <div class="fcontent">
+            <span class="signature">Method signature:</span>
+            <pre>
+                <code lang="C++">template&lt;typename Function, typename Less = std::less&lt;void&gt;&gt;
+auto minmax_by(Function&& function, Less&& less = Less());</code>
+            </pre>
+
+            Returns a stream terminator that returns the elements of the stream that result in the smallest
+            and largest values of the given function as determined by the provided less than operator (by
+            default, the built in <span class="inline">&lt;</span> operator); The first field of the resulting
+            pair is the element that minimizes the function, and the second field is the element that maximizes
+            it; If the stream is empty, throws an <span class="inline"><a href="#emptyexception">EmptyStreamException</a></span>.
         </div>
     </div>
 
