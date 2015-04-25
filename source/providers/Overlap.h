@@ -8,7 +8,7 @@ namespace provider {
 
 template<typename... Args, typename T, size_t... I, size_t N = sizeof...(Args)>
 NTuple<T, N> rotate_impl(std::tuple<Args...>&& tuple, T&& last, std::index_sequence<I...>) {
-    return {std::forward<T>(std::get<I>(tuple))..., std::forward<T>(last)};
+    return NTuple<T, N>{std::forward<T>(std::get<I>(tuple))..., std::forward<T>(last)};
 }
 
 template<typename... Args, typename T = Head<Args...>, size_t N = sizeof...(Args)>
