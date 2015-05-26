@@ -13,8 +13,8 @@ namespace op {
 template<typename Function>
 auto for_each(Function&& function) {
     return make_terminator("stream::op::for_each", [=](auto&& stream) mutable {
-        auto& source = stream.getSource();
-        while(source->advance()) {
+        auto& source = stream.source();
+        while (provider::stream_advance(source)) {
             function(std::move(*source->get()));
         }
         return function;
@@ -25,9 +25,9 @@ CLASS_SPECIALIZATIONS(for_each);
 
 auto count() {
     return make_terminator("stream::op::count", [=](auto&& stream) {
-        auto& source = stream.getSource();
+        auto& source = stream.source();
         size_t count = 0;
-        while(source->advance()) {
+        while (stream_advance(source)) {
             std::move(*source->get());
             count++;
         }
@@ -38,9 +38,9 @@ auto count() {
 template<typename U, typename Accumulator>
 auto identity_reduce(const U& identity, Accumulator&& accumulator) {
     return make_terminator("stream::op::identity_reduce", [=](auto&& stream) mutable {
-        auto& source = stream.getSource();
+        auto& source = stream.source();
         U result = identity;
-        while(source->advance()) {
+        while (stream_advance(source)) {
             result = accumulator(std::move(result), std::move(*source->get()));
         }
         return result;
@@ -50,8 +50,8 @@ auto identity_reduce(const U& identity, Accumulator&& accumulator) {
 template<typename Accumulator>
 auto reduce(Accumulator&& accumulator) {
     return make_terminator("stream::op::reduce", [=](auto&& stream) mutable {
-        auto& source = stream.getSource();
-        if(source->advance()) {
+        auto& source = stream.source();
+        if (stream_advance(source)) {
             auto reduction = identity_reduce(std::move(*source->get()),
                                              std::forward<Accumulator>(accumulator));
             return stream | reduction;
@@ -64,8 +64,8 @@ auto reduce(Accumulator&& accumulator) {
 template<typename IdentityFn, typename Accumulator>
 auto reduce(IdentityFn&& identityFn, Accumulator&& accumulator) {
     return make_terminator("stream::op::reduce", [=](auto&& stream) mutable {
-        auto& source = stream.getSource();
-        if(source->advance()) {
+        auto& source = stream.source();
+        if (stream_advance(source)) {
             auto reduction = identity_reduce(identityFn(std::move(*source->get())),
                                              std::forward<Accumulator>(accumulator));
             return stream | reduction;
@@ -77,8 +77,8 @@ auto reduce(IdentityFn&& identityFn, Accumulator&& accumulator) {
 
 auto first() {
     return make_terminator("stream::op::first", [=](auto&& stream) {
-        auto& source = stream.getSource();
-        if(source->advance()) {
+        auto& source = stream.source();
+        if (stream_advance(source)) {
             return std::move(*source->get());
         } else {
             throw EmptyStreamException("stream::op::first");
@@ -130,7 +130,7 @@ auto max_by(Function&& function, Less&& less = Less()) {
     auto to_pair = [function](auto&& x) { return std::make_pair(function(x), x); };
     auto next = [function, less](auto&& accumulated, auto&& value) {
         auto fvalue = function(std::move(value));
-        if(less(accumulated.first, fvalue)) {
+        if (less(accumulated.first, fvalue)) {
             return std::make_pair(std::move(fvalue), std::move(value));
         }
         return accumulated;
@@ -154,7 +154,7 @@ auto min_by(Function&& function, Less&& less = Less()) {
     auto to_pair = [function](auto&& x) { return std::make_pair(function(x), x); };
     auto next = [function, less](auto&& accumulated, auto&& value) {
         auto fvalue = function(std::move(value));
-        if(less(fvalue, accumulated.first)) {
+        if (less(fvalue, accumulated.first)) {
             return std::make_pair(std::move(fvalue), std::move(value));
         }
         return accumulated;
@@ -170,10 +170,10 @@ auto minmax(Less&& less = Less()) {
     auto to_pair = [](auto&& x) { return std::make_pair(x, x); };
     auto next_minmax = [less](auto&& accumulated, auto&& value) {
         using T = std::remove_reference_t<decltype(value)>;
-        if(less(value, accumulated.first)) {
+        if (less(value, accumulated.first)) {
             return std::pair<T,T>(std::move(value), std::move(accumulated.second));
         }
-        if(less(accumulated.second, value)) {
+        if (less(accumulated.second, value)) {
             return std::pair<T,T>(std::move(accumulated.first), std::move(value));
         }
         return accumulated;
@@ -192,11 +192,11 @@ auto minmax_by(Function&& function, Less&& less = Less()) {
     auto next = [function, less](auto&& accumulated, auto&& value) {
         auto fvalue = function(std::move(value));
         auto min = accumulated.first;
-        if(less(fvalue, min.first)) {
+        if (less(fvalue, min.first)) {
             min = std::make_pair(std::move(fvalue), std::move(value));
         }
         auto max = accumulated.second;
-        if(less(max.first, fvalue)) {
+        if (less(max.first, fvalue)) {
             max = std::make_pair(std::move(fvalue), std::move(value));
         }
         return std::make_pair(min, max);
@@ -210,9 +210,9 @@ auto minmax_by(Function&& function, Less&& less = Less()) {
 template<typename Predicate>
 auto any(Predicate&& predicate) {
     return make_terminator("stream::op::any", [=](auto&& stream) mutable {
-        auto& source = stream.getSource();
-        while(source->advance()) {
-            if(predicate(*source->get())) {
+        auto& source = stream.source();
+        while (stream_advance(source)) {
+            if (predicate(*source->get())) {
                 return true;
             }
         }
@@ -229,9 +229,9 @@ CLASS_SPECIALIZATIONS(any);
 template<typename Predicate>
 auto all(Predicate&& predicate) {
     return make_terminator("stream::op::all", [=](auto&& stream) mutable {
-        auto& source = stream.getSource();
-        while(source->advance()) {
-            if(!predicate(*source->get())) {
+        auto& source = stream.source();
+        while (stream_advance(source)) {
+            if (!predicate(*source->get())) {
                 return false;
             }
         }
@@ -274,9 +274,9 @@ CLASS_SPECIALIZATIONS(not_all);
 template<typename OutputIterator>
 auto copy_to(OutputIterator out) {
     return make_terminator("stream::op::copy_to", [=](auto&& stream) mutable {
-        using T = StreamType<decltype(stream)>;
-        auto& source = stream.getSource();
-        while(source->advance()) {
+        using T = stream_type<decltype(stream)>;
+        auto& source = stream.source();
+        while (stream_advance(source)) {
             *out = *source->get();
             ++out;
         }
@@ -287,9 +287,9 @@ auto copy_to(OutputIterator out) {
 template<typename OutputIterator>
 auto move_to(OutputIterator out) {
     return make_terminator("stream::op::move_to", [=](auto&& stream) mutable {
-        using T = StreamType<decltype(stream)>;
-        auto& source = stream.getSource();
-        while(source->advance()) {
+        using T = stream_type<decltype(stream)>;
+        auto& source = stream.source();
+        while (stream_advance(source)) {
             *out = std::move(*source->get());
             ++out;
         }
@@ -299,7 +299,7 @@ auto move_to(OutputIterator out) {
 
 auto print_to(std::ostream& os, const char* delimiter = " ") {
     return make_terminator("stream::op::print_to", [&os, delimiter](auto&& stream) -> std::ostream& {
-        using T = StreamType<decltype(stream)>;
+        using T = stream_type<decltype(stream)>;
         stream | copy_to(std::ostream_iterator<T>(os, delimiter));
         return os;
     });
@@ -307,12 +307,12 @@ auto print_to(std::ostream& os, const char* delimiter = " ") {
 
 auto random_sample(size_t size) {
     return make_terminator("stream::op::random_sample", [=](auto&& stream) {
-        using T = StreamType<decltype(stream)>;
-        auto& source = stream.getSource();
+        using T = stream_type<decltype(stream)>;
+        auto& source = stream.source();
 
         std::vector<T> results;
-        for(int i = 0; i < size; i++) {
-            if(source->advance()) {
+        for (int i = 0; i < size; i++) {
+            if (stream_advance(source)) {
                 results.push_back(std::move(*source->get()));
             } else {
                 return results;
@@ -326,10 +326,10 @@ auto random_sample(size_t size) {
         };
 
         size_t seen = size;
-        while(source->advance()) {
+        while (stream_advance(source)) {
             seen++;
             int index = random_index(seen);
-            if(index < size) {
+            if (index < size) {
                 results[index] = std::move(*source->get());
             } else {
                 source->get();
@@ -343,7 +343,7 @@ auto random_sample(size_t size) {
 auto random_element() {
     return random_sample(1)
         .then([](auto&& vec) {
-            if(vec.empty()) {
+            if (vec.empty()) {
                 throw EmptyStreamException("stream::op::random_element");
             }
             return vec[0];

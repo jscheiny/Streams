@@ -9,25 +9,28 @@
 namespace stream {
 namespace provider {
 
-template<typename T, typename RawCompare>
-class Distinct : public StreamProvider<T> {
+template<typename Source, typename RawCompare>
+class distinct {
 
 public:
-    Distinct(StreamProviderPtr<T> source, RawCompare&& comparator)
-        : source_(std::move(source)), sorted_(PointerCompare(std::forward<RawCompare>(comparator))) {}
+    using element = typename Source::element;
 
-    std::shared_ptr<T> get() override {
+    distinct(std::unique_ptr<Source> source, RawCompare&& comparator)
+        : source_(std::move(source))
+        , sorted_(PointerCompare(std::forward<RawCompare>(comparator))) {}
+
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(first_) {
-            while(source_->advance()) {
+    bool advance() {
+        if (first_) {
+            while (stream_advance(source_)) {
                 sorted_.insert(source_->get());
             }
             first_ = false;
         }
-        if(sorted_.empty()) {
+        if (sorted_.empty()) {
             current_.reset();
             return false;
         }
@@ -37,19 +40,19 @@ public:
         return true;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Distinct:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
-    using PointerCompare = ComparePtrWrapper<T, RawCompare>;
-    using PointerQueue = std::set<std::shared_ptr<T>, PointerCompare>;
+    using PointerCompare = ComparePtrWrapper<element, RawCompare>;
+    using PointerQueue = std::set<std::shared_ptr<element>, PointerCompare>;
 
-    StreamProviderPtr<T> source_;
+    std::unique_ptr<Source> source_;
     PointerQueue sorted_;
-    std::shared_ptr<T> current_;
+    std::shared_ptr<element> current_;
     bool first_ = true;
 };
 

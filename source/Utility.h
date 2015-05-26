@@ -115,6 +115,59 @@ SplattableFunction<Function> splattable(Function&& function) {
     return SplattableFunction<Function>(std::forward<Function>(function));
 }
 
+template<typename T>
+struct noop {
+    T operator() () { return {}; }
+};
+
+template<>
+struct noop<void> {
+    void operator() () {}
+};
+
+// Adapted from:
+// http://stackoverflow.com/questions/12015195/how-to-call-member-function-only-if-object-happens-to-have-it
+#define GENERATE_METHOD_CHECK(name, qual)                                      \
+namespace detail {                                                             \
+                                                                               \
+    template<typename T, typename ReturnType, typename... Args>                \
+    class has_##name {                                                         \
+        template<typename U, U> class check {};                                \
+                                                                               \
+        template<typename C>                                                   \
+        static std::true_type                                                  \
+        test(check<ReturnType (C::*)(Args...) qual, &C :: name >*);            \
+                                                                               \
+        template<typename C>                                                   \
+        static std::false_type test(...);                                      \
+                                                                               \
+        using type = decltype(test<T>(0));                                     \
+                                                                               \
+        template<typename Default>                                             \
+        static ReturnType                                                      \
+        eval_impl(std::true_type, qual T& t, Args&&... args, Default&&) {      \
+            return t.name(std::forward<Args>(args)...);                        \
+        }                                                                      \
+                                                                               \
+        template<typename Default>                                             \
+        static ReturnType                                                      \
+        eval_impl(std::false_type, qual T& t, Args&&... args, Default&& def) { \
+            return def();                                                      \
+        }                                                                      \
+                                                                               \
+    public:                                                                    \
+        constexpr static bool value = type::value;                             \
+        template<typename Default = noop<ReturnType>>                          \
+        static ReturnType                                                      \
+        eval(qual T& t, Args&&... args, Default&& def = Default{}) {           \
+            return eval_impl(type{}, t, std::forward<Args>(args)...,           \
+                             std::forward<Default>(def));                      \
+        }                                                                      \
+    };                                                                         \
+                                                                               \
+} /* namespace detail */ /* GENERATE_METHOD_CHECK */
+
+
 } /* namespace stream */
 
 #endif

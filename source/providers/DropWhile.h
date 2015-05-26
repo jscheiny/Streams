@@ -6,30 +6,33 @@
 namespace stream {
 namespace provider {
 
-template<typename T, typename Predicate>
-class DropWhile : public StreamProvider<T> {
+template<typename Source, typename Predicate>
+class drop_while {
 
 public:
-    DropWhile(StreamProviderPtr<T> source, Predicate&& predicate)
-        : source_(std::move(source)), predicate_(predicate) {}
+    using element = typename Source::element;
 
-    std::shared_ptr<T> get() override {
+    drop_while(std::unique_ptr<Source> source, Predicate&& predicate)
+        : source_(std::move(source))
+        , predicate_(predicate) {}
+
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(!dropped_) {
+    bool advance() {
+        if (!dropped_) {
             dropped_ = true;
-            while(source_->advance()) {
+            while (stream_advance(source_)) {
                 current_ = source_->get();
-                if(!predicate_(*current_)) {
+                if (!predicate_(*current_)) {
                     return true;
                 }
             }
             current_.reset();
             return false;
         }
-        if(source_->advance()) {
+        if (stream_advance(source_)) {
             current_ = source_->get();
             return true;
         }
@@ -37,16 +40,16 @@ public:
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
-        os << "DropWhile:\n";
-        return source_->print(os, indent + 1).addStage();
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
+        os << "drop_while:\n";
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
-    StreamProviderPtr<T> source_;
+    std::unique_ptr<Source> source_;
     Predicate predicate_;
-    std::shared_ptr<T> current_;
+    std::shared_ptr<element> current_;
     bool dropped_ = false;
 };
 

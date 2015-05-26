@@ -35,17 +35,21 @@ std::array<T, N> rotate(std::array<T, N>&& array, const T& last) {
 } /* namespace detail */
 
 template<typename T, size_t Order, typename Function>
-class Recurrence : public StreamProvider<T> {
-public:
-    Recurrence(std::array<T, Order>&& arguments, Function&& function)
-        : arguments_(arguments), function_(function) {}
+class recurrence {
 
-    std::shared_ptr<T> get() override {
-        return std::make_shared<T>(next_);
+public:
+    using element = T;
+
+    recurrence(std::array<T, Order>&& arguments, Function&& function)
+        : arguments_(arguments)
+        , function_(function) {}
+
+    std::shared_ptr<element> get() {
+        return std::make_shared<element>(next_);
     }
 
-    bool advance_impl() override {
-        if(index_ < Order) {
+    bool advance() {
+        if (index_ < Order) {
             next_ = arguments_[index_++];
             return true;
         }
@@ -54,17 +58,18 @@ public:
         return true;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "[recurrence stream]\n";
-        return PrintInfo::Source();
+        return print_info::source();
     }
 
 private:
     size_t index_ = 0;
     std::array<T, Order> arguments_;
     Function function_;
-    T next_;
+    element next_;
+
 };
 
 }; /* namespace provider */

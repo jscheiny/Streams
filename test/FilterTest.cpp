@@ -27,19 +27,19 @@ struct Number {
 };
 
 TEST(FilterTest, Function) {
-    EXPECT_THAT(MakeStream::range(1, 5) | filter(is_even_fn) | to_vector(),
+    EXPECT_THAT(make_stream::range(1, 5) | filter(is_even_fn) | to_vector(),
                 ElementsAre(2, 4));
-    EXPECT_THAT(MakeStream::range(1, 5)  | filter(is_even_lambda) | to_vector(),
+    EXPECT_THAT(make_stream::range(1, 5)  | filter(is_even_lambda) | to_vector(),
                 ElementsAre(2, 4));
 }
 
 TEST(FilterTest, MemberFunction) {
-    EXPECT_THAT(MakeStream::from({Number(1), Number(2), Number(3), Number(4)})
+    EXPECT_THAT(make_stream::from({Number(1), Number(2), Number(3), Number(4)})
                     | filter(&Number::is_even_const)
                     | to_vector(),
                 ElementsAre(Number(2), Number(4)));
 
-    EXPECT_THAT(MakeStream::from({Number(1), Number(2), Number(3), Number(4)})
+    EXPECT_THAT(make_stream::from({Number(1), Number(2), Number(3), Number(4)})
                     | filter(&Number::is_even)
                     | to_vector(),
                 ElementsAre(Number(2), Number(4)));
@@ -48,6 +48,6 @@ TEST(FilterTest, MemberFunction) {
 TEST(FilterTest, BoolConversion) {
     Number n{1};
     Number* null = nullptr;
-    EXPECT_THAT(MakeStream::from({&n, null, &n}) | filter() | to_vector(),
+    EXPECT_THAT(make_stream::from({&n, null, &n}) | filter() | to_vector(),
                 ElementsAre(&n, &n));
 }

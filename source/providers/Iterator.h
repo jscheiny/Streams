@@ -9,17 +9,20 @@ namespace stream {
 namespace provider {
 
 template<typename T, typename Itr>
-class Iterator : public StreamProvider<T> {
+class iterator {
 
 public:
-    Iterator(Itr begin, Itr end)
-        : current_(begin), end_(end) {}
+    using element = T;
 
-    std::shared_ptr<T> get() override {
-        return std::make_shared<T>(std::move(*current_));
+    iterator(Itr begin, Itr end)
+        : current_(begin)
+        , end_(end) {}
+
+    std::shared_ptr<element> get() {
+        return std::make_shared<element>(std::move(*current_));
     }
 
-    bool advance_impl() override {
+    bool advance() {
         if(first_) {
             first_ = false;
             return current_ != end_;
@@ -28,10 +31,10 @@ public:
         return current_ != end_;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "[iterator stream]\n";
-        return PrintInfo::Source();
+        return print_info::source();
     }
 
 private:

@@ -6,25 +6,27 @@
 namespace stream {
 namespace provider {
 
-template<typename T>
-class Slice : public StreamProvider<T> {
+template<typename Source>
+class slice {
 
 public:
-    Slice(StreamProviderPtr<T> source, size_t start, size_t end, size_t increment, bool no_end_)
-        : source_(std::move(source)),
-          start_(start),
-          end_(end),
-          increment_(increment),
-          no_end_(no_end_) {}
+    using element = typename Source::element;
 
-    std::shared_ptr<T> get() override {
+    slice(std::unique_ptr<Source> source, size_t start, size_t end, size_t increment, bool no_end)
+        : source_(std::move(source))
+        , start_(start)
+        , end_(end)
+        , increment_(increment)
+        , no_end_(no_end) {}
+
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(index_ < start_) {
-            for(; index_ <= start_; index_++) {
-                if(source_->advance()) {
+    bool advance() {
+        if (index_ < start_) {
+            for (; index_ <= start_; index_++) {
+                if (stream_advance(source_)) {
                     current_ = source_->get();
                 } else {
                     current_.reset();
@@ -34,10 +36,10 @@ public:
             return true;
         }
 
-        if(no_end_ || index_ + increment_ <= end_) {
-            for(size_t k = 0; k < increment_; k++) {
+        if (no_end_ or index_ + increment_ <= end_) {
+            for (size_t k = 0; k < increment_; k++) {
                 index_++;
-                if(source_->advance()) {
+                if (stream_advance(source_)) {
                     current_ = source_->get();
                 } else {
                     current_.reset();
@@ -51,24 +53,23 @@ public:
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Slice[" << start_ << ", "
                        << (no_end_ ? -1 : static_cast<long>(end_)) << ", "
                        << increment_ <<  "]:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
     bool first_ = true;
-    StreamProviderPtr<T> source_;
-    std::shared_ptr<T> current_;
+    std::unique_ptr<Source> source_;
+    std::shared_ptr<element> current_;
     size_t index_ = 0;
     size_t start_;
     size_t end_;
     size_t increment_;
     bool no_end_;
-
 
 };
 

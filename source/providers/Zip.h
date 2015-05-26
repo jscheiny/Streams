@@ -60,26 +60,32 @@ struct Zipper {
 
 } /* namespace detail */
 
-template<typename L, typename R, typename Function>
-class Zip : public StreamProvider<std::result_of_t<Function(L&&, R&&)>> {
+template<typename LeftSource, typename RightSource, typename Function>
+class zip {
+
+private:
+    using left_elem = typename LeftSource::element;
+    using right_elem = typename RightSource::element;
 
 public:
-    using ValueType = std::result_of_t<Function(L&&, R&&)>;
+    using element = std::result_of_t<Function(left_elem&&, right_elem&&)>;
+    static_assert(!std::is_void<element>::value,
+        "Return type of the zipping function cannot be void.");
 
-    Zip(StreamProviderPtr<L> left_source,
-        StreamProviderPtr<R> right_source,
+    zip(std::unique_ptr<LeftSource> left_source,
+        std::unique_ptr<RightSource> right_source,
         Function&& zipper)
-          : left_source_(std::move(left_source)),
-            right_source_(std::move(right_source)),
-            zipper_(zipper) {}
+          : left_source_(std::move(left_source))
+          , right_source_(std::move(right_source))
+          , zipper_(zipper) {}
 
-    std::shared_ptr<ValueType> get() override {
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(left_source_->advance() && right_source_->advance()) {
-            current_ = std::make_shared<ValueType>(
+    bool advance() {
+        if (stream_advance(left_source_) && stream_advance(right_source_)) {
+            current_ = std::make_shared<element>(
                 zipper_(std::move(*left_source_->get()),
                         std::move(*right_source_->get())));
             return true;
@@ -88,17 +94,17 @@ public:
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Zip:\n";
         return left_source_->print(os, indent + 1)
              + right_source_->print(os, indent + 1);
     }
 
 private:
-    StreamProviderPtr<L> left_source_;
-    StreamProviderPtr<R> right_source_;
-    std::shared_ptr<ValueType> current_;
+    std::unique_ptr<LeftSource> left_source_;
+    std::unique_ptr<RightSource> right_source_;
+    std::shared_ptr<element> current_;
     Function zipper_;
 };
 

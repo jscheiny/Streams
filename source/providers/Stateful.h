@@ -9,21 +9,23 @@
 namespace stream {
 namespace provider {
 
-template<typename T>
-class Stateful : public StreamProvider<T> {
+template<typename Source>
+class stateful {
 
 public:
-    Stateful(StreamProviderPtr<T> source)
+    using element = typename Source::element;
+
+    stateful(std::unique_ptr<Source> source)
         : source_(std::move(source)) {}
 
-    std::shared_ptr<T> get() override {
+    std::shared_ptr<element> get() {
         return *current_;
     }
 
-    bool advance_impl() override {
-        if(first_) {
+    bool advance() {
+        if (first_) {
             first_ = false;
-            while(source_->advance()) {
+            while (stream_advance(source_)) {
                 state_.push_back(source_->get());
             }
             current_ = state_.begin();
@@ -33,18 +35,18 @@ public:
         return current_ != state_.end();
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "StatePoint:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
-    using List = std::list<std::shared_ptr<T>>;
+    using List = std::list<std::shared_ptr<element>>;
     using Iterator = typename List::iterator;
 
     bool first_ = true;
-    StreamProviderPtr<T> source_;
+    std::unique_ptr<Source> source_;
     List state_;
     Iterator current_;
     Iterator end_;

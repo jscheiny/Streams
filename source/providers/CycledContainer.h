@@ -6,39 +6,41 @@
 namespace stream {
 namespace provider {
 
-template<typename T, typename Container>
-class CycledContainer : public StreamProvider<T> {
+template<typename Container>
+class cycled_container {
 
 public:
-    CycledContainer(Container&& container, size_t times)
-        : container_{container},
-          current_{std::begin(container_)},
-          end_{std::end(container_)},
-          times_{times} {}
+    using element = ContainerType<Container>;
 
-    std::shared_ptr<T> get() override {
-        return std::make_shared<T>(std::move(*current_));
+    cycled_container(Container&& container, size_t times)
+        : container_{container}
+        , current_{std::begin(container_)}
+        , end_{std::end(container_)}
+        , times_{times} {}
+
+    std::shared_ptr<element> get() {
+        return std::make_shared<element>(std::move(*current_));
     }
 
-    bool advance_impl() override {
-        if(first_) {
+    bool advance() {
+        if (first_) {
             first_ = false;
             return current_ != end_;
         }
         ++current_;
-        if(current_ == end_) {
+        if (current_ == end_) {
             iteration_++;
-            if(iteration_ > times_ && times_ != 0)
+            if (iteration_ > times_ && times_ != 0)
                 return false;
             current_ = std::begin(container_);
         }
         return true;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "[cycled container stream]\n";
-        return PrintInfo::Source();
+        return print_info::source();
     }
 
 private:

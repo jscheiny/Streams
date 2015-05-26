@@ -18,32 +18,35 @@ NTuple<T, N> rotate(std::tuple<Args...>&& tuple, T&& last) {
                        make_1based_sequence<size_t, N>());
 }
 
-template<typename T, size_t N>
-class Overlap : public StreamProvider<NTuple<T, N>> {
+template<typename Source, size_t N>
+class overlap {
 
 private:
-    using Tuple = NTuple<T, N>;
+    using source_elem = typename Source::element;
 
 public:
-    Overlap(StreamProviderPtr<T> source) : source_(std::move(source)) {}
+    using element = NTuple<source_elem, N>;
 
-    std::shared_ptr<Tuple> get() override {
+    overlap(std::unique_ptr<Source> source)
+        : source_(std::move(source)) {}
+
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(first_) {
+    bool advance() {
+        if (first_) {
             first_ = false;
             try {
-                current_ = std::make_shared<Tuple>(detail::Grouper<T, N>::group(source_));
+                current_ = std::make_shared<element>(detail::Grouper<source_elem, N>::group(source_));
                 return true;
             } catch(detail::IncompleteGroupError& e) {
                 return false;
             }
         }
 
-        if(source_->advance()) {
-            current_ = std::make_shared<Tuple>(
+        if(stream_advance(source_)) {
+            current_ = std::make_shared<element>(
                 rotate(std::move(*current_), std::move(*source_->get())));
             return true;
         }
@@ -51,16 +54,16 @@ public:
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Overlapped[" << N << "]:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
     bool first_ = true;
-    StreamProviderPtr<T> source_;
-    std::shared_ptr<Tuple> current_;
+    std::unique_ptr<Source> source_;
+    std::shared_ptr<element> current_;
 
 };
 

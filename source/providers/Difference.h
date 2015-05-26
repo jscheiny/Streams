@@ -6,56 +6,52 @@
 namespace stream {
 namespace provider {
 
-template<typename T, typename Compare>
-class Difference : public SetOperation<T, Compare> {
+namespace detail {
 
-    using Parent = SetOperation<T, Compare>;
-    using UpdateState = typename Parent::UpdateState;
-    using ToAdvance = typename Parent::ToAdvance;
+template<typename Interface>
+class difference_impl {
 
 public:
-    Difference(StreamProviderPtr<T>&& source1,
-                             StreamProviderPtr<T>&& source2,
-                             Compare&& comparator)
-          : Parent(std::forward<StreamProviderPtr<T>>(source1),
-                   std::forward<StreamProviderPtr<T>>(source2),
-                   std::forward<Compare>(comparator)) {}
-
-protected:
-    void on_first_source_advance() override {
-        source1_advanced_ = true;
+    void on_left_source_advance() {
+        left_source_advanced_ = true;
     }
 
-    void before_update() override {
-        source1_advanced_ = false;
+    void before_update() {
+        left_source_advanced_ = false;
     }
 
-    UpdateState if_neither_depleted() override {
-        if(this->current1_smaller()) {
-            this->set_advance(ToAdvance::First);
-            this->set_result(this->get_current1());
-            if(source1_advanced_)
+    UpdateState if_neither_depleted(Interface& interface) {
+        if (interface.current_left_smaller()) {
+            interface.set_advance(ToAdvance::Left);
+            interface.set_result(interface.get_current_left());
+            if (left_source_advanced_) {
                 return UpdateState::UpdateFinished;
-        } else if(this->current2_smaller()) {
-            this->set_advance(ToAdvance::Second);
+            }
+        } else if (interface.current_right_smaller()) {
+            interface.set_advance(ToAdvance::Right);
         } else {
-            this->set_advance(ToAdvance::Both);
+            interface.set_advance(ToAdvance::Both);
         }
         return UpdateState::NotFinished;
     }
 
-    UpdateState if_first_depleted() override {
+    UpdateState if_left_depleted(Interface&) {
         return UpdateState::StreamFinished;
     }
 
-    std::string get_operation_name() const override {
+    std::string get_operation_name() const {
         return "Difference";
     }
 
 private:
-    bool source1_advanced_;
+    bool left_source_advanced_;
 
 };
+
+} /* namespace detail */
+
+template<typename Left, typename Right, typename Compare>
+using difference = set_operation<Left, Right, Compare, detail::difference_impl>;
 
 } /* namespace provider */
 } /* namespace stream */

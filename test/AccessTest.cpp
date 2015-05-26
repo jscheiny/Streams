@@ -17,26 +17,26 @@ using namespace stream::op;
     EXPECT_THAT(EXCEPTION_TEST(Operation, Exception), Eq(true));
 
 TEST(FirstTest, Default) {
-    EXPECT_THAT(MakeStream::counter(0) | first(), Eq(0));
+    EXPECT_THAT(make_stream::counter(0) | first(), Eq(0));
 }
 
 TEST(FirstTest, EmptyStream) {
-    EXPECT_EXCEPTION(MakeStream::empty<int>() | first(), EmptyStreamException);
+    EXPECT_EXCEPTION(make_stream::empty<int>() | first(), EmptyStreamException);
 }
 
 TEST(LastTest, Default) {
-    EXPECT_THAT(MakeStream::range(0, 10) | last(), Eq(9));
+    EXPECT_THAT(make_stream::range(0, 10) | last(), Eq(9));
 }
 
 TEST(LastTest, EmptyStream) {
-    EXPECT_EXCEPTION(MakeStream::empty<int>() | last(), EmptyStreamException);
+    EXPECT_EXCEPTION(make_stream::empty<int>() | last(), EmptyStreamException);
 }
 
 TEST(NthTest, Default) {
-    EXPECT_THAT(MakeStream::counter(0) | nth(5), Eq(5));
+    EXPECT_THAT(make_stream::counter(0) | nth(5), Eq(5));
 }
 
 TEST(NthTest, EmptyStream) {
-    EXPECT_EXCEPTION(MakeStream::range(0, 3) | nth(5), EmptyStreamException);
-    EXPECT_EXCEPTION(MakeStream::empty<int>() | nth(5), EmptyStreamException);
+    EXPECT_EXCEPTION(make_stream::range(0, 3) | nth(5), EmptyStreamException);
+    EXPECT_EXCEPTION(make_stream::empty<int>() | nth(5), EmptyStreamException);
 }

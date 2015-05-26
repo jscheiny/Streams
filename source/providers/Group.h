@@ -12,9 +12,9 @@ namespace detail {
 
 struct IncompleteGroupError {};
 
-template<typename T>
-std::shared_ptr<T> next(StreamProviderPtr<T>& source) {
-    if(source->advance()) {
+template<typename Source>
+auto next(std::unique_ptr<Source>& source) {
+    if(stream_advance(source)) {
         return source->get();
     }
     throw IncompleteGroupError();
@@ -24,7 +24,8 @@ template<typename T, size_t N>
 struct Grouper {
     using Type = NTuple<T, N>;
 
-    static Type group(StreamProviderPtr<T>& source) {
+    template<typename Source>
+    static Type group(std::unique_ptr<Source>& source) {
         auto sub = Grouper<T, N-1>::group(source);
         auto curr = next(source);
         return std::tuple_cat(sub, std::make_tuple<T>(std::move(*curr)));
@@ -35,7 +36,8 @@ template<typename T>
 struct Grouper<T, 3> {
     using Type = NTuple<T, 3>;
 
-    static Type group(StreamProviderPtr<T>& source) {
+    template<typename Source>
+    static Type group(std::unique_ptr<Source>& source) {
         auto first = next(source);
         auto second = next(source);
         auto third = next(source);
@@ -49,7 +51,8 @@ template<typename T>
 struct Grouper<T, 2> {
     using Type = std::pair<T, T>;
 
-    static Type group(StreamProviderPtr<T>& source) {
+    template<typename Source>
+    static Type group(std::unique_ptr<Source>& source) {
         auto first = next(source);
         auto second = next(source);
         return std::make_pair<T, T>(std::move(*first),
@@ -62,38 +65,42 @@ using GroupResult = typename detail::Grouper<T, N>::Type;
 
 } /* namespace detail */
 
-template<typename T, size_t N>
-class Group : public StreamProvider<detail::GroupResult<T, N>> {
+template<typename Source, size_t N>
+class group {
     static_assert(N >= 2, "Cannot group stream into chunks of less than size 2.");
 
+private:
+    using source_elem = typename Source::element;
+
 public:
-    using GroupType = detail::GroupResult<T, N>;
+    using element = detail::GroupResult<source_elem, N>;
 
-    Group(StreamProviderPtr<T> source) : source_(std::move(source)) {}
+    group(std::unique_ptr<Source> source)
+        : source_(std::move(source)) {}
 
-    std::shared_ptr<GroupType> get() override {
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
+    bool advance() {
         try {
-            auto group = detail::Grouper<T, N>::group(source_);
-            current_ = std::make_shared<GroupType>(std::move(group));
+            auto group = detail::Grouper<source_elem, N>::group(source_);
+            current_ = std::make_shared<element>(std::move(group));
             return true;
-        } catch(detail::IncompleteGroupError& err) {
+        } catch (detail::IncompleteGroupError& err) {
             return false;
         }
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Grouped[" << N << "]:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
-    StreamProviderPtr<T> source_;
-    std::shared_ptr<GroupType> current_;
+    std::unique_ptr<Source> source_;
+    std::shared_ptr<element> current_;
 
 };
 

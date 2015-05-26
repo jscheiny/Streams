@@ -24,12 +24,12 @@ public:
     Operator(const std::string& name, F&& op) : name_(name), operator_(std::forward<F>(op)) {}
     Operator(F&& op) : operator_(std::forward<F>(op)) {}
 
-    template<typename T>
-    std::result_of_t<F(Stream<T>&&)> apply_to(Stream<T>&& stream)  {
+    template<typename Provider>
+    std::result_of_t<F(Stream<Provider>&&)> apply_to(Stream<Provider>&& stream)  {
         if(!name_.empty()) {
             stream.check_vacant(name_);
         }
-        return operator_(std::forward<Stream<T>>(stream));
+        return operator_(std::forward<Stream<Provider>>(stream));
     }
 
     template<typename G>
@@ -60,13 +60,13 @@ public:
     Terminator(const std::string& name, F&& term) : name_(name), terminator_(term) {}
     Terminator(F&& term) : terminator_(term) {}
 
-    template<typename T>
-    auto apply_to(Stream<T>&& stream) -> std::result_of_t<F(Stream<T>&&)> {
+    template<typename Provider>
+    auto apply_to(Stream<Provider>&& stream) -> std::result_of_t<F(Stream<Provider>&&)> {
         if(!name_.empty()) {
             stream.check_vacant(name_);
         }
         try {
-            return terminator_(std::forward<Stream<T>>(stream));
+            return terminator_(std::forward<Stream<Provider>>(stream));
         } catch(EmptyStreamException& e) {
             if(!name_.empty()) {
                 throw EmptyStreamException(name_);

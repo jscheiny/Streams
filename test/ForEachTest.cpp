@@ -18,7 +18,7 @@ using namespace stream::op;
 
 TEST(ForEachTest, Default) {
     std::vector<int> result;
-    MakeStream::range(1, 5) | for_each([&](int x) { result.push_back(x); });
+    make_stream::range(1, 5) | for_each([&](int x) { result.push_back(x); });
     EXPECT_THAT(result, ElementsAre(1, 2, 3, 4));
 }
 
@@ -31,6 +31,6 @@ struct Accumulator {
 };
 
 TEST(ForEachTest, Result) {
-    Accumulator<int> accum = MakeStream::range(1, 5) | for_each(Accumulator<int>{});
+    Accumulator<int> accum = make_stream::range(1, 5) | for_each(Accumulator<int>{});
     EXPECT_THAT(accum.result, ElementsAre(1, 2, 3, 4));
 }

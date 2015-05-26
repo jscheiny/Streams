@@ -8,25 +8,29 @@
 namespace stream {
 namespace provider {
 
-template<typename T>
-class DynamicOverlap : public StreamProvider<std::deque<T>> {
+template<typename Source>
+class dynamic_overlap {
 
 private:
-    using Result = std::deque<T>;
+    using source_elem = typename Source::element;
 
 public:
-    DynamicOverlap(StreamProviderPtr<T> source, size_t N) : source_(std::move(source)), N_(N) {}
+    using element = std::deque<source_elem>;
 
-    std::shared_ptr<Result> get() override {
+    dynamic_overlap(std::unique_ptr<Source> source, size_t N)
+        : source_(std::move(source))
+        , N_(N) {}
+
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(first_) {
+    bool advance() {
+        if (first_) {
             first_ = false;
-            current_ = std::make_shared<Result>();
-            for(size_t i = 0; i < N_; i++) {
-                if(source_->advance()) {
+            current_ = std::make_shared<element>();
+            for (size_t i = 0; i < N_; i++) {
+                if (stream_advance(source_)) {
                     current_->emplace_back(std::move(*source_->get()));
                 } else {
                     current_.reset();
@@ -36,8 +40,8 @@ public:
             return true;
         }
 
-        if(source_->advance()) {
-            current_ = std::make_shared<Result>(*current_);
+        if (stream_advance(source_)) {
+            current_ = std::make_shared<element>(*current_);
             current_->pop_front();
             current_->emplace_back(std::move(*source_->get()));
             return true;
@@ -46,16 +50,16 @@ public:
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Overlapped[" << N_ << "]:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
     bool first_ = true;
-    StreamProviderPtr<T> source_;
-    std::shared_ptr<Result> current_;
+    std::unique_ptr<Source> source_;
+    std::shared_ptr<element> current_;
     const size_t N_;
 
 };

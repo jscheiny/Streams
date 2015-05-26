@@ -7,30 +7,33 @@
 namespace stream {
 namespace provider {
 
-template<typename T, typename Equal>
-class AdjacentDistinct : public StreamProvider<T> {
+template<typename Source, typename Equal>
+class adjacent_distinct {
 
 public:
-    AdjacentDistinct(StreamProviderPtr<T> source, Equal&& equal)
-        : source_(std::move(source)), equal_(std::forward<Equal>(equal_)) {}
+    using element = typename Source::element;
 
-    std::shared_ptr<T> get() override {
+    adjacent_distinct(std::unique_ptr<Source> source, Equal&& equal)
+        : source_(std::move(source))
+        , equal_(std::forward<Equal>(equal_)) {}
+
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(first_) {
+    bool advance() {
+        if (first_) {
             first_ = false;
-            if(source_->advance()) {
+            if (stream_advance(source_)) {
                 current_ = source_->get();
                 return true;
             }
             return false;
         }
 
-        while(source_->advance()) {
+        while (stream_advance(source_)) {
             auto next = source_->get();
-            if(!equal_(*current_, *next)) {
+            if (!equal_(*current_, *next)) {
                 current_ = next;
                 return true;
             }
@@ -40,16 +43,16 @@ public:
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "AdjacentDistinct:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
-    StreamProviderPtr<T> source_;
+    std::unique_ptr<Source> source_;
     Equal equal_;
-    std::shared_ptr<T> current_;
+    std::shared_ptr<element> current_;
     bool first_ = true;
 };
 

@@ -9,40 +9,35 @@
 namespace stream {
 namespace provider {
 
-template<typename T, typename Compare>
-class Union : public SetOperation<T, Compare> {
+namespace detail {
 
-    using Parent = SetOperation<T, Compare>;
-    using UpdateState = typename Parent::UpdateState;
-    using ToAdvance = typename Parent::ToAdvance;
+template<typename Interface>
+class union_impl {
 
 public:
-    Union(StreamProviderPtr<T>&& source1,
-          StreamProviderPtr<T>&& source2,
-          Compare&& comparator)
-          : Parent(std::forward<StreamProviderPtr<T>>(source1),
-                   std::forward<StreamProviderPtr<T>>(source2),
-                   std::forward<Compare>(comparator)) {}
-
-protected:
-    UpdateState if_neither_depleted() override {
-        if(this->current1_smaller()) {
-            this->set_advance(ToAdvance::First);
-            this->set_result(this->get_current1());
-        } else if(this->current2_smaller()) {
-            this->set_advance(ToAdvance::Second);
-            this->set_result(this->get_current2());
+    UpdateState if_neither_depleted(Interface& interface) {
+        if (interface.current_left_smaller()) {
+            interface.set_advance(ToAdvance::Left);
+            interface.set_result(interface.get_current_left());
+        } else if (interface.current_right_smaller()) {
+            interface.set_advance(ToAdvance::Right);
+            interface.set_result(interface.get_current_right());
         } else {
-            this->set_advance(ToAdvance::Both);
-            this->set_result(this->get_current1());
+            interface.set_advance(ToAdvance::Both);
+            interface.set_result(interface.get_current_left());
         }
         return UpdateState::UpdateFinished;
     }
 
-    std::string get_operation_name() const override {
+    std::string get_operation_name() const {
         return "Union";
     }
 };
+
+} /* namespace detail */
+
+template<typename Left, typename Right, typename Compare>
+using union_ = set_operation<Left, Right, Compare, detail::union_impl>;
 
 } /* namespace provider */
 } /* namespace stream */

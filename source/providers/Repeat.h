@@ -9,29 +9,33 @@ namespace stream {
 namespace provider {
 
 template<typename T>
-class Repeat : public StreamProvider<T> {
+class repeat {
 
 public:
-    Repeat(const T& value) : value_(std::make_shared<T>(value)) {}
+    using element = T;
 
-    Repeat(T&& value) : value_(std::make_shared<T>(value)) {}
+    repeat(const element& value)
+        : value_(std::make_shared<element>(value)) {}
 
-    std::shared_ptr<T> get() override {
+    repeat(element&& value)
+        : value_(std::make_shared<element>(value)) {}
+
+    std::shared_ptr<element> get() {
         return value_;
     }
 
-    bool advance_impl() override {
+    bool advance() {
         return true;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "[repeated value stream]\n";
-        return PrintInfo::Source();
+        return print_info::source();
     }
 
 private:
-    std::shared_ptr<T> value_;
+    std::shared_ptr<element> value_;
 
 };
 

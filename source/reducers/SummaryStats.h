@@ -35,9 +35,9 @@ private:
         double prev_mean = mean_;
         mean_ += (value - mean_) / number_;
         variance_ += (value - prev_mean) * (value - mean_);
-        if(value < min_)
+        if (value < min_)
             min_ = value;
-        if(value > max_)
+        if (value > max_)
             max_ = value;
         return *this;
     }

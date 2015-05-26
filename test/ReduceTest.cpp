@@ -28,26 +28,26 @@ std::string to_string(int x) {
     EXPECT_THAT(EXCEPTION_TEST(Operation, Exception), Eq(true));
 
 TEST(Reduce, NoIdentity) {
-    EXPECT_THAT(MakeStream::range(1, 6) | reduce(std::plus<int>{}), Eq(15));
-    EXPECT_EXCEPTION(MakeStream::empty<int>() | reduce(std::plus<int>{}), EmptyStreamException);
+    EXPECT_THAT(make_stream::range(1, 6) | reduce(std::plus<int>{}), Eq(15));
+    EXPECT_EXCEPTION(make_stream::empty<int>() | reduce(std::plus<int>{}), EmptyStreamException);
 }
 
 TEST(Reduce, IdentityFunction) {
-    EXPECT_THAT(MakeStream::range(1, 6) | reduce(to_string, int_concat), Eq("12345"s));
-    EXPECT_EXCEPTION(MakeStream::empty<int>() | reduce(to_string, int_concat),
+    EXPECT_THAT(make_stream::range(1, 6) | reduce(to_string, int_concat), Eq("12345"s));
+    EXPECT_EXCEPTION(make_stream::empty<int>() | reduce(to_string, int_concat),
                      EmptyStreamException);
 }
 
 TEST(Reduce, SameTypeIdentity) {
-    EXPECT_THAT(MakeStream::range(1, 6) | identity_reduce(1, std::multiplies<int>{}),
+    EXPECT_THAT(make_stream::range(1, 6) | identity_reduce(1, std::multiplies<int>{}),
                 Eq(120));
-    EXPECT_THAT(MakeStream::empty<int>() | identity_reduce(1, std::multiplies<int>{}),
+    EXPECT_THAT(make_stream::empty<int>() | identity_reduce(1, std::multiplies<int>{}),
                 Eq(1));
 }
 
 TEST(Reduce, DiffTypeIdentity) {
-    EXPECT_THAT(MakeStream::range(1, 6) | identity_reduce(""s, int_concat),
+    EXPECT_THAT(make_stream::range(1, 6) | identity_reduce(""s, int_concat),
                 Eq("12345"s));
-    EXPECT_THAT(MakeStream::empty<int>() | identity_reduce("BLAH"s, int_concat),
+    EXPECT_THAT(make_stream::empty<int>() | identity_reduce("BLAH"s, int_concat),
                 Eq("BLAH"s));
 }

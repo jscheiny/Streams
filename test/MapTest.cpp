@@ -24,17 +24,17 @@ struct Number {
 };
 
 TEST(MapTest, Function) {
-    EXPECT_THAT(MakeStream::range(0, 5) | map_(square) | to_vector(),
+    EXPECT_THAT(make_stream::range(0, 5) | map_(square) | to_vector(),
                 ElementsAre(0, 1, 4, 9, 16));
 }
 
 TEST(MapTest, MemberFunction) {
-    EXPECT_THAT(MakeStream::from({Number(1), Number(2), Number(3)})
+    EXPECT_THAT(make_stream::from({Number(1), Number(2), Number(3)})
                     | map_(&Number::get_value)
                     | to_vector(),
                 ElementsAre(1, 2, 3));
 
-    EXPECT_THAT(MakeStream::from({Number(1), Number(2), Number(3)})
+    EXPECT_THAT(make_stream::from({Number(1), Number(2), Number(3)})
                     | map_(&Number::get_value_const)
                     | to_vector(),
                 ElementsAre(1, 2, 3));

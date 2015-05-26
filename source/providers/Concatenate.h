@@ -8,53 +8,56 @@
 namespace stream {
 namespace provider {
 
-template<typename T>
-class Concatenate : public StreamProvider<T> {
+template<typename FirstSource, typename SecondSource>
+class concatenate {
+
+private:
+    using first_elem = typename FirstSource::element;
+    using second_elem = typename SecondSource::element;
+    static_assert(std::is_same<first_elem, second_elem>::value,
+        "Cannot concatenate streams of different types.");
 
 public:
-    template<typename Iterator>
-    Concatenate(Iterator begin, Iterator end) : sources_(begin, end) {}
+    using element = first_elem;
 
-    Concatenate(StreamProviderPtr<T> first, StreamProviderPtr<T> second) {
-        sources_.push_back(std::move(first));
-        sources_.push_back(std::move(second));
-    }
+    concatenate(std::unique_ptr<FirstSource> first, std::unique_ptr<SecondSource> second)
+        : first_source_(std::move(first))
+        , second_source_(std::move(second)) {}
 
-    std::shared_ptr<T> get() override {
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        while(!sources_.empty()) {
-            auto& provider = sources_.front();
-            if(provider->advance()) {
-                current_ = provider->get();
+    bool advance() {
+        if (!first_depleted_) {
+            if (stream_advance(first_source_)) {
+                current_ = first_source_->get();
                 return true;
             }
-            sources_.pop_front();
+            first_depleted_ = true;
         }
+
+        if (stream_advance(second_source_)) {
+            current_ = second_source_->get();
+            return true;
+        }
+
         current_.reset();
         return false;
     }
 
-    void concat(StreamProviderPtr<T>&& source) {
-        sources_.push_back(std::move(source));
-    }
-
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
-        os << "Concatenation[" << sources_.size() << "]:\n";
-        PrintInfo result{0, 1};
-        for(auto& source : sources_) {
-            result = result + source->print(os, indent + 1);
-        }
-        return result;
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
+        os << "Concatenation:\n";
+        return first_source_->print(os, indent + 1)
+             + second_source_->print(os, indent + 1);
     }
 
 private:
-    std::list<StreamProviderPtr<T>> sources_;
-    std::shared_ptr<T> current_;
-
+    std::unique_ptr<FirstSource> first_source_;
+    std::unique_ptr<SecondSource> second_source_;
+    std::shared_ptr<element> current_;
+    bool first_depleted_ = false;
 };
 
 } /* namespace provider */

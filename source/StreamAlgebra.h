@@ -5,26 +5,23 @@
 
 #define STREAM_OP_STREAM(Op, Function) \
     template<typename T1, typename T2> \
-    stream::Stream<std::result_of_t< Function (T1&&, T2&&)>> \
-    operator Op (stream::Stream<T1>&& left, stream::Stream<T2>&& right) { \
+    auto operator Op (stream::Stream<T1>&& left, stream::Stream<T2>&& right) { \
         return left | stream::op::zip_with(std::forward<stream::Stream<T2>>(right), \
                                            Function{}); \
     }
 
 #define STREAM_OP_VALUE(Op) \
     template<typename S, typename T> \
-    auto operator Op (stream::Stream<S>&& left, const T& right) \
-            -> stream::Stream<decltype(std::declval<S&&>() Op right)> { \
-        return left | stream::op::map_([right] (S&&value) { \
+    auto operator Op (stream::Stream<S>&& left, const T& right) { \
+        return left | stream::op::map_([right] (typename S::element && value) { \
             return value Op right; \
         }); \
     }
 
 #define VALUE_OP_STREAM(Op) \
     template<typename S, typename T> \
-    auto operator Op (const T& left, stream::Stream<S>&& right) \
-            -> stream::Stream<decltype(left Op std::declval<S&&>())> { \
-        return right | stream::op::map_([left] (S&& value) { \
+    auto operator Op (const T& left, stream::Stream<S>&& right) { \
+        return right | stream::op::map_([left] (typename S::element && value) { \
             return left Op value; \
         }); \
     }
@@ -35,9 +32,9 @@
     VALUE_OP_STREAM(Op) \
 
 #define UNARY_OPERATOR(Op) \
-    template<typename T> \
-    stream::Stream<decltype( Op std::declval<T&&>())> operator Op (stream::Stream<T>&& stream) { \
-        return stream | stream::op::map_([](T&& x) { return Op x; }); \
+    template<typename S> \
+    auto operator Op (stream::Stream<S>&& stream) { \
+        return stream | stream::op::map_([](typename S::element && x) { return Op x; }); \
     }
 
 

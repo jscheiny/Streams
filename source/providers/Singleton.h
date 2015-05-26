@@ -12,19 +12,23 @@ namespace stream {
 namespace provider {
 
 template<typename T>
-class Singleton : public StreamProvider<T> {
+class singleton {
 
 public:
-    Singleton(const T& value) : value_(std::make_shared<T>(value)) {}
+    using element = T;
 
-    Singleton(T&& value) : value_(std::make_shared<T>(value)) {}
+    singleton(const element& value)
+        : value_(std::make_shared<element>(value)) {}
 
-    std::shared_ptr<T> get() override {
+    singleton(element&& value)
+        : value_(std::make_shared<element>(value)) {}
+
+    std::shared_ptr<element> get() {
         return value_;
     }
 
-    bool advance_impl() override {
-        if(first_) {
+    bool advance() {
+        if (first_) {
             first_ = false;
             return true;
         }
@@ -32,15 +36,15 @@ public:
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
+    print_info print(std::ostream& os, int indent) const {
         this->print_indent(os, indent);
         os << "[singleton stream]\n";
-        return PrintInfo::Source();
+        return print_info::source();
     }
 
 private:
     bool first_ = true;
-    std::shared_ptr<T> value_;
+    std::shared_ptr<element> value_;
 };
 
 } /* namespace provider */

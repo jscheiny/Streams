@@ -9,21 +9,28 @@
 namespace stream {
 namespace provider {
 
-template<typename T>
-class DynamicGroup : public StreamProvider<std::vector<T>> {
+template<typename Source>
+class dynamic_group {
+
+private:
+    using source_elem = typename Source::element;
 
 public:
-    DynamicGroup(StreamProviderPtr<T> source, size_t N) : source_(std::move(source)), N_(N) {}
+    using element = std::vector<source_elem>;
 
-    std::shared_ptr<std::vector<T>> get() override {
+    dynamic_group(std::unique_ptr<Source> source, size_t N)
+        : source_(std::move(source))
+        , N_(N) {}
+
+    std::shared_ptr<std::vector<source_elem>> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        current_ = std::make_shared<std::vector<T>>();
+    bool advance() {
+        current_ = std::make_shared<std::vector<source_elem>>();
         current_->reserve(N_);
-        for(int i = 0; i < N_; i++) {
-            if(source_->advance()) {
+        for (int i = 0; i < N_; i++) {
+            if (stream_advance(source_)) {
                 current_->emplace_back(std::move(*source_->get()));
             } else {
                 current_.reset();
@@ -33,15 +40,15 @@ public:
         return true;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Grouped[" << N_ << "]:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
-    StreamProviderPtr<T> source_;
-    std::shared_ptr<std::vector<T>> current_;
+    std::unique_ptr<Source> source_;
+    std::shared_ptr<std::vector<source_elem>> current_;
     const size_t N_;
 
 };

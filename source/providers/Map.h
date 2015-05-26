@@ -8,37 +8,44 @@
 namespace stream {
 namespace provider {
 
-template<typename T, typename Transform, typename In>
-class Map : public StreamProvider<T> {
+template<typename Source, typename Transform>
+class map {
+
+private:
+    using source_elem = typename Source::element;
 
 public:
-    Map(StreamProviderPtr<In> source, Transform&& transform)
-        : source_(std::move(source)), transform_(transform) {}
+    using element = std::result_of_t<Transform(source_elem&&)>;
+    static_assert(!std::is_void<element>::value,
+        "Return type of the transform function cannot be void.");
 
-    std::shared_ptr<T> get() override {
+    map(std::unique_ptr<Source> source, Transform&& transform)
+        : source_(std::move(source))
+        , transform_(transform) {}
+
+    std::shared_ptr<element> get() {
         return current_;
     }
 
-    bool advance_impl() override {
-        if(source_->advance()) {
-            current_ = std::make_shared<T>(transform_(std::move(*source_->get())));
+    bool advance() {
+        if (stream_advance(source_)) {
+            current_ = std::make_shared<element>(transform_(std::move(*source_->get())));
             return true;
         }
         current_.reset();
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
-        this->print_indent(os, indent);
+    print_info print(std::ostream& os, int indent) const {
+        print_indent(os, indent);
         os << "Map:\n";
-        return source_->print(os, indent + 1).addStage();
+        return source_->print(os, indent + 1).add_stage();
     }
 
 private:
-    StreamProviderPtr<In> source_;
+    std::unique_ptr<Source> source_;
     Transform transform_;
-    std::shared_ptr<T> current_;
-
+    std::shared_ptr<element> current_;
 };
 
 } /* namespace provider */

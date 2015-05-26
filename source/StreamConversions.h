@@ -15,7 +15,7 @@ public:
 
     auto operator() () const {
         return make_terminator(name_, [](auto&& stream) {
-            using T = StreamType<decltype(stream)>;
+            using T = stream_type<decltype(stream)>;
             ListContainer<T, std::allocator<T>> result;
             stream | copy_to(std::back_inserter(result));
             return result;
@@ -25,7 +25,7 @@ public:
     template<typename Allocator = std::allocator<void>>
     auto operator() (const Allocator& allocator) const {
         return make_terminator(name_, [allocator](auto&& stream) {
-            using T = StreamType<decltype(stream)>;
+            using T = stream_type<decltype(stream)>;
             ListContainer<T, Allocator> result(allocator);
             stream | copy_to(std::back_inserter(result));
             return result;
@@ -46,7 +46,7 @@ public:
     auto operator() (const Compare& compare,
                      const Allocator& allocator) const {
         return make_terminator(name_, [compare, allocator](auto&& stream) {
-            using T = StreamType<decltype(stream)>;
+            using T = stream_type<decltype(stream)>;
             OrderedContainer<T, Compare, Allocator> result(compare, allocator);
             stream | copy_to(std::inserter(result, result.end()));
             return result;
@@ -56,7 +56,7 @@ public:
     template<typename Compare = std::less<void>>
     auto operator() (const Compare& compare = Compare()) const {
         return make_terminator(name_, [compare](auto&& stream) {
-            using T = StreamType<decltype(stream)>;
+            using T = stream_type<decltype(stream)>;
             OrderedContainer<T, Compare, std::allocator<T>> result(compare);
             stream | copy_to(std::inserter(result, result.end()));
             return result;
@@ -85,7 +85,7 @@ public:
                      const Predicate& predicate,
                      const Allocator& allocator) const {
         return make_terminator(name_, [hash, predicate, allocator](auto&& stream) {
-            using T = StreamType<decltype(stream)>;
+            using T = stream_type<decltype(stream)>;
             UnorderedContainer<T, Hash, Predicate, Allocator> result(0, hash, predicate, allocator);
             stream | copy_to(std::inserter(result, result.end()));
             return result;
@@ -97,7 +97,7 @@ public:
     auto operator() (const Hash& hash = Hash(),
                      const Predicate& predicate = Predicate()) const {
         return make_terminator(name_, [hash, predicate](auto&& stream) {
-            using T = StreamType<decltype(stream)>;
+            using T = stream_type<decltype(stream)>;
             UnorderedContainer<T, Hash, Predicate, std::allocator<T>> result(0, hash, predicate);
             stream | copy_to(std::inserter(result, result.end()));
             return result;

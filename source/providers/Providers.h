@@ -18,7 +18,6 @@
 #include "Generate.h"
 #include "Group.h"
 #include "Intersection.h"
-#include "Iterate.h"
 #include "Iterator.h"
 #include "Map.h"
 #include "Merge.h"

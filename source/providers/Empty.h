@@ -7,21 +7,23 @@ namespace stream {
 namespace provider {
 
 template<typename T>
-class Empty : public StreamProvider<T> {
+class empty {
 
 public:
-    std::shared_ptr<T> get() override {
+    using element = T;
+
+    std::shared_ptr<element> get() {
         return nullptr;
     }
 
-    bool advance_impl() override {
+    bool advance() {
         return false;
     }
 
-    PrintInfo print(std::ostream& os, int indent) const override {
+    print_info print(std::ostream& os, int indent) const {
         this->print_indent(os, indent);
         os << "[empty stream]\n";
-        return PrintInfo::Source();
+        return print_info::source();
     }
 
 };
