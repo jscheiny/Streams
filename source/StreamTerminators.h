@@ -221,7 +221,7 @@ auto any(Predicate&& predicate) {
 }
 
 auto any() {
-    return any(to_bool);
+    return any([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(any);
@@ -240,7 +240,7 @@ auto all(Predicate&& predicate) {
 }
 
 auto all() {
-    return all(to_bool);
+    return all([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(all);
@@ -253,7 +253,7 @@ auto none(Predicate&& predicate) {
 }
 
 auto none() {
-    return none(to_bool);
+    return none([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(none);
@@ -266,7 +266,7 @@ auto not_all(Predicate&& predicate) {
 }
 
 auto not_all() {
-    return not_all(to_bool);
+    return not_all([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(not_all);
