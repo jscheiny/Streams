@@ -697,7 +697,7 @@ Stream&lt;int&gt; make_stream_safe2() {
 
 Stream&lt;int&gt; make_stream_unsafe() {
     std::vector&lt;int&gt; vec = {7, 8, 9};
-    return MakeStream::from(vec); // BAD!
+    return MakeStream::cycle(vec, 2); // BAD!
 }
 
 int main(int argc, char const *argv[]) {
