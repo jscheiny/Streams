@@ -23,7 +23,7 @@ using namespace stream::op;
 
 int number_heads(int flips) {
     return MakeStream::coin_flips()
-        | limit(1000)
+        | limit(flips)
         | filter()
         | count();
 };
