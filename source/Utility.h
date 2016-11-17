@@ -10,10 +10,6 @@
 
 namespace stream {
 
-bool to_bool(bool x) {
-    return x;
-}
-
 template<typename Function>
 struct InvertedPredicate {
     InvertedPredicate(Function&& fn) : function(fn) {}

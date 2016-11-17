@@ -23,7 +23,7 @@ auto filter(Predicate&& predicate) {
 }
 
 auto filter() {
-    return filter(to_bool);
+    return filter([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(filter);
@@ -39,7 +39,7 @@ auto take_while(Predicate&& predicate) {
 }
 
 auto take_while() {
-    return take_while(to_bool);
+    return take_while([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(take_while);
@@ -55,7 +55,7 @@ auto drop_while(Predicate&& predicate) {
 }
 
 auto drop_while() {
-    return drop_while(to_bool);
+    return drop_while([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(drop_while);
