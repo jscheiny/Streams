@@ -13,7 +13,7 @@ namespace op {
         { return operation (std::mem_fn(member)); }
 
 template<typename Predicate>
-auto filter(Predicate&& predicate) {
+inline auto filter(Predicate&& predicate) {
     return make_operator("stream::op::filter", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -22,14 +22,14 @@ auto filter(Predicate&& predicate) {
     });
 }
 
-auto filter() {
+inline auto filter() {
     return filter([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(filter);
 
 template<typename Predicate>
-auto take_while(Predicate&& predicate) {
+inline auto take_while(Predicate&& predicate) {
     return make_operator("stream::op::take_while", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -38,14 +38,14 @@ auto take_while(Predicate&& predicate) {
     });
 }
 
-auto take_while() {
+inline auto take_while() {
     return take_while([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(take_while);
 
 template<typename Predicate>
-auto drop_while(Predicate&& predicate) {
+inline auto drop_while(Predicate&& predicate) {
     return make_operator("stream::op::drop_while", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -54,13 +54,13 @@ auto drop_while(Predicate&& predicate) {
     });
 }
 
-auto drop_while() {
+inline auto drop_while() {
     return drop_while([](bool b){ return b; });
 }
 
 CLASS_SPECIALIZATIONS(drop_while);
 
-auto slice(std::size_t start, std::size_t end, std::size_t increment = 1) {
+inline auto slice(std::size_t start, std::size_t end, std::size_t increment = 1) {
     return make_operator("stream::op::slice", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -69,7 +69,7 @@ auto slice(std::size_t start, std::size_t end, std::size_t increment = 1) {
     });
 }
 
-auto slice_to_end(std::size_t start, std::size_t increment) {
+inline auto slice_to_end(std::size_t start, std::size_t increment) {
     return make_operator("stream::op::slice", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -78,16 +78,16 @@ auto slice_to_end(std::size_t start, std::size_t increment) {
     });
 }
 
-auto limit(std::size_t length) {
+inline auto limit(std::size_t length) {
     return slice(0, length).rename("stream::op::limit");
 }
 
-auto skip(std::size_t amount) {
+inline auto skip(std::size_t amount) {
     return slice_to_end(amount, 1).rename("stream::op::skip");
 }
 
 template<typename Function>
-auto map_(Function&& function) {
+inline auto map_(Function&& function) {
     return make_operator("stream::op::map_", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         using Result = std::result_of_t<Function(T&&)>;
@@ -103,7 +103,7 @@ auto map_(Function&& function) {
 CLASS_SPECIALIZATIONS(map_);
 
 template<typename Action>
-auto peek(Action&& action) {
+inline auto peek(Action&& action) {
     return make_operator("stream::op::peek", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -115,7 +115,7 @@ auto peek(Action&& action) {
 CLASS_SPECIALIZATIONS(peek);
 
 template<typename Transform>
-auto flat_map(Transform&& transform) {
+inline auto flat_map(Transform&& transform) {
     return make_operator("stream::op::flat_map", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         using Result = std::result_of_t<Transform(T&&)>;
@@ -132,7 +132,7 @@ auto flat_map(Transform&& transform) {
 CLASS_SPECIALIZATIONS(flat_map);
 
 template<typename Equal = std::equal_to<void>>
-auto adjacent_distinct(Equal&& equal = Equal()) {
+inline auto adjacent_distinct(Equal&& equal = Equal()) {
     return make_operator("stream::op::adjacent_distinct", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -142,7 +142,7 @@ auto adjacent_distinct(Equal&& equal = Equal()) {
 }
 
 template<typename Subtractor = std::minus<void>>
-auto adjacent_difference(Subtractor&& subtract = Subtractor()) {
+inline auto adjacent_difference(Subtractor&& subtract = Subtractor()) {
     return make_operator("stream::op::adjacent_difference", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         using Result = std::result_of_t<Subtractor(T&, T&)>;
@@ -153,7 +153,7 @@ auto adjacent_difference(Subtractor&& subtract = Subtractor()) {
 }
 
 template<typename Adder = std::plus<void>>
-auto partial_sum(Adder&& add = Adder()) {
+inline auto partial_sum(Adder&& add = Adder()) {
     return make_operator("stream::op::partial_sum", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -163,7 +163,7 @@ auto partial_sum(Adder&& add = Adder()) {
 }
 
 template<typename U>
-auto concat(Stream<U>&& tail) {
+inline auto concat(Stream<U>&& tail) {
     return make_operator("stream::op::concat", [tail = std::move(tail)] (auto&& head) mutable {
         if(!tail.occupied())
             throw VacantStreamException("stream::op::concat");
@@ -183,7 +183,7 @@ auto concat(Stream<U>&& tail) {
 }
 
 template<typename Iterator>
-auto concat(Iterator begin, Iterator end) {
+inline auto concat(Iterator begin, Iterator end) {
     return make_operator("stream::op::concat", [=](auto&& stream) {
         using I = IteratorType<Iterator>;
         using T = StreamType<decltype(stream)>;
@@ -195,7 +195,7 @@ auto concat(Iterator begin, Iterator end) {
 }
 
 template<size_t N>
-auto group() {
+inline auto group() {
     return make_operator("stream::op::group", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;
         using G = provider::detail::GroupResult<T, N>;
@@ -204,11 +204,11 @@ auto group() {
     });
 }
 
-auto pairwise() {
+inline auto pairwise() {
     return group<2>().rename("stream::op::pairwise");
 }
 
-auto group(size_t N) {
+inline auto group(size_t N) {
     return make_operator("stream::op::group", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;
         using G = std::vector<T>;
@@ -218,7 +218,7 @@ auto group(size_t N) {
 }
 
 template<size_t N>
-auto overlap() {
+inline auto overlap() {
     return make_operator("stream::op::overlap", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;
         using O = NTuple<T, N>;
@@ -227,7 +227,7 @@ auto overlap() {
     });
 }
 
-auto overlap(size_t N) {
+inline auto overlap(size_t N) {
     return make_operator("stream::op::overlap", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;
         using O = std::deque<T>;
@@ -237,7 +237,7 @@ auto overlap(size_t N) {
 }
 
 template<typename R, typename Function = provider::detail::Zipper>
-auto zip_with(Stream<R>&& right, Function&& zipper = Function()) {
+inline auto zip_with(Stream<R>&& right, Function&& zipper = Function()) {
     return make_operator("stream::op::zip_with", [right = std::move(right), zipper]
     (auto&& left) mutable {
         if(!right.occupied())
@@ -258,7 +258,7 @@ auto zip_with(Stream<R>&& right, Function&& zipper = Function()) {
 namespace detail {
 
 template<template<typename...> class Provider, typename T, typename Less>
-auto make_set_operator(const std::string& name, Stream<T>&& right, Less&& less) {
+inline auto make_set_operator(const std::string& name, Stream<T>&& right, Less&& less) {
     return make_operator(name, [name, right = std::move(right), less] (auto&& left) mutable {
         if(!right.occupied())
             throw VacantStreamException(name);
@@ -276,36 +276,36 @@ auto make_set_operator(const std::string& name, Stream<T>&& right, Less&& less) 
 } /* namespace detail */
 
 template<typename T, typename Less = std::less<T>>
-auto merge_with(Stream<T>&& right, Less&& less = Less()) {
+inline auto merge_with(Stream<T>&& right, Less&& less = Less()) {
     return detail::make_set_operator<provider::Merge>(
         "stream::op::merge_with", std::move(right), std::forward<Less>(less));
 }
 
 template<typename T, typename Less = std::less<T>>
-auto union_with(Stream<T>&& right, Less&& less = Less()) {
+inline auto union_with(Stream<T>&& right, Less&& less = Less()) {
     return detail::make_set_operator<provider::Union>(
         "stream::op::union_with", std::move(right), std::forward<Less>(less));
 }
 
 template<typename T, typename Less = std::less<T>>
-auto intersect_with(Stream<T>&& right, Less&& less = Less()) {
+inline auto intersect_with(Stream<T>&& right, Less&& less = Less()) {
     return detail::make_set_operator<provider::Intersection>(
         "stream::op::intersect_with", std::move(right), std::forward<Less>(less));
 }
 
 template<typename T, typename Less = std::less<T>>
-auto difference_with(Stream<T>&& right, Less&& less = Less()) {
+inline auto difference_with(Stream<T>&& right, Less&& less = Less()) {
     return detail::make_set_operator<provider::Difference>(
         "stream::op::difference_with", std::move(right), std::forward<Less>(less));
 }
 
 template<typename T, typename Less = std::less<T>>
-auto symmetric_difference_with(Stream<T>&& right, Less&& less = Less()) {
+inline auto symmetric_difference_with(Stream<T>&& right, Less&& less = Less()) {
     return detail::make_set_operator<provider::SymmetricDifference>(
         "stream::op::symmetric_difference_with", std::move(right), std::forward<Less>(less));
 }
 
-auto state_point() {
+inline auto state_point() {
     return make_operator("stream::op::state_point", [=](auto&& stream) {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(make_stream_provider<provider::Stateful, T>(
@@ -314,7 +314,7 @@ auto state_point() {
 }
 
 template<typename Less = std::less<void>>
-auto sort(Less&& less = Less()) {
+inline auto sort(Less&& less = Less()) {
     return make_operator("stream::op::sort", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(
@@ -324,7 +324,7 @@ auto sort(Less&& less = Less()) {
 }
 
 template<typename Less = std::less<void>>
-auto distinct(Less&& less = Less()) {
+inline auto distinct(Less&& less = Less()) {
     return make_operator("stream::op::distinct", [=](auto&& stream) mutable {
         using T = StreamType<decltype(stream)>;
         return Stream<T>(std::move(

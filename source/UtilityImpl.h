@@ -120,7 +120,7 @@ struct SplatTuple<Return, Function, last, last, Tuple, Args...> {
 };
 
 template<typename Function, typename... Types>
-auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
+inline auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
         -> decltype(function(std::declval<Types>()...)) {
 
     using Return = decltype(function(std::declval<Types>()...));
@@ -131,7 +131,7 @@ auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
 }
 
 template<typename Function, typename L, typename R>
-auto apply_tuple(Function&& function, const std::pair<L, R>& pair) {
+inline auto apply_tuple(Function&& function, const std::pair<L, R>& pair) {
     return function(pair.first, pair.second);
 }
 
@@ -203,7 +203,7 @@ struct ArgsToTuple<last, last, SplattableTuple<Types...>> {
 };
 
 template<typename... Args>
-auto args2tuple(Args&&... args) {
+inline auto args2tuple(Args&&... args) {
     return ArgsToTuple<0, sizeof...(Args)-1, Args...>
         ::tuplize(std::forward<Args>(args)...);
 }

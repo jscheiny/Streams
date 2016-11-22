@@ -11,12 +11,12 @@ namespace provider {
 namespace detail {
 
 template<typename Function, typename Array, size_t... I>
-auto apply_impl(Function&& function, Array& args, std::index_sequence<I...>) {
+inline auto apply_impl(Function&& function, Array& args, std::index_sequence<I...>) {
     return function(std::get<I>(args)...);
 }
 
 template<typename Function, typename T, size_t N>
-auto apply(Function&& function, std::array<T, N>& args) {
+inline auto apply(Function&& function, std::array<T, N>& args) {
     return apply_impl(std::forward<Function>(function), args,
                       std::make_index_sequence<N>());
 }
