@@ -89,11 +89,11 @@ std::ostream& operator<< (std::ostream& os, const std::tuple<Args...>& tuple) {
 }
 
 template<typename Function, typename... Types>
-auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
+inline auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
         -> decltype(function(std::declval<Types>()...));
 
 template<typename Function, typename L, typename R>
-auto apply_tuple(Function&& function, const std::pair<L, R>& pair)
+inline auto apply_tuple(Function&& function, const std::pair<L, R>& pair)
         -> decltype(function(pair.first, pair.second));
 
 template<typename Function>
