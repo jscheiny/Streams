@@ -69,7 +69,7 @@ private:
 
 struct PolymorphicHash {
     template<typename T>
-    decltype(auto) operator() (const T& value) {
+    decltype(auto) operator() (const T& value) const {
         return std::hash<T>{}(value);
     }
 };
