@@ -131,7 +131,8 @@ inline auto apply_tuple(Function&& function, const std::tuple<Types...>& tuple)
 }
 
 template<typename Function, typename L, typename R>
-inline auto apply_tuple(Function&& function, const std::pair<L, R>& pair) {
+inline auto apply_tuple(Function&& function, const std::pair<L, R>& pair)
+        -> decltype(function(pair.first, pair.second)){
     return function(pair.first, pair.second);
 }
 
