@@ -1,6 +1,13 @@
 #ifndef SCHEINERMAN_STREAM_STREAM_TERMINATORS_H
 #define SCHEINERMAN_STREAM_STREAM_TERMINATORS_H
 
+#ifdef _MSC_VER
+#define MAX_ORIGINAL max
+#define MIN_ORIGINAL min
+#undef max
+#undef min
+#endif // _MSC_VER
+
 namespace stream {
 namespace op {
 
@@ -358,3 +365,8 @@ inline auto random_element() {
 
 
 #endif
+
+#ifdef _MSC_VER
+#define max MAX_ORIGINAL
+#define min MIN_ORIGINAL
+#endif // _MSC_VER
