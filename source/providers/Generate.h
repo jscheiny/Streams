@@ -20,8 +20,14 @@ public:
     }
 
     bool advance_impl() override {
-        current_ = std::make_shared<T>(generator_());
-        return true;
+        try {
+            current_ = std::make_shared<T>(generator_());
+            return true;
+        }
+        catch (const std::out_of_range& e) {
+            // out_of_range indicates end of stream
+            return false;
+        }
     }
 
     PrintInfo print(std::ostream& os, int indent) const override {
